@@ -166,7 +166,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local MainFrame = Instance.new("Frame", ScreenGui) MainFrame.Size = UDim2.new(0, 490, 0, 310) MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0) MainFrame.AnchorPoint = Vector2.new(0.5, 0.5) MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12) MainFrame.BorderSizePixel = 0 MainFrame.Active = true MainFrame.ClipsDescendants = true Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
         local MainScale = Instance.new("UIScale", MainFrame) MainScale.Scale = 0 
         TweenService:Create(MainScale, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play()
-        
+
         local TopBar = Instance.new("Frame", MainFrame) TopBar.Size = UDim2.new(1, 0, 0, 30) TopBar.BackgroundColor3 = CurrentTheme TopBar.BorderSizePixel = 0 table.insert(ThemeElements.Backgrounds, TopBar) Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 8)
         local BottomFlat = Instance.new("Frame", TopBar) BottomFlat.Size = UDim2.new(1, 0, 0, 5) BottomFlat.Position = UDim2.new(0, 0, 1, -5) BottomFlat.BackgroundColor3 = CurrentTheme BottomFlat.BorderSizePixel = 0 table.insert(ThemeElements.Backgrounds, BottomFlat)
 
@@ -184,6 +184,49 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local function PlayMinimizeAnimation() CurrentUIState = "Minimized" TweenService:Create(MainScale, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Scale = 0}):Play() task.wait(0.2) MainFrame.Visible = false OpenButton.Visible = true OpenScale.Scale = 0 TweenService:Create(OpenScale, TweenInfo.new(animSpeed, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play() end
         local function PlayMaximizeAnimation() CurrentUIState = "Open" TweenService:Create(OpenScale, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Scale = 0}):Play() task.wait(0.15) OpenButton.Visible = false MainFrame.Visible = true MainScale.Scale = 0 TweenService:Create(MainScale, TweenInfo.new(animSpeed, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play() end
         local function PlayHideAnimation() CurrentUIState = "Hidden" TweenService:Create(MainScale, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Scale = 0}):Play() task.wait(0.2) MainFrame.Visible = false OpenButton.Visible = false end
+
+        -- =========================================================================
+        -- [ NOVO: SISTEMA DE REABERTURA COM 3 DEDOS (ESCONDIDO) ]
+        -- =========================================================================
+        local function OpenFromHidden()
+            CurrentUIState = "Open" 
+            OpenButton.Visible = false 
+            MainFrame.Visible = true 
+            MainScale.Scale = 0
+            TweenService:Create(MainScale, TweenInfo.new(animSpeed, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play()
+        end
+
+        local ActiveTouches = {} 
+        local isOpening = false
+
+        UserInputService.TouchStarted:Connect(function(input, gameProcessed)
+            if input.UserInputType == Enum.UserInputType.Touch then
+                ActiveTouches[input] = true
+                
+                local count = 0
+                for _ in pairs(ActiveTouches) do count = count + 1 end
+                
+                if count >= 3 and CurrentUIState == "Hidden" and not isOpening then
+                    isOpening = true
+                    task.wait(0.5) 
+                    
+                    local stillTouching = 0
+                    for _ in pairs(ActiveTouches) do stillTouching = stillTouching + 1 end
+                    
+                    if stillTouching >= 3 and CurrentUIState == "Hidden" then
+                        OpenFromHidden()
+                    end
+                    isOpening = false
+                end
+            end
+        end)
+
+        UserInputService.TouchEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch then
+                ActiveTouches[input] = nil
+            end
+        end)
+        -- =========================================================================
 
         OpenButton.MouseButton1Click:Connect(PlayMaximizeAnimation)
         local TopMinimizeBtn = Instance.new("TextButton", TopBar) TopMinimizeBtn.Size = UDim2.new(0, 30, 0, 30) TopMinimizeBtn.Position = UDim2.new(1, -35, 0, 0) TopMinimizeBtn.BackgroundTransparency = 1 TopMinimizeBtn.Text = "—" TopMinimizeBtn.TextColor3 = C_WHITE TopMinimizeBtn.Font = Enum.Font.GothamBold TopMinimizeBtn.TextSize = 20 TopMinimizeBtn.MouseButton1Click:Connect(PlayMinimizeAnimation)
@@ -208,6 +251,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local TabChat = CreateTab("Chat") 
         TabAimbot.Visible = true
 
+        -- Configuração para Chat não herdar padding
         local chatPadding = TabChat:FindFirstChildOfClass("UIPadding")
         if chatPadding then chatPadding:Destroy() end
         TabChat.AutomaticCanvasSize = Enum.AutomaticSize.None
@@ -219,6 +263,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             btn.MouseButton1Click:Connect(function() for _, tab in pairs(Tabs) do tab.Visible = false end targetTab.Visible = true for _, sBtn in pairs(SideButtons) do sBtn.BackgroundColor3 = C_DARK_GREY end btn.BackgroundColor3 = CurrentTheme ActiveSideButton = btn end)
         end
         
+        -- [ AJUSTE DE ESPAÇAMENTO DA SIDEBAR ]
         local StartY = 8
         local Step = 54
         
@@ -347,61 +392,38 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local CoresContainer = Instance.new("Frame", TabESP) CoresContainer.Size = UDim2.new(0, 150, 0, 25) CoresContainer.Position = UDim2.new(0, ESP_X + DROPDOWN_X, 0, 80) CoresContainer.BackgroundTransparency = 1 CoresContainer.Visible = false 
         CreateDropdown(CoresContainer, "ChamsColor", {"Verde", "Vermelho", "Roxo", "Azul", "Preto", "Branco", "Cinza", "rainbow"}, 0, 0, "Verde", function(option) if option == "rainbow" then ESP_Settings.RainbowChams = true else ESP_Settings.RainbowChams = false ESP_Settings.ChamsColor = Chams_Colors_Map[option] end end, false)
 
-        local function AtivaAimbotBtn local MarcarTodosBtn = CreateCheckbox(TabESP, "marcar todos", ESP_X, 160, false, function(v) ESP_Settings.MarcarTodos = v if AtivaAimbotBtn then AtivaAimbotBtn.Visible = v end end)
-        AtivaAimbotBtn = CreateCheckbox(TabESP, "ativa aimbot (Ignorar Time)", ESP_X, 200, false, function(v) Aimbot_Settings.AimbotNoTime = v end) AtivaAimbotBtn.Visible = false
-
         CreateComboDropdownParent(TabESP, "ESP Linha", {"Cima", "Baixo"}, "Cima", ESP_X, 0, function(v) ESP_Settings.Lines = v TargetBtns["Lines"].btn.Visible = v if not v and EditTarget == "Lines" then SetEditTarget("Menu", false) end end, function(v) ESP_Settings.LineOrigin = v end) 
         CreateComboDropdownParent(TabESP, "ESP Caixa", {"Quadrado", "Chams Glow"}, "Quadrado", ESP_X, 40, function(v) ESP_Settings.Boxes = v TargetBtns["Boxes"].btn.Visible = v if not v and EditTarget == "Boxes" then SetEditTarget("Menu", false) end CoresContainer.Visible = (v and ESP_Settings.BoxType == "Chams Glow") end, function(v) ESP_Settings.BoxType = v CoresContainer.Visible = (ESP_Settings.Boxes and v == "Chams Glow") end) 
         CreateCheckbox(TabESP, "ESP Esqueleto", ESP_X, 80, false, function(v) ESP_Settings.Skeleton = v TargetBtns["Skeleton"].btn.Visible = v if not v and EditTarget == "Skeleton" then SetEditTarget("Menu", false) end end)
         CreateCheckbox(TabESP, "ESP Vida", ESP_X, 120, false, function(v) ESP_Settings.Health = v end)
+
+        local AtivaAimbotBtn local MarcarTodosBtn = CreateCheckbox(TabESP, "marcar todos", ESP_X, 160, false, function(v) ESP_Settings.MarcarTodos = v if AtivaAimbotBtn then AtivaAimbotBtn.Visible = v end end)
+        AtivaAimbotBtn = CreateCheckbox(TabESP, "ativa aimbot (Ignorar Time)", ESP_X, 200, false, function(v) Aimbot_Settings.AimbotNoTime = v end) AtivaAimbotBtn.Visible = false
 
         -- [ ABA RAGE E CORES ]
         local RageHeaderFrame = Instance.new("Frame", TabRageFunctions) RageHeaderFrame.Size = UDim2.new(1, 0, 0, 30) RageHeaderFrame.BackgroundTransparency = 1
         local RageHeaderText = Instance.new("TextLabel", RageHeaderFrame) RageHeaderText.Size = UDim2.new(1, 0, 1, 0) RageHeaderText.BackgroundTransparency = 1 RageHeaderText.Text = "⚠️ Funções Rage (Seguras)" RageHeaderText.TextColor3 = C_WHITE RageHeaderText.Font = Enum.Font.GothamBold RageHeaderText.TextSize = 16 RageHeaderText.TextXAlignment = Enum.TextXAlignment.Left
 
         CreateCheckbox(TabRageFunctions, "No Smoke", 0, 35, false, function(v) NoSmokeEnabled = v end) 
-        
-        -- =========================================================================
-        -- [ BALA MÁGICA ATUALIZADA - VERSÃO SOLICITADA EM MEMÓRIA ]
-        -- =========================================================================
         _G.WallBangAtivado = false local WallbangHooked = false
         CreateCheckbox(TabRageFunctions, "Bala Mágica", 170, 35, false, function(v)
             _G.WallBangAtivado = v
             if v and not WallbangHooked then
                 WallbangHooked = true
                 pcall(function()
-                    local LOG_PRIVADO = -3.0999999046325684
-                    local mt = getrawmetatable(game)
-                    local oldNamecall = mt.__namecall
-                    setreadonly(mt, false)
-
-                    local rayParams = RaycastParams.new()
-                    rayParams.FilterType = Enum.RaycastFilterType.Exclude
-                    rayParams.FilterDescendantsInstances = {LocalPlayer.Character, workspace:FindFirstChild("Map") or workspace:FindFirstChild("Geometry")}
-                    rayParams.IgnoreWater = true
-
+                    local LOG_PRIVADO = -3.0999999046325684 local mt = getrawmetatable(game) local oldNamecall = mt.__namecall setreadonly(mt, false)
+                    local rayParams = RaycastParams.new() rayParams.FilterType = Enum.RaycastFilterType.Exclude rayParams.FilterDescendantsInstances = {workspace:FindFirstChild("Map") or workspace:FindFirstChild("Geometry")}
                     mt.__namecall = newcclosure(function(self, ...)
-                        local method = getnamecallmethod()
-                        local args = {...}
-
-                        if method == "Raycast" and _G.WallBangAtivado and not checkcaller() then
-                            local dirOriginal = args[2]
-                            if typeof(dirOriginal) == "Vector3" and math.abs(dirOriginal.Y - LOG_PRIVADO) < 0.0001 then
-                                return oldNamecall(self, unpack(args))
-                            end
-
-                            args[1] = Camera.CFrame.Position
-                            args[2] = Camera.CFrame.LookVector * 1e6
-                            args[3] = rayParams
-
-                            return oldNamecall(self, unpack(args))
+                        local method = getnamecallmethod() local args = {...}
+                        if _G.WallBangAtivado and (method == "Raycast" or method:find("PartOnRay")) and not checkcaller() then
+                            local dirOriginal = (method == "Raycast") and args[2] or args[1].Direction
+                            if typeof(dirOriginal) == "Vector3" and math.abs(dirOriginal.Y - LOG_PRIVADO) < 0.0001 then return oldNamecall(self, unpack(args)) end
+                            local origem = Camera.CFrame.Position local direcao = Camera.CFrame.LookVector * 1e6 
+                            if method == "Raycast" then args[1] = origem args[2] = direcao args[3] = rayParams return oldNamecall(self, unpack(args)) else return workspace:Raycast(origem, direcao, rayParams) end
                         end
-
                         return oldNamecall(self, ...)
                     end)
-
-                    setreadonly(mt, true)
-                    SalvarNoDiario("Bala Mágica Hooked (Wallbang Ativo)", "SUCCESS")
+                    setreadonly(mt, true) SalvarNoDiario("Bala Mágica Hooked (Wallbang Ativo)", "SUCCESS")
                 end)
             end
         end)
@@ -439,7 +461,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CreateRainbowBtn()
 
         -- =========================================================================
-        -- [ 💬 ABA: CHAT V8 FIREBASE ]
+        -- [ 💬 NOVA ABA: CHAT V8 FIREBASE ]
         -- =========================================================================
         local OnlineLabel_Chat = Instance.new("TextLabel", TabChat)
         OnlineLabel_Chat.Size = UDim2.new(1, -10, 0, 20)
