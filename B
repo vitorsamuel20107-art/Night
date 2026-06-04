@@ -166,8 +166,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local MainFrame = Instance.new("Frame", ScreenGui) MainFrame.Size = UDim2.new(0, 490, 0, 310) MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0) MainFrame.AnchorPoint = Vector2.new(0.5, 0.5) MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12) MainFrame.BorderSizePixel = 0 MainFrame.Active = true MainFrame.ClipsDescendants = true Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
         local MainScale = Instance.new("UIScale", MainFrame) MainScale.Scale = 0 
         TweenService:Create(MainScale, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play()
-
-        -- [ LINHA SEPARADORA REMOVIDA AQUI ]
         
         local TopBar = Instance.new("Frame", MainFrame) TopBar.Size = UDim2.new(1, 0, 0, 30) TopBar.BackgroundColor3 = CurrentTheme TopBar.BorderSizePixel = 0 table.insert(ThemeElements.Backgrounds, TopBar) Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 8)
         local BottomFlat = Instance.new("Frame", TopBar) BottomFlat.Size = UDim2.new(1, 0, 0, 5) BottomFlat.Position = UDim2.new(0, 0, 1, -5) BottomFlat.BackgroundColor3 = CurrentTheme BottomFlat.BorderSizePixel = 0 table.insert(ThemeElements.Backgrounds, BottomFlat)
@@ -210,7 +208,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local TabChat = CreateTab("Chat") 
         TabAimbot.Visible = true
 
-        -- Configuração para Chat não herdar padding
         local chatPadding = TabChat:FindFirstChildOfClass("UIPadding")
         if chatPadding then chatPadding:Destroy() end
         TabChat.AutomaticCanvasSize = Enum.AutomaticSize.None
@@ -222,7 +219,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             btn.MouseButton1Click:Connect(function() for _, tab in pairs(Tabs) do tab.Visible = false end targetTab.Visible = true for _, sBtn in pairs(SideButtons) do sBtn.BackgroundColor3 = C_DARK_GREY end btn.BackgroundColor3 = CurrentTheme ActiveSideButton = btn end)
         end
         
-        -- [ AJUSTE DE ESPAÇAMENTO DA SIDEBAR ]
         local StartY = 8
         local Step = 54
         
@@ -255,7 +251,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             local valText = Instance.new("TextLabel", container) valText.Size = UDim2.new(1, 0, 1, 0) valText.BackgroundTransparency = 1 valText.Text = string.format("%.1f", currentVal) valText.TextColor3 = C_WHITE  
             local draggingSlider = false 
             local function UpdateSlider(input) local pos = math.clamp((input.Position.X - container.AbsolutePosition.X) / container.AbsoluteSize.X, 0, 1) fill.Size = UDim2.new(pos, 0, 1, 0) local finalVal = pos * 1000 valText.Text = string.format("%.1f", finalVal) GlobalSettings.Sliders[label] = finalVal SaveAllSettings() if action then action(finalVal) end end  
-            container.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then draggingSlider = true UpdateSlider(i) end end) UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then draggingSlider = false end end) UserInputService.InputChanged:Connect(function(i) if draggingSlider and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then UpdateSlider(i) end end)
+            container.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch_ and then draggingSlider = true UpdateSlider(i) end end) UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then draggingSlider = false end end) UserInputService.InputChanged:Connect(function(i) if draggingSlider and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then UpdateSlider(i) end end)
             if action then task.spawn(function() action(currentVal) end) end
         end
 
@@ -351,44 +347,66 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local CoresContainer = Instance.new("Frame", TabESP) CoresContainer.Size = UDim2.new(0, 150, 0, 25) CoresContainer.Position = UDim2.new(0, ESP_X + DROPDOWN_X, 0, 80) CoresContainer.BackgroundTransparency = 1 CoresContainer.Visible = false 
         CreateDropdown(CoresContainer, "ChamsColor", {"Verde", "Vermelho", "Roxo", "Azul", "Preto", "Branco", "Cinza", "rainbow"}, 0, 0, "Verde", function(option) if option == "rainbow" then ESP_Settings.RainbowChams = true else ESP_Settings.RainbowChams = false ESP_Settings.ChamsColor = Chams_Colors_Map[option] end end, false)
 
+        local AtivaAimbotBtn local MarcarTodosBtn = CreateCheckbox(TabESP, "marcar todos", ESP_X, 160, false, function(v) ESP_Settings.MarcarTodos = v if AtivaAimbotBtn then AtivaAimbotBtn.Visible = v end end)
+        AtivaAimbotBtn = CreateCheckbox(TabESP, "ativa aimbot (Ignorar Time)", ESP_X, 200, false, function(v) Aimbot_Settings.AimbotNoTime = v end) AtivaAimbotBtn.Visible = false
+
         CreateComboDropdownParent(TabESP, "ESP Linha", {"Cima", "Baixo"}, "Cima", ESP_X, 0, function(v) ESP_Settings.Lines = v TargetBtns["Lines"].btn.Visible = v if not v and EditTarget == "Lines" then SetEditTarget("Menu", false) end end, function(v) ESP_Settings.LineOrigin = v end) 
         CreateComboDropdownParent(TabESP, "ESP Caixa", {"Quadrado", "Chams Glow"}, "Quadrado", ESP_X, 40, function(v) ESP_Settings.Boxes = v TargetBtns["Boxes"].btn.Visible = v if not v and EditTarget == "Boxes" then SetEditTarget("Menu", false) end CoresContainer.Visible = (v and ESP_Settings.BoxType == "Chams Glow") end, function(v) ESP_Settings.BoxType = v CoresContainer.Visible = (ESP_Settings.Boxes and v == "Chams Glow") end) 
         CreateCheckbox(TabESP, "ESP Esqueleto", ESP_X, 80, false, function(v) ESP_Settings.Skeleton = v TargetBtns["Skeleton"].btn.Visible = v if not v and EditTarget == "Skeleton" then SetEditTarget("Menu", false) end end)
         CreateCheckbox(TabESP, "ESP Vida", ESP_X, 120, false, function(v) ESP_Settings.Health = v end)
-
-        local AtivaAimbotBtn local MarcarTodosBtn = CreateCheckbox(TabESP, "marcar todos", ESP_X, 160, false, function(v) ESP_Settings.MarcarTodos = v if AtivaAimbotBtn then AtivaAimbotBtn.Visible = v end end)
-        AtivaAimbotBtn = CreateCheckbox(TabESP, "ativa aimbot (Ignorar Time)", ESP_X, 200, false, function(v) Aimbot_Settings.AimbotNoTime = v end) AtivaAimbotBtn.Visible = false
 
         -- [ ABA RAGE E CORES ]
         local RageHeaderFrame = Instance.new("Frame", TabRageFunctions) RageHeaderFrame.Size = UDim2.new(1, 0, 0, 30) RageHeaderFrame.BackgroundTransparency = 1
         local RageHeaderText = Instance.new("TextLabel", RageHeaderFrame) RageHeaderText.Size = UDim2.new(1, 0, 1, 0) RageHeaderText.BackgroundTransparency = 1 RageHeaderText.Text = "⚠️ Funções Rage (Seguras)" RageHeaderText.TextColor3 = C_WHITE RageHeaderText.Font = Enum.Font.GothamBold RageHeaderText.TextSize = 16 RageHeaderText.TextXAlignment = Enum.TextXAlignment.Left
 
         CreateCheckbox(TabRageFunctions, "No Smoke", 0, 35, false, function(v) NoSmokeEnabled = v end) 
+        CreateCheckbox(TabRageFunctions, "No Flashbang", 0, 70, false, function(v) NoFlashEnabled = v end) 
+        CreateCheckbox(TabRageFunctions, "Tp Player", 170, 70, false) CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 105, false, function(v) HitboxEnabled = v end)
+
+        -- =========================================================================
+        -- [ 🚀 VERSÃO TOTALMENTE OTIMIZADA DA BALA MÁGICA - INTEGRADA ]
+        -- =========================================================================
         _G.WallBangAtivado = false local WallbangHooked = false
         CreateCheckbox(TabRageFunctions, "Bala Mágica", 170, 35, false, function(v)
             _G.WallBangAtivado = v
             if v and not WallbangHooked then
                 WallbangHooked = true
                 pcall(function()
-                    local LOG_PRIVADO = -3.0999999046325684 local mt = getrawmetatable(game) local oldNamecall = mt.__namecall setreadonly(mt, false)
-                    local rayParams = RaycastParams.new() rayParams.FilterType = Enum.RaycastFilterType.Exclude rayParams.FilterDescendantsInstances = {workspace:FindFirstChild("Map") or workspace:FindFirstChild("Geometry")}
+                    local LOG_PRIVADO = -3.0999999046325684 
+                    local mt = getrawmetatable(game) 
+                    local oldNamecall = mt.__namecall 
+                    setreadonly(mt, false)
+
+                    -- Otimização Máxima: Instanciado apenas uma vez fora da closure
+                    local rayParams = RaycastParams.new()
+                    rayParams.FilterType = Enum.RaycastFilterType.Exclude
+                    rayParams.FilterDescendantsInstances = {LocalPlayer.Character, workspace:FindFirstChild("Map") or workspace:FindFirstChild("Geometry")}
+                    rayParams.IgnoreWater = true
+
                     mt.__namecall = newcclosure(function(self, ...)
-                        local method = getnamecallmethod() local args = {...}
-                        if _G.WallBangAtivado and (method == "Raycast" or method:find("PartOnRay")) and not checkcaller() then
-                            local dirOriginal = (method == "Raycast") and args[2] or args[1].Direction
-                            if typeof(dirOriginal) == "Vector3" and math.abs(dirOriginal.Y - LOG_PRIVADO) < 0.0001 then return oldNamecall(self, unpack(args)) end
-                            local origem = Camera.CFrame.Position local direcao = Camera.CFrame.LookVector * 1e6 
-                            if method == "Raycast" then args[1] = origem args[2] = direcao args[3] = rayParams return oldNamecall(self, unpack(args)) else return workspace:Raycast(origem, direcao, rayParams) end
+                        local method = getnamecallmethod() 
+                        local args = {...}
+
+                        if method == "Raycast" and not checkcaller() then
+                            if _G.WallBangAtivado then
+                                local dirOriginal = args[2]
+                                if typeof(dirOriginal) == "Vector3" and math.abs(dirOriginal.Y - LOG_PRIVADO) < 0.0001 then 
+                                    return oldNamecall(self, unpack(args)) 
+                                end
+                                
+                                args[1] = Camera.CFrame.Position 
+                                args[2] = Camera.CFrame.LookVector * 1e6 
+                                args[3] = rayParams 
+                                return oldNamecall(self, unpack(args))
+                            end
                         end
                         return oldNamecall(self, ...)
                     end)
-                    setreadonly(mt, true) SalvarNoDiario("Bala Mágica Hooked (Wallbang Ativo)", "SUCCESS")
+                    setreadonly(mt, true) 
+                    SalvarNoDiario("Bala Mágica Otimizada Hooked (FPS Boosted)", "SUCCESS")
                 end)
             end
         end)
-
-        CreateCheckbox(TabRageFunctions, "No Flashbang", 0, 70, false, function(v) NoFlashEnabled = v end) 
-        CreateCheckbox(TabRageFunctions, "Tp Player", 170, 70, false) CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 105, false, function(v) HitboxEnabled = v end)
 
         local ColorPickerLabel = Instance.new("TextLabel", TabRageFunctions) ColorPickerLabel.Size = UDim2.new(1, -10, 0, 25) ColorPickerLabel.Position = UDim2.new(0, 0, 0, 145) ColorPickerLabel.BackgroundTransparency = 1 ColorPickerLabel.Text = "Cores Customizáveis" ColorPickerLabel.TextColor3 = C_WHITE ColorPickerLabel.Font = Enum.Font.GothamBold ColorPickerLabel.TextSize = 14 ColorPickerLabel.TextXAlignment = Enum.TextXAlignment.Left
         local ColorButtonsFrame = Instance.new("ScrollingFrame", TabRageFunctions) ColorButtonsFrame.Size = UDim2.new(1, -20, 0, 48) ColorButtonsFrame.Position = UDim2.new(0, 0, 0, 175) ColorButtonsFrame.BackgroundTransparency = 1 ColorButtonsFrame.CanvasSize = UDim2.new(0, 0, 0, 0) ColorButtonsFrame.AutomaticCanvasSize = Enum.AutomaticSize.X ColorButtonsFrame.ScrollBarThickness = 3 ColorButtonsFrame.ScrollingDirection = Enum.ScrollingDirection.X ColorButtonsFrame.ClipsDescendants = true
@@ -420,7 +438,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CreateRainbowBtn()
 
         -- =========================================================================
-        -- [ 💬 NOVA ABA: CHAT V8 FIREBASE ]
+        -- [ 💬 ABA CHAT: FIREBASE ]
         -- =========================================================================
         local OnlineLabel_Chat = Instance.new("TextLabel", TabChat)
         OnlineLabel_Chat.Size = UDim2.new(1, -10, 0, 20)
@@ -594,7 +612,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         if GlobalSettings.ThemeHex ~= "RAINBOW" then SetTheme(CurrentTheme) end
 
         -- =========================================================================
-        -- [ PROCESSO B: ESP E AIMBOT ]
+        -- [ PROCESSO ESP E AIMBOT ]
         -- =========================================================================
         task.spawn(function()
             local PlayerDrawings = {} 
