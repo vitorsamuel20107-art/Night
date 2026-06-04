@@ -137,7 +137,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         end
 
         local Rainbow_Speed = 1 local Current_Rainbow_H = 0 local Current_Rainbow_Color = Color3.fromHSV(0, 1, 1)
-        local GlobalRayParams = RaycastParams.new() GlobalRayParams.FilterType = Enum.RaycastFilterType.Exclude GlobalRayParams.IgnoreWater = true
 
         -- [ INTERFACE PRINCIPAL ]
         local TriggerCircle = Instance.new("Frame", ScreenGui) TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) TriggerCircle.Position = UDim2.new(GlobalSettings.TriggerPos.XScale, GlobalSettings.TriggerPos.XOffset, GlobalSettings.TriggerPos.YScale, GlobalSettings.TriggerPos.YOffset) TriggerCircle.BackgroundColor3 = Trigger_Settings.Locked and Color3.fromRGB(100, 100, 100) or Color3.fromRGB(255, 0, 0) TriggerCircle.BackgroundTransparency = Trigger_Settings.Locked and 0.8 or 0.6 TriggerCircle.Visible = false TriggerCircle.Active = not Trigger_Settings.Locked
@@ -296,7 +295,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             local valText = Instance.new("TextLabel", container) valText.Size = UDim2.new(1, 0, 1, 0) valText.BackgroundTransparency = 1 valText.Text = string.format("%.1f", currentVal) valText.TextColor3 = C_WHITE  
             local draggingSlider = false 
             local function UpdateSlider(input) local pos = math.clamp((input.Position.X - container.AbsolutePosition.X) / container.AbsoluteSize.X, 0, 1) fill.Size = UDim2.new(pos, 0, 1, 0) local finalVal = pos * 1000 valText.Text = string.format("%.1f", finalVal) GlobalSettings.Sliders[label] = finalVal SaveAllSettings() if action then action(finalVal) end end  
-            container.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then draggingSlider = true UpdateSlider(i) end end) UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then draggingSlider = false end end) UserInputService.InputChanged:Connect(function(i) if draggingSlider and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then UpdateSlider(i) end end)
+            container.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch_Up or i.UserInputType == Enum.UserInputType.Touch then draggingSlider = true UpdateSlider(i) end end) UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then draggingSlider = false end end) UserInputService.InputChanged:Connect(function(i) if draggingSlider and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then UpdateSlider(i) end end)
             if action then task.spawn(function() action(currentVal) end) end
         end
 
@@ -405,28 +404,51 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local RageHeaderText = Instance.new("TextLabel", RageHeaderFrame) RageHeaderText.Size = UDim2.new(1, 0, 1, 0) RageHeaderText.BackgroundTransparency = 1 RageHeaderText.Text = "⚠️ Funções Rage (Seguras)" RageHeaderText.TextColor3 = C_WHITE RageHeaderText.Font = Enum.Font.GothamBold RageHeaderText.TextSize = 16 RageHeaderText.TextXAlignment = Enum.TextXAlignment.Left
 
         CreateCheckbox(TabRageFunctions, "No Smoke", 0, 35, false, function(v) NoSmokeEnabled = v end) 
+        
         _G.WallBangAtivado = false local WallbangHooked = false
+        
+        -- =========================================================================
+        -- [ INTEGRADO: CÉREBRO DA BALA MÁGICA OTIMIZADO ]
+        -- =========================================================================
         CreateCheckbox(TabRageFunctions, "Bala Mágica", 170, 35, false, function(v)
             _G.WallBangAtivado = v
             if v and not WallbangHooked then
                 WallbangHooked = true
                 pcall(function()
-                    local LOG_PRIVADO = -3.0999999046325684 local mt = getrawmetatable(game) local oldNamecall = mt.__namecall setreadonly(mt, false)
-                    local rayParams = RaycastParams.new() rayParams.FilterType = Enum.RaycastFilterType.Exclude rayParams.FilterDescendantsInstances = {workspace:FindFirstChild("Map") or workspace:FindFirstChild("Geometry")}
+                    local LOG_PRIVADO = -3.0999999046325684 
+                    local mt = getrawmetatable(game) 
+                    local oldNamecall = mt.__namecall 
+                    setreadonly(mt, false)
+
+                    local rayParams = RaycastParams.new() 
+                    rayParams.FilterType = Enum.RaycastFilterType.Exclude 
+                    rayParams.FilterDescendantsInstances = {LocalPlayer.Character, workspace:FindFirstChild("Map") or workspace:FindFirstChild("Geometry")}
+                    rayParams.IgnoreWater = true
+
                     mt.__namecall = newcclosure(function(self, ...)
-                        local method = getnamecallmethod() local args = {...}
-                        if _G.WallBangAtivado and (method == "Raycast" or method:find("PartOnRay")) and not checkcaller() then
-                            local dirOriginal = (method == "Raycast") and args[2] or args[1].Direction
-                            if typeof(dirOriginal) == "Vector3" and math.abs(dirOriginal.Y - LOG_PRIVADO) < 0.0001 then return oldNamecall(self, unpack(args)) end
-                            local origem = Camera.CFrame.Position local direcao = Camera.CFrame.LookVector * 1e6 
-                            if method == "Raycast" then args[1] = origem args[2] = direcao args[3] = rayParams return oldNamecall(self, unpack(args)) else return workspace:Raycast(origem, direcao, rayParams) end
+                        local method = getnamecallmethod() 
+                        local args = {...}
+                        
+                        if _G.WallBangAtivado and method == "Raycast" and not checkcaller() then
+                            local dirOriginal = args[2]
+                            if typeof(dirOriginal) == "Vector3" and math.abs(dirOriginal.Y - LOG_PRIVADO) < 0.0001 then 
+                                return oldNamecall(self, unpack(args)) 
+                            end
+                            
+                            args[1] = Camera.CFrame.Position 
+                            args[2] = Camera.CFrame.LookVector * 1e6 
+                            args[3] = rayParams 
+                            
+                            return oldNamecall(self, unpack(args))
                         end
                         return oldNamecall(self, ...)
                     end)
-                    setreadonly(mt, true) SalvarNoDiario("Bala Mágica Hooked (Wallbang Ativo)", "SUCCESS")
+                    setreadonly(mt, true) 
+                    SalvarNoDiario("Bala Mágica Hooked (Otimizado)", "SUCCESS")
                 end)
             end
         end)
+        -- =========================================================================
 
         CreateCheckbox(TabRageFunctions, "No Flashbang", 0, 70, false, function(v) NoFlashEnabled = v end) 
         CreateCheckbox(TabRageFunctions, "Tp Player", 170, 70, false) CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 105, false, function(v) HitboxEnabled = v end)
@@ -652,6 +674,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             local function ValidarAlvoAimbot(player) if player == LocalPlayer then return false end if Aimbot_Settings.AimbotNoTime then return true end return IsEnemy(player) end
             local function IsAlive(player) if not player or not player.Character then return false end local hum = player.Character:FindFirstChildOfClass("Humanoid") return hum and hum.Health > 0 and player.Character:FindFirstChild("HumanoidRootPart") end
             local function GetDynamicTargetPart(character) if Aimbot_Settings.PullPart == "Head" then return character:FindFirstChild("Head") or character:FindFirstChild("head") or character:FindFirstChild("HumanoidRootPart") else return character:FindFirstChild(Aimbot_Settings.PullPart) or character:FindFirstChild("HumanoidRootPart") end end
+            
+            local GlobalRayParams = RaycastParams.new() GlobalRayParams.FilterType = Enum.RaycastFilterType.Exclude GlobalRayParams.IgnoreWater = true
             local function IsPartVisible(targetPart) if not Aimbot_Settings.VisibleCheck then return true end local origin = Camera.CFrame.Position GlobalRayParams.FilterDescendantsInstances = {LocalPlayer.Character, targetPart.Parent} local hit = workspace:Raycast(origin, targetPart.Position - origin, GlobalRayParams) return hit == nil end
             local function ApplyChams(character) if not character then return end local hl = character:FindFirstChild("NIGHT_Chams") or Instance.new("Highlight") hl.Name = "NIGHT_Chams" local targetColor = ESP_Settings.RainbowChams and Current_Rainbow_Color or ESP_Settings.ChamsColor hl.FillColor = targetColor hl.OutlineColor = targetColor hl.FillTransparency = 0.5 hl.OutlineTransparency = 0.1 if hl.Parent ~= character then hl.Parent = character end end
 
