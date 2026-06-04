@@ -200,24 +200,19 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         local Tabs = {}
         local function CreateTab(name) 
-            local frame = Instance.new("ScrollingFrame", TabContainer) 
-            frame.Size = UDim2.new(1, 0, 1, 0) 
-            frame.BackgroundTransparency = 1 
-            frame.Visible = false 
-            frame.ScrollBarThickness = 3 
-            frame.BorderSizePixel = 0 
-            Tabs[name] = frame 
-            return frame 
+            local frame = Instance.new("ScrollingFrame", TabContainer) frame.Size = UDim2.new(1, 0, 1, 0) frame.BackgroundTransparency = 1 frame.Visible = false frame.ScrollBarThickness = 4 frame.CanvasSize = UDim2.new(0, 0, 0, 0) frame.AutomaticCanvasSize = Enum.AutomaticSize.Y frame.BorderSizePixel = 0 local padding = Instance.new("UIPadding", frame) padding.PaddingBottom = UDim.new(0, 45) Tabs[name] = frame return frame 
         end
-        
-        -- Configuração Fixa de Rolagem: Isso remove o bug do espaço vazio no fim da tela!
-        local TabAimbot = CreateTab("Aimbot") TabAimbot.CanvasSize = UDim2.new(0, 0, 0, 310)
-        local TabESP = CreateTab("ESP") TabESP.CanvasSize = UDim2.new(0, 0, 0, 240)
-        local TabRageFunctions = CreateTab("RageFunctions") TabRageFunctions.AutomaticCanvasSize = Enum.AutomaticSize.Y
-        local TabProfile = CreateTab("Profile") TabProfile.CanvasSize = UDim2.new(0, 0, 0, 400)
-        local TabChat = CreateTab("Chat") TabChat.AutomaticCanvasSize = Enum.AutomaticSize.None 
-
+        local TabAimbot = CreateTab("Aimbot") 
+        local TabESP = CreateTab("ESP") 
+        local TabRageFunctions = CreateTab("RageFunctions") 
+        local TabProfile = CreateTab("Profile") 
+        local TabChat = CreateTab("Chat") -- NOVA ABA CHAT
         TabAimbot.Visible = true
+
+        -- Configuração para Chat não herdar padding
+        local chatPadding = TabChat:FindFirstChildOfClass("UIPadding")
+        if chatPadding then chatPadding:Destroy() end
+        TabChat.AutomaticCanvasSize = Enum.AutomaticSize.None
 
         local SideButtons = {} local ActiveSideButton = nil 
         local function CreateSideButton(iconData, yPos, targetTab)
@@ -226,12 +221,12 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             btn.MouseButton1Click:Connect(function() for _, tab in pairs(Tabs) do tab.Visible = false end targetTab.Visible = true for _, sBtn in pairs(SideButtons) do sBtn.BackgroundColor3 = C_DARK_GREY end btn.BackgroundColor3 = CurrentTheme ActiveSideButton = btn end)
         end
         
-        -- Adicionando botões e o NOVO ID DO CHAT
+        -- Adicionando botão do Chat (Abaixo de Perfil)
         CreateSideButton("rbxthumb://type=Asset&id=85099340385789&w=420&h=420", 10, TabAimbot) SideButtons[1].BackgroundColor3 = CurrentTheme ActiveSideButton = SideButtons[1] 
         CreateSideButton("rbxthumb://type=Asset&id=122844504901205&w=420&h=420", 70, TabESP)
         CreateSideButton("rbxthumb://type=Asset&id=104326937875203&w=420&h=420", 130, TabRageFunctions)
         CreateSideButton("rbxthumb://type=Asset&id=89228936812587&w=420&h=420", 190, TabProfile)
-        CreateSideButton("rbxassetid://115898335255025", 250, TabChat) -- ÍCONE DO CHAT ATUALIZADO AQUI
+        CreateSideButton("rbxthumb://type=Asset&id=115898335255025&w=420&h=420", 250, TabChat) -- ÍCONE DO CHAT
 
         table.insert(ThemeCallbacks, function(color) if ActiveSideButton then ActiveSideButton.BackgroundColor3 = color end end)
 
