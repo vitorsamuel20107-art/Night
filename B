@@ -167,7 +167,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local MainScale = Instance.new("UIScale", MainFrame) MainScale.Scale = 0 
         TweenService:Create(MainScale, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play()
 
-        local SeparatorLine = Instance.new("Frame", MainFrame) SeparatorLine.Size = UDim2.new(1, -75, 0, 1) SeparatorLine.Position = UDim2.new(0, 75, 0, 40) SeparatorLine.BackgroundColor3 = CurrentTheme SeparatorLine.BorderSizePixel = 0 table.insert(ThemeElements.Backgrounds, SeparatorLine)
+        -- [ LINHA SEPARADORA REMOVIDA AQUI ]
+        
         local TopBar = Instance.new("Frame", MainFrame) TopBar.Size = UDim2.new(1, 0, 0, 30) TopBar.BackgroundColor3 = CurrentTheme TopBar.BorderSizePixel = 0 table.insert(ThemeElements.Backgrounds, TopBar) Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 8)
         local BottomFlat = Instance.new("Frame", TopBar) BottomFlat.Size = UDim2.new(1, 0, 0, 5) BottomFlat.Position = UDim2.new(0, 0, 1, -5) BottomFlat.BackgroundColor3 = CurrentTheme BottomFlat.BorderSizePixel = 0 table.insert(ThemeElements.Backgrounds, BottomFlat)
 
@@ -206,7 +207,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local TabESP = CreateTab("ESP") 
         local TabRageFunctions = CreateTab("RageFunctions") 
         local TabProfile = CreateTab("Profile") 
-        local TabChat = CreateTab("Chat") -- NOVA ABA CHAT
+        local TabChat = CreateTab("Chat") 
         TabAimbot.Visible = true
 
         -- Configuração para Chat não herdar padding
@@ -221,12 +222,18 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             btn.MouseButton1Click:Connect(function() for _, tab in pairs(Tabs) do tab.Visible = false end targetTab.Visible = true for _, sBtn in pairs(SideButtons) do sBtn.BackgroundColor3 = C_DARK_GREY end btn.BackgroundColor3 = CurrentTheme ActiveSideButton = btn end)
         end
         
-        -- Adicionando botão do Chat (Abaixo de Perfil)
-        CreateSideButton("rbxthumb://type=Asset&id=85099340385789&w=420&h=420", 10, TabAimbot) SideButtons[1].BackgroundColor3 = CurrentTheme ActiveSideButton = SideButtons[1] 
-        CreateSideButton("rbxthumb://type=Asset&id=122844504901205&w=420&h=420", 70, TabESP)
-        CreateSideButton("rbxthumb://type=Asset&id=104326937875203&w=420&h=420", 130, TabRageFunctions)
-        CreateSideButton("rbxthumb://type=Asset&id=89228936812587&w=420&h=420", 190, TabProfile)
-        CreateSideButton("rbxthumb://type=Asset&id=115898335255025&w=420&h=420", 250, TabChat) -- ÍCONE DO CHAT
+        -- [ AJUSTE DE ESPAÇAMENTO DA SIDEBAR ]
+        local StartY = 8
+        local Step = 54
+        
+        CreateSideButton("rbxthumb://type=Asset&id=85099340385789&w=420&h=420", StartY, TabAimbot) 
+        SideButtons[1].BackgroundColor3 = CurrentTheme 
+        ActiveSideButton = SideButtons[1] 
+
+        CreateSideButton("rbxthumb://type=Asset&id=122844504901205&w=420&h=420", StartY + Step, TabESP)
+        CreateSideButton("rbxthumb://type=Asset&id=104326937875203&w=420&h=420", StartY + (Step * 2), TabRageFunctions)
+        CreateSideButton("rbxthumb://type=Asset&id=89228936812587&w=420&h=420", StartY + (Step * 3), TabProfile)
+        CreateSideButton("rbxthumb://type=Asset&id=115898335255025&w=420&h=420", StartY + (Step * 4), TabChat)
 
         table.insert(ThemeCallbacks, function(color) if ActiveSideButton then ActiveSideButton.BackgroundColor3 = color end end)
 
