@@ -1,5 +1,5 @@
 -- =========================================================================
--- [[ WILLIAM PROJECT: PROTOCOLO BLACKOUT V40 - NIGHT UNIFICADO (FIXED) ]]
+-- [[ WILLIAM PROJECT: PROTOCOLO BLACKOUT V40 - NIGHT-FFH4X UNIFICADO ]]
 -- =========================================================================
 
 local HttpService = game:GetService("HttpService")
@@ -34,7 +34,6 @@ local function SalvarNoDiario(msg, status)
     end)
 end
 
--- Interceptador Global de Erros (Captura antes de ir para o console do Roblox)
 pcall(function()
     game:GetService("ScriptContext").Error:Connect(function(message, stackTrace)
         SalvarNoDiario("CAPTURA GLOBAL -> Erro: " .. message .. " | Trace: " .. stackTrace, "ERROR")
@@ -59,6 +58,16 @@ local ExecucaoSegura, ErroFatal = pcall(function()
     local LocalPlayer = Players.LocalPlayer
     local Camera = workspace.CurrentCamera
 
+    -- Validação de Permissões (Dono / Acesso Permanente)
+    local IsAdmin = false
+    local AdminList = {"mayra", "william"}
+    for _, admin in ipairs(AdminList) do
+        if string.lower(LocalPlayer.Name) == admin then
+            IsAdmin = true
+            break
+        end
+    end
+
     local ConfigFolder = "NIGHT_FFH4X_Data"
     if makefolder and not isfolder(ConfigFolder) then makefolder(ConfigFolder) end
 
@@ -73,9 +82,9 @@ local ExecucaoSegura, ErroFatal = pcall(function()
     pcall(function() NomeDoJogoAtual = MarketplaceService:GetProductInfo(game.PlaceId).Name end)
 
     -- =========================================================================
-    -- 💾 SISTEMA JSON DEEP SAVE (BLINDADO)
+    -- 💾 SISTEMA JSON DEEP SAVE
     -- =========================================================================
-    local MainConfigFile = ConfigFolder .. "/BloxStrike_Config.json"
+    local MainConfigFile = ConfigFolder .. "/NIGHT_Config.json"
     local GlobalSettings = {
         Toggles = {}, Sliders = {}, Dropdowns = {},
         ThemeHex = "#FF0000", TriggerPos = {XScale = 0.7, XOffset = 0, YScale = 0.5, YOffset = 0}, TriggerLocked = false,
@@ -175,7 +184,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local TopBar = Instance.new("Frame", MainFrame) TopBar.Size = UDim2.new(1, 0, 0, 30) TopBar.BackgroundColor3 = CurrentTheme TopBar.BorderSizePixel = 0 table.insert(ThemeElements.Backgrounds, TopBar) Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 8)
         local BottomFlat = Instance.new("Frame", TopBar) BottomFlat.Size = UDim2.new(1, 0, 0, 5) BottomFlat.Position = UDim2.new(0, 0, 1, -5) BottomFlat.BackgroundColor3 = CurrentTheme BottomFlat.BorderSizePixel = 0 table.insert(ThemeElements.Backgrounds, BottomFlat)
 
-        local TitleText = Instance.new("TextLabel", TopBar) TitleText.Size = UDim2.new(1, -60, 1, 0) TitleText.Position = UDim2.new(0, 30, 0, 0) TitleText.BackgroundTransparency = 1 TitleText.Text = "NIGHT - WILLIAM PROJECT" TitleText.TextColor3 = C_WHITE TitleText.Font = Enum.Font.GothamBold TitleText.TextSize = 14
+        local TitleText = Instance.new("TextLabel", TopBar) TitleText.Size = UDim2.new(1, -60, 1, 0) TitleText.Position = UDim2.new(0, 30, 0, 0) TitleText.BackgroundTransparency = 1 TitleText.Text = "NIGHT-FFH4X" TitleText.TextColor3 = C_WHITE TitleText.Font = Enum.Font.GothamBold TitleText.TextSize = 14
 
         local OpenButton = Instance.new("ImageButton", ScreenGui) OpenButton.Size = UDim2.new(0, 60, 0, 60) OpenButton.Position = UDim2.new(0, 15, 0.5, -30) OpenButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0) OpenButton.BackgroundTransparency = 0.5 OpenButton.Image = "rbxthumb://type=Asset&id=92698007296440&w=420&h=420" OpenButton.ScaleType = Enum.ScaleType.Crop OpenButton.Visible = false OpenButton.Active = true Instance.new("UICorner", OpenButton).CornerRadius = UDim.new(1, 0)
         local OpenScale = Instance.new("UIScale", OpenButton) OpenScale.Scale = 0
@@ -305,7 +314,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 if action then action(finalVal) end 
             end  
 
-            -- FIX DEFINITIVO: Removido Enum inexistente Touch_Up que causava travamento geral
             container.InputBegan:Connect(function(i) 
                 if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then 
                     draggingSlider = true 
@@ -653,11 +661,20 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end
         end)
 
-        -- [ ABA PROFILE ]
+        -- [ ABA PROFILE (REORGANIZADA) ]
         local ProfileContainer = Instance.new("Frame", TabProfile) ProfileContainer.Size = UDim2.new(1, 0, 1, 0) ProfileContainer.BackgroundTransparency = 1
         local function CreateProfileText(text, yPos, size, isBold, color) local lbl = Instance.new("TextLabel", ProfileContainer) lbl.Size = UDim2.new(1, 0, 0, 25) lbl.Position = UDim2.new(0, 0, 0, yPos) lbl.BackgroundTransparency = 1 lbl.Text = text lbl.TextColor3 = color or C_WHITE lbl.Font = isBold and Enum.Font.GothamBold or Enum.Font.Gotham lbl.TextSize = size or 14 lbl.TextXAlignment = Enum.TextXAlignment.Left end
-        CreateProfileText("Usuário: " .. LocalPlayer.Name, 10, 14, true) CreateProfileText("ID: " .. LocalPlayer.UserId, 40, 14, true)
-        local CinzaTexto = Color3.fromRGB(180, 180, 180) CreateProfileText("Criador", 75, 12, false, CinzaTexto) CreateProfileText("YouTube: eoNight_ofc", 95, 12, false, CinzaTexto) CreateProfileText("TikTok: night_pushhard", 115, 12, false, CinzaTexto)
+        
+        CreateProfileText("Usuário: " .. LocalPlayer.Name, 10, 14, true) 
+        CreateProfileText("ID: " .. LocalPlayer.UserId, 35, 14, true)
+        
+        local statusText = IsAdmin and "Acesso: DONO (Permanente)" or "Acesso: Usuário"
+        local statusColor = IsAdmin and Color3.fromRGB(255, 215, 0) or Color3.fromRGB(0, 255, 100)
+        CreateProfileText(statusText, 60, 14, true, statusColor)
+        
+        local CinzaTexto = Color3.fromRGB(180, 180, 180) 
+        CreateProfileText("Projeto: NIGHT-FFH4X", 95, 12, false, CinzaTexto) 
+        CreateProfileText("Autenticação: Ativa", 115, 12, false, CinzaTexto) 
 
         local OtimizacaoAtiva = false local SkinsRemoverAtivo = false local Terrain = workspace:FindFirstChildOfClass("Terrain")
         local function DestruirGraficos(obj) pcall(function() if obj:IsA("BasePart") then obj.Material = Enum.Material.SmoothPlastic obj.Reflectance = 0 obj.CastShadow = false elseif obj:IsA("Decal") or obj:IsA("Texture") then obj.Transparency = 1 elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") or obj:IsA("Explosion") then obj.Enabled = false elseif obj:IsA("MeshPart") then obj.Material = Enum.Material.SmoothPlastic obj.TextureID = "" obj.CastShadow = false end end) end
@@ -671,7 +688,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CreateCheckbox(ProfileContainer, "Remover Skins (Mais FPS)", 0, 255, false, function(state) SkinsRemoverAtivo = state if state then for _, player in pairs(Players:GetPlayers()) do if player.Character then LimparPersonagem(player.Character) end end end end)
 
         local Escurecedor = nil
-        CreateCheckbox(ProfileContainer, "escurecer a tela(Bypass)", 0, 290, false, function(state) if state then if not Escurecedor then local DimmerGui = Instance.new("ScreenGui") DimmerGui.Name = "SafeDimmerGui" DimmerGui.IgnoreGuiInset = true if syn and syn.protect_gui then syn.protect_gui(DimmerGui) end DimmerGui.Parent = ScreenGui.Parent Escurecedor = Instance.new("Frame") Escurecedor.Size = UDim2.new(1, 0, 1, 0) Escurecedor.BackgroundColor3 = Color3.fromRGB(0, 0, 0) Escurecedor.BackgroundTransparency = 0.65 Escurecedor.BorderSizePixel = 0 Escurecedor.ZIndex = -10 Escurecedor.Active = false Escurecedor.Parent = DimmerGui else Escurecedor.Parent.Enabled = true end else if Escurecedor then Escurecedor.Parent.Enabled = false end end end)
+        CreateCheckbox(ProfileContainer, "Escurecer a tela (Bypass)", 0, 290, false, function(state) if state then if not Escurecedor then local DimmerGui = Instance.new("ScreenGui") DimmerGui.Name = "SafeDimmerGui" DimmerGui.IgnoreGuiInset = true if syn and syn.protect_gui then syn.protect_gui(DimmerGui) end DimmerGui.Parent = ScreenGui.Parent Escurecedor = Instance.new("Frame") Escurecedor.Size = UDim2.new(1, 0, 1, 0) Escurecedor.BackgroundColor3 = Color3.fromRGB(0, 0, 0) Escurecedor.BackgroundTransparency = 0.65 Escurecedor.BorderSizePixel = 0 Escurecedor.ZIndex = -10 Escurecedor.Active = false Escurecedor.Parent = DimmerGui else Escurecedor.Parent.Enabled = true end else if Escurecedor then Escurecedor.Parent.Enabled = false end end end)
 
         local ButtonsFrame = Instance.new("Frame", ProfileContainer) ButtonsFrame.Size = UDim2.new(1, 0, 0, 40) ButtonsFrame.Position = UDim2.new(0, 0, 0, 340) ButtonsFrame.BackgroundTransparency = 1
         local UIListLayoutButtons = Instance.new("UIListLayout", ButtonsFrame) UIListLayoutButtons.FillDirection = Enum.FillDirection.Horizontal UIListLayoutButtons.SortOrder = Enum.SortOrder.LayoutOrder UIListLayoutButtons.Padding = UDim.new(0, 10)
