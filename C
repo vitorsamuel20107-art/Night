@@ -54,6 +54,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
     local Lighting = game:GetService("Lighting")
     local MarketplaceService = game:GetService("MarketplaceService")
     local TeleportService = game:GetService("TeleportService")
+    local Workspace = game:GetService("Workspace")
     
     local LocalPlayer = Players.LocalPlayer
     local Camera = workspace.CurrentCamera
@@ -87,7 +88,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
     local MainConfigFile = ConfigFolder .. "/NIGHT_Config.json"
     local GlobalSettings = {
         Toggles = {}, Sliders = {}, Dropdowns = {},
-        ThemeHex = "#FF0000", TriggerPos = {XScale = 0.7, XOffset = 0, YScale = 0.5, YOffset = 0}, TriggerLocked = false, TriggerRadius = 60,
+        ThemeHex = "#FF0000", TriggerPos = {XScale = 0.7, XOffset = 0, YScale = 0.5, YOffset = 0}, TriggerLocked = false,
         ESP_Colors = { Lines = "#FF0000", Boxes = "#FF0000", Skeleton = "#FFFFFF" }
     }
 
@@ -114,7 +115,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                         if decoded.ThemeHex then GlobalSettings.ThemeHex = tostring(decoded.ThemeHex) end
                         if type(decoded.TriggerPos) == "table" then GlobalSettings.TriggerPos = decoded.TriggerPos end
                         if decoded.TriggerLocked ~= nil then GlobalSettings.TriggerLocked = (decoded.TriggerLocked == true) end
-                        if decoded.TriggerRadius then GlobalSettings.TriggerRadius = tonumber(decoded.TriggerRadius) end
                         if type(decoded.ESP_Colors) == "table" then for k, v in pairs(decoded.ESP_Colors) do GlobalSettings.ESP_Colors[k] = tostring(v) end end
                     end
                 end
@@ -132,7 +132,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false local NoFlashEnabled = false
         local ESP_Settings = { Lines = false, LineOrigin = "Cima", LineColor = GlobalSettings.ESP_Colors.Lines, Boxes = false, BoxType = "Quadrado", BoxColor = GlobalSettings.ESP_Colors.Boxes, Skeleton = false, SkeletonColor = GlobalSettings.ESP_Colors.Skeleton, Health = false, ChamsColor = Color3.fromRGB(0, 255, 0), RainbowChams = false, MaxDistance = 500, MarcarTodos = false }
         local Aimbot_Settings = { Mode = "Nenhum", FovSize = 0, PullPart = "Head", Type = "Ao Olhar", VisibleCheck = false, AimbotNoTime = false }
-        local LockedTarget = nil local Trigger_Settings = { Radius = GlobalSettings.TriggerRadius or 60, Locked = GlobalSettings.TriggerLocked } local IsTouchingScreen = false
+        local LockedTarget = nil local Trigger_Settings = { Radius = 60, Locked = GlobalSettings.TriggerLocked } local IsTouchingScreen = false
 
         local ScreenGui = Instance.new("ScreenGui")
         ScreenGui.Name = GerarNomeAleatorio(15) 
@@ -371,7 +371,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local EditTarget = "Menu" local TargetBtns = {}
         local function SetEditTarget(targetKey, isVisible) if isVisible then EditTarget = targetKey for key, data in pairs(TargetBtns) do if key ~= targetKey then data.check.Visible = false data.box.BackgroundColor3 = C_DARK_GREY end end else EditTarget = "Menu" end end
 
-        local TargetScroll = Instance.new("Frame", TabRageFunctions) TargetScroll.Size = UDim2.new(1, -20, 0, 0) TargetScroll.Position = UDim2.new(0, 0, 0, 225) TargetScroll.BackgroundTransparency = 1 TargetScroll.AutomaticSize = Enum.AutomaticSize.Y TargetScroll.BorderSizePixel = 0
+        local TargetScroll = Instance.new("Frame", TabRageFunctions) TargetScroll.Size = UDim2.new(1, -20, 0, 0) TargetScroll.Position = UDim2.new(0, 0, 0, 295) TargetScroll.BackgroundTransparency = 1 TargetScroll.AutomaticSize = Enum.AutomaticSize.Y TargetScroll.BorderSizePixel = 0
         local TargetListLayout = Instance.new("UIListLayout", TargetScroll) TargetListLayout.Padding = UDim.new(0, 5)
 
         local function CreateTargetToggle(key, text)
@@ -383,70 +383,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             table.insert(ThemeCallbacks, function(color) if checkmark.Visible then box.BackgroundColor3 = color end end) TargetBtns[key] = {btn = btn, box = box, check = checkmark} return btn
         end
 
-        CreateTargetToggle("Lines", "Selecionado: Cor ESP Linha") 
-        CreateTargetToggle("Boxes", "Selecionado: Cor ESP Caixa") 
-        CreateTargetToggle("Skeleton", "Selecionado: Cor Esqueleto")
-
-        -- =========================================================================
-        -- [ MECÂNICA FUNCIONAL ANTI LAG - OTIMIZAÇÃO EXTREMA ]
-        -- =========================================================================
-        local AntiLagConnection = nil
-        local function AplicarMecanicaAntiLag(ativado)
-            if ativado then
-                local function OtimizarObjeto(obj)
-                    pcall(function()
-                        if obj:IsA("Texture") or obj:IsA("Decal") then
-                            obj.Transparency = 1
-                            if obj.Parent and not obj.Parent:IsA("Tool") then
-                                obj:Destroy()
-                            end
-                        elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") then
-                            obj.Enabled = false
-                        elseif obj:IsA("MeshPart") then
-                            obj.Material = Enum.Material.SmoothPlastic
-                            obj.Reflectance = 0
-                            obj.TextureID = ""
-                        elseif obj:IsA("SpecialMesh") then
-                            obj.TextureID = ""
-                        elseif obj:IsA("BasePart") then
-                            obj.Material = Enum.Material.SmoothPlastic
-                            obj.Reflectance = 0
-                            obj.CastShadow = false
-                        elseif obj:IsA("PostEffect") or obj:IsA("Atmosphere") or obj:IsA("Clouds") then
-                            obj.Enabled = false
-                        end
-                    end)
-                end
-                pcall(function()
-                    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-                    Lighting.GlobalShadows = false
-                    Lighting.FogEnd = 9e9
-                    for _, effect in pairs(Lighting:GetDescendants()) do
-                        if effect:IsA("PostEffect") or effect:IsA("Atmosphere") then
-                            effect.Enabled = false
-                        end
-                    end
-                    for _, desc in pairs(workspace:GetDescendants()) do 
-                        OtimizarObjeto(desc) 
-                    end
-                end)
-                if not AntiLagConnection then
-                    AntiLagConnection = workspace.DescendantAdded:Connect(OtimizarObjeto)
-                end
-                SalvarNoDiario("Anti Lag Extremo Ativado Completamente", "SUCCESS")
-            else
-                if AntiLagConnection then 
-                    AntiLagConnection:Disconnect() 
-                    AntiLagConnection = nil 
-                end
-                pcall(function() 
-                    Lighting.GlobalShadows = true 
-                end)
-            end
-        end
-
-        -- Criando a Checkbox do Anti Lag embaixo do "Selecionado Cor Esqueleto"
-        CreateCheckbox(TargetScroll, "Anti Lag", 0, 0, false, AplicarMecanicaAntiLag)
+        CreateTargetToggle("Lines", "Selecionado: Cor ESP Linha") CreateTargetToggle("Boxes", "Selecionado: Cor ESP Caixa") CreateTargetToggle("Skeleton", "Selecionado: Cor Esqueleto")
 
         -- [ ABA AIMBOT ]
         CreateCheckbox(TabAimbot, "Ativar Funções", 0, 0, false, function(s) FunctionsEnabled = s UpdateFOVVisibility() if not s then LockedTarget = nil end end)
@@ -479,19 +416,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         LockTriggerBtn.MouseButton1Click:Connect(function() Trigger_Settings.Locked = not Trigger_Settings.Locked GlobalSettings.TriggerLocked = Trigger_Settings.Locked SaveAllSettings() if Trigger_Settings.Locked then LockTriggerBtn.Text = "Seleção 🔒" LockTriggerBtn.BackgroundColor3 = CurrentTheme TriggerCircle.Active = false TriggerCircle.BackgroundColor3 = Color3.fromRGB(100, 100, 100) TriggerCircle.BackgroundTransparency = 0.8 TriggerText.Text = "TRAVADO" else LockTriggerBtn.Text = "Seleção 🔓" LockTriggerBtn.BackgroundColor3 = C_DARK_GREY TriggerCircle.Active = true TriggerCircle.BackgroundColor3 = Color3.fromRGB(255, 0, 0) TriggerCircle.BackgroundTransparency = 0.6 TriggerText.Text = "ATIRAR" end end)
         table.insert(ThemeCallbacks, function(color) if Trigger_Settings.Locked then LockTriggerBtn.BackgroundColor3 = color end end)
-        
-        MinusBtn.MouseButton1Click:Connect(function() 
-            Trigger_Settings.Radius = math.clamp(Trigger_Settings.Radius - 5, 20, 150) 
-            TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) 
-            GlobalSettings.TriggerRadius = Trigger_Settings.Radius
-            SaveAllSettings()
-        end)
-        PlusBtn.MouseButton1Click:Connect(function() 
-            Trigger_Settings.Radius = math.clamp(Trigger_Settings.Radius + 5, 20, 150) 
-            TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) 
-            GlobalSettings.TriggerRadius = Trigger_Settings.Radius
-            SaveAllSettings()
-        end)
+        MinusBtn.MouseButton1Click:Connect(function() Trigger_Settings.Radius = math.clamp(Trigger_Settings.Radius - 5, 20, 150) TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) end)
+        PlusBtn.MouseButton1Click:Connect(function() Trigger_Settings.Radius = math.clamp(Trigger_Settings.Radius + 5, 20, 150) TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) end)
 
         local VisibleCheckBtn = CreateCheckbox(TabAimbot, "Visível (Wall Check)", 0, 215, false, function(s) Aimbot_Settings.VisibleCheck = s end)
         CreateSimpleRadioGroup(TabAimbot, "Tipo de Aimbot:", 0, 155, {"Ao Olhar", "Ao Atirar"}, "Ao Olhar", function(v) Aimbot_Settings.Type = v if v == "Ao Atirar" then TriggerUIFrame.Visible = true TriggerCircle.Visible = true VisibleCheckBtn:TweenPosition(UDim2.new(0, 0, 0, 255), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true) else TriggerCircle.Visible = false IsTouchingScreen = false VisibleCheckBtn:TweenPosition(UDim2.new(0, 0, 0, 215), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true) task.delay(0.15, function() if Aimbot_Settings.Type == "Ao Olhar" then TriggerUIFrame.Visible = false end end) end end)
@@ -589,6 +515,85 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end)
         end
         CreateRainbowBtn()
+
+        -- ==========================================
+        -- SESSÃO DE OTIMIZAÇÃO (MOVIDO PARA CÁ)
+        -- ==========================================
+        _G.AntiLagAtivadoGlobal = true
+        
+        local AntiLagHeader = Instance.new("TextLabel", TabRageFunctions)
+        AntiLagHeader.Size = UDim2.new(1, -10, 0, 25)
+        AntiLagHeader.Position = UDim2.new(0, 0, 0, 230)
+        AntiLagHeader.BackgroundTransparency = 1
+        AntiLagHeader.Text = "Otimização"
+        AntiLagHeader.TextColor3 = CurrentTheme
+        AntiLagHeader.Font = Enum.Font.GothamBold
+        AntiLagHeader.TextSize = 14
+        AntiLagHeader.TextXAlignment = Enum.TextXAlignment.Left
+        table.insert(ThemeElements.Texts, AntiLagHeader)
+        
+        local AntiLagConns = {}
+        local function AplicarAntiLagObject(obj)
+            pcall(function()
+                if obj:IsA("Texture") or obj:IsA("Decal") or obj:IsA("SurfaceAppearance") then
+                    obj:Destroy()
+                elseif obj:IsA("BasePart") then
+                    if obj.Material ~= Enum.Material.SmoothPlastic then
+                        obj.Material = Enum.Material.SmoothPlastic
+                        obj.Reflectance = 0
+                        obj.CastShadow = false
+                    end
+                elseif obj:IsA("MeshPart") and obj.TextureID ~= "" then
+                    obj.TextureID = ""
+                elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") or obj:IsA("Explosion") then
+                    obj.Enabled = false
+                end
+            end)
+        end
+
+        CreateCheckbox(TabRageFunctions, "Anti-Lag Extremo (Remove Texturas)", 0, 255, true, function(ativo)
+            _G.AntiLagAtivadoGlobal = ativo
+            if ativo then
+                SalvarNoDiario("Iniciando Otimização Extrema", "INFO")
+                
+                -- Limpa o que já existe
+                for _, v in pairs(Workspace:GetDescendants()) do AplicarAntiLagObject(v) end
+                
+                -- Continua limpando o que spawnar
+                AntiLagConns["Spawns"] = Workspace.DescendantAdded:Connect(AplicarAntiLagObject)
+                
+                -- Controle de Iluminação / Camuflagem (0.5 Real / Spoofing de 1.0)
+                AntiLagConns["Iluminacao"] = RunService.Heartbeat:Connect(function()
+                    Lighting.Brightness = 0.5
+                    Lighting.ExposureCompensation = -0.5
+                    Lighting.GlobalShadows = false
+                    
+                    for _, effect in pairs(Lighting:GetChildren()) do
+                        if effect:IsA("ColorCorrectionEffect") then
+                            effect.Brightness = 0 effect.Contrast = 0 effect.Saturation = 0
+                        elseif effect:IsA("BlurEffect") then effect.Size = 0
+                        elseif effect:IsA("SunRaysEffect") or effect:IsA("BloomEffect") then effect.Enabled = false
+                        end
+                    end
+                end)
+                
+                -- Setups finais via pcall
+                pcall(function()
+                    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+                    sethiddenproperty(Workspace, "StreamingEnabled", true)
+                    Workspace.StreamingMinRadius = 10
+                    Workspace.StreamingTargetRadius = 30
+                end)
+                
+            else
+                SalvarNoDiario("Otimização Suspensa (Texturas apagadas não voltam)", "INFO")
+                if AntiLagConns["Spawns"] then AntiLagConns["Spawns"]:Disconnect() end
+                if AntiLagConns["Iluminacao"] then AntiLagConns["Iluminacao"]:Disconnect() end
+                Lighting.GlobalShadows = true
+                Lighting.Brightness = 1
+                Lighting.ExposureCompensation = 0
+            end
+        end)
 
         -- [ 💬 ABA: CHAT V8 FIREBASE ]
         local OnlineLabel_Chat = Instance.new("TextLabel", TabChat)
@@ -796,7 +801,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         local ButtonsFrame = Instance.new("Frame", ProfileContainer) 
         ButtonsFrame.Size = UDim2.new(1, -10, 0, 35) 
-        ButtonsFrame.Position = UDim2.new(0, 5, 0, 175) 
+        ButtonsFrame.Position = UDim2.new(0, 5, 0, 160) -- Puxado para cima de forma limpa e organizada
         ButtonsFrame.BackgroundTransparency = 1
         
         local UIListLayoutButtons = Instance.new("UIListLayout", ButtonsFrame) 
@@ -899,7 +904,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                         else drawings.Line.Visible = false drawings.Box.Visible = false drawings.Health.Visible = false for _, l in pairs(drawings.SkelLines) do l.Visible = false end drawings.SkelCircle.Visible = false if player.Character then local hl = player.Character:FindFirstChild("NIGHT_Chams") if hl then hl:Destroy() end end end
                     end
                 end)
-                if not ok then SalvarNoDiario("Erro Loop RenderStepped ESP: " .. tostring(err), "ERROR") end
+                if not ok then SalvarNoDiario("Erro Loop Loop RenderStepped ESP: " .. tostring(err), "ERROR") end
             end)
 
             local function GetClosestEnemyTarget()
