@@ -573,16 +573,15 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         AntiLagHeader.Position = UDim2.new(0, 0, 0, 230)
         AntiLagHeader.BackgroundTransparency = 1
         AntiLagHeader.Text = "Otimização"
-        AntiLagHeader.TextColor3 = CurrentTheme
+        AntiLagHeader.TextColor3 = C_WHITE
         AntiLagHeader.Font = Enum.Font.GothamBold
         AntiLagHeader.TextSize = 14
         AntiLagHeader.TextXAlignment = Enum.TextXAlignment.Left
-        table.insert(ThemeElements.Texts, AntiLagHeader)
         
         local AntiLagConns = {}
         local function AplicarAntiLagObject(obj)
             pcall(function()
-                if obj:IsA("Texture") or obj:IsA("Decal") or obj:IsA("SurfaceAppearance") then
+                if obj:IsA("Texture") or obj:IsA("Decal") or obj:IsA("SurfaceAppearance") or obj:IsA("Shirt") or obj:IsA("Pants") or obj:IsA("ShirtGraphic") or obj:IsA("CharacterMesh") or obj:IsA("Accessory") then
                     obj:Destroy()
                 elseif obj:IsA("BasePart") then
                     if obj.Material ~= Enum.Material.SmoothPlastic then
@@ -609,21 +608,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 -- Continua limpando o que spawnar
                 AntiLagConns["Spawns"] = Workspace.DescendantAdded:Connect(AplicarAntiLagObject)
                 
-                -- Controle de Iluminação / Camuflagem (0.5 Real / Spoofing de 1.0)
-                AntiLagConns["Iluminacao"] = RunService.Heartbeat:Connect(function()
-                    Lighting.Brightness = 0.5
-                    Lighting.ExposureCompensation = -0.5
-                    Lighting.GlobalShadows = false
-                    
-                    for _, effect in pairs(Lighting:GetChildren()) do
-                        if effect:IsA("ColorCorrectionEffect") then
-                            effect.Brightness = 0 effect.Contrast = 0 effect.Saturation = 0
-                        elseif effect:IsA("BlurEffect") then effect.Size = 0
-                        elseif effect:IsA("SunRaysEffect") or effect:IsA("BloomEffect") then effect.Enabled = false
-                        end
-                    end
-                end)
-                
                 -- Setups finais via pcall
                 pcall(function()
                     settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
@@ -635,10 +619,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             else
                 SalvarNoDiario("Otimização Suspensa (Texturas apagadas não voltam)", "INFO")
                 if AntiLagConns["Spawns"] then AntiLagConns["Spawns"]:Disconnect() end
-                if AntiLagConns["Iluminacao"] then AntiLagConns["Iluminacao"]:Disconnect() end
-                Lighting.GlobalShadows = true
-                Lighting.Brightness = 1
-                Lighting.ExposureCompensation = 0
             end
         end)
 
@@ -788,7 +768,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end
         end)
 
-        -- [ ABA PROFILE (REORGANIZADA) ]
+        -- [ ABA PROFILE (REORGANIZADA E CORRIGIDA PARA JSON) ]
         local ProfileContainer = Instance.new("Frame", TabProfile) 
         ProfileContainer.Size = UDim2.new(1, 0, 1, 0) 
         ProfileContainer.BackgroundTransparency = 1
@@ -806,22 +786,27 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             return lbl
         end
 
-        local function CreateHiddenRow(labelPrefix, realValue, yPos)
-            local isHidden = false
-            local lbl = CreateProfileText(labelPrefix .. realValue, yPos, 14, true, C_WHITE)
+        local function CreateHiddenRow(labelPrefix, realValue, yPos, configKey)
+            local isHidden = GlobalSettings.Toggles[configKey]
+            if isHidden == nil then isHidden = false end
+            
+            local displayValue = isHidden and "********" or realValue
+            local lbl = CreateProfileText(labelPrefix .. displayValue, yPos, 14, true, C_WHITE)
             lbl.Size = UDim2.new(0, 200, 0, 20) 
             
             local toggleBtn = Instance.new("TextButton", ProfileContainer)
             toggleBtn.Size = UDim2.new(0, 25, 0, 20)
             toggleBtn.Position = UDim2.new(0, 210, 0, yPos)
-            toggleBtn.BackgroundColor3 = C_DARK_GREY
-            toggleBtn.Text = "👁️"
+            toggleBtn.BackgroundColor3 = isHidden and CurrentTheme or C_DARK_GREY
+            toggleBtn.Text = isHidden and "🙈" or "👁️"
             toggleBtn.TextColor3 = C_WHITE
             toggleBtn.TextSize = 12
             Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 4)
             
             toggleBtn.MouseButton1Click:Connect(function()
                 isHidden = not isHidden
+                GlobalSettings.Toggles[configKey] = isHidden
+                SaveAllSettings()
                 if isHidden then
                     lbl.Text = labelPrefix .. "********"
                     toggleBtn.Text = "🙈"
@@ -838,8 +823,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end)
         end
 
-        CreateHiddenRow("Usuário: ", LocalPlayer.Name, 15)
-        CreateHiddenRow("ID: ", tostring(LocalPlayer.UserId), 45)
+        CreateHiddenRow("Usuário: ", LocalPlayer.Name, 15, "HideName")
+        CreateHiddenRow("ID: ", tostring(LocalPlayer.UserId), 45, "HideID")
 
         local CorTextoSecundario = Color3.fromRGB(180, 180, 180)
         CreateProfileText("Criador", 85, 12, false, CorTextoSecundario)
@@ -848,7 +833,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         local ButtonsFrame = Instance.new("Frame", ProfileContainer) 
         ButtonsFrame.Size = UDim2.new(1, -10, 0, 35) 
-        ButtonsFrame.Position = UDim2.new(0, 5, 0, 160) -- Puxado para cima de forma limpa e organizada
+        ButtonsFrame.Position = UDim2.new(0, 5, 0, 160)
         ButtonsFrame.BackgroundTransparency = 1
         
         local UIListLayoutButtons = Instance.new("UIListLayout", ButtonsFrame) 
