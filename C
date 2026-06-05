@@ -388,34 +388,60 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CreateTargetToggle("Skeleton", "Selecionado: Cor Esqueleto")
 
         -- =========================================================================
-        -- [ MECÂNICA FUNCIONAL ANTI LAG - OTIMIZAÇÃO AVANÇADA ]
+        -- [ MECÂNICA FUNCIONAL ANTI LAG - OTIMIZAÇÃO EXTREMA ]
         -- =========================================================================
         local AntiLagConnection = nil
         local function AplicarMecanicaAntiLag(ativado)
             if ativado then
                 local function OtimizarObjeto(obj)
-                    if obj:IsA("Texture") or obj:IsA("Decal") then
-                        obj.Transparency = 1
-                    elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
-                        obj.Enabled = false
-                    elseif obj:IsA("BasePart") then
-                        obj.Material = Enum.Material.SmoothPlastic
-                        obj.Reflectance = 0
-                    end
+                    pcall(function()
+                        if obj:IsA("Texture") or obj:IsA("Decal") then
+                            obj.Transparency = 1
+                            if obj.Parent and not obj.Parent:IsA("Tool") then
+                                obj:Destroy()
+                            end
+                        elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") then
+                            obj.Enabled = false
+                        elseif obj:IsA("MeshPart") then
+                            obj.Material = Enum.Material.SmoothPlastic
+                            obj.Reflectance = 0
+                            obj.TextureID = ""
+                        elseif obj:IsA("SpecialMesh") then
+                            obj.TextureID = ""
+                        elseif obj:IsA("BasePart") then
+                            obj.Material = Enum.Material.SmoothPlastic
+                            obj.Reflectance = 0
+                            obj.CastShadow = false
+                        elseif obj:IsA("PostEffect") or obj:IsA("Atmosphere") or obj:IsA("Clouds") then
+                            obj.Enabled = false
+                        end
+                    end)
                 end
                 pcall(function()
                     settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
                     Lighting.GlobalShadows = false
-                    for _, effect in pairs(Lighting:GetEffects()) do effect.Enabled = false end
-                    for _, desc in pairs(workspace:GetDescendants()) do OtimizarObjeto(desc) end
+                    Lighting.FogEnd = 9e9
+                    for _, effect in pairs(Lighting:GetDescendants()) do
+                        if effect:IsA("PostEffect") or effect:IsA("Atmosphere") then
+                            effect.Enabled = false
+                        end
+                    end
+                    for _, desc in pairs(workspace:GetDescendants()) do 
+                        OtimizarObjeto(desc) 
+                    end
                 end)
                 if not AntiLagConnection then
                     AntiLagConnection = workspace.DescendantAdded:Connect(OtimizarObjeto)
                 end
-                SalvarNoDiario("Anti Lag Ativado Completamente", "SUCCESS")
+                SalvarNoDiario("Anti Lag Extremo Ativado Completamente", "SUCCESS")
             else
-                if AntiLagConnection then AntiLagConnection:Disconnect() AntiLagConnection = nil end
-                pcall(function() Lighting.GlobalShadows = true end)
+                if AntiLagConnection then 
+                    AntiLagConnection:Disconnect() 
+                    AntiLagConnection = nil 
+                end
+                pcall(function() 
+                    Lighting.GlobalShadows = true 
+                end)
             end
         end
 
