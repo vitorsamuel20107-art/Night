@@ -676,21 +676,12 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CreateProfileText("Projeto: NIGHT-FFH4X", 95, 12, false, CinzaTexto) 
         CreateProfileText("Autenticação: Ativa", 115, 12, false, CinzaTexto) 
 
-        local OtimizacaoAtiva = false local SkinsRemoverAtivo = false local Terrain = workspace:FindFirstChildOfClass("Terrain")
-        local function DestruirGraficos(obj) pcall(function() if obj:IsA("BasePart") then obj.Material = Enum.Material.SmoothPlastic obj.Reflectance = 0 obj.CastShadow = false elseif obj:IsA("Decal") or obj:IsA("Texture") then obj.Transparency = 1 elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") or obj:IsA("Explosion") then obj.Enabled = false elseif obj:IsA("MeshPart") then obj.Material = Enum.Material.SmoothPlastic obj.TextureID = "" obj.CastShadow = false end end) end
-        local function LimparPersonagem(character) for _, obj in pairs(character:GetDescendants()) do if obj:IsA("Accessory") or obj:IsA("Shirt") or obj:IsA("Pants") or obj:IsA("ShirtGraphic") then pcall(function() obj:Destroy() end) elseif obj:IsA("BasePart") then pcall(function() obj.Material = Enum.Material.SmoothPlastic obj.Color = Color3.fromRGB(150, 150, 150) obj.CastShadow = false end) end end end
-        workspace.DescendantAdded:Connect(function(obj) if OtimizacaoAtiva then task.wait() DestruirGraficos(obj) end end)
-        Players.PlayerAdded:Connect(function(player) player.CharacterAdded:Connect(function(char) if SkinsRemoverAtivo then task.wait(1) LimparPersonagem(char) end end) end)
+        -- Créditos restaurados com base na referência visual solicitada
+        CreateProfileText("YouTube: eonight_uic", 150, 13, true, Color3.fromRGB(200, 200, 200))
+        CreateProfileText("TikTok: night_pushhard", 175, 13, true, Color3.fromRGB(200, 200, 200))
 
-        CreateCheckbox(ProfileContainer, "Ocultar Gravações (StreamProof)", 0, 150, false, function(state) if state then if gethui then ScreenGui.Parent = gethui() else ScreenGui.Parent = CoreGui end else ScreenGui.Parent = CoreGui end end)
-        CreateCheckbox(ProfileContainer, "FPS Boost Máximo (Limpar Mapa)", 0, 185, false, function(state) if state then for _, obj in pairs(workspace:GetDescendants()) do DestruirGraficos(obj) end if Terrain then pcall(function() Terrain.WaterWaveSize = 0 Terrain.WaterWaveSpeed = 0 Terrain.WaterReflectance = 0 Terrain.Decoration = false end) end end end)
-        CreateCheckbox(ProfileContainer, "Anti-Lag Dinâmico (Tiros)", 0, 220, false, function(state) OtimizacaoAtiva = state end)
-        CreateCheckbox(ProfileContainer, "Remover Skins (Mais FPS)", 0, 255, false, function(state) SkinsRemoverAtivo = state if state then for _, player in pairs(Players:GetPlayers()) do if player.Character then LimparPersonagem(player.Character) end end end end)
-
-        local Escurecedor = nil
-        CreateCheckbox(ProfileContainer, "Escurecer a tela (Bypass)", 0, 290, false, function(state) if state then if not Escurecedor then local DimmerGui = Instance.new("ScreenGui") DimmerGui.Name = "SafeDimmerGui" DimmerGui.IgnoreGuiInset = true if syn and syn.protect_gui then syn.protect_gui(DimmerGui) end DimmerGui.Parent = ScreenGui.Parent Escurecedor = Instance.new("Frame") Escurecedor.Size = UDim2.new(1, 0, 1, 0) Escurecedor.BackgroundColor3 = Color3.fromRGB(0, 0, 0) Escurecedor.BackgroundTransparency = 0.65 Escurecedor.BorderSizePixel = 0 Escurecedor.ZIndex = -10 Escurecedor.Active = false Escurecedor.Parent = DimmerGui else Escurecedor.Parent.Enabled = true end else if Escurecedor then Escurecedor.Parent.Enabled = false end end end)
-
-        local ButtonsFrame = Instance.new("Frame", ProfileContainer) ButtonsFrame.Size = UDim2.new(1, 0, 0, 40) ButtonsFrame.Position = UDim2.new(0, 0, 0, 340) ButtonsFrame.BackgroundTransparency = 1
+        -- Botões reorganizados para ocupar o espaço de forma centralizada e sem necessidade de scroll
+        local ButtonsFrame = Instance.new("Frame", ProfileContainer) ButtonsFrame.Size = UDim2.new(1, 0, 0, 40) ButtonsFrame.Position = UDim2.new(0, 0, 0, 215) ButtonsFrame.BackgroundTransparency = 1
         local UIListLayoutButtons = Instance.new("UIListLayout", ButtonsFrame) UIListLayoutButtons.FillDirection = Enum.FillDirection.Horizontal UIListLayoutButtons.SortOrder = Enum.SortOrder.LayoutOrder UIListLayoutButtons.Padding = UDim.new(0, 10)
         local HidePanelBtn = Instance.new("TextButton", ButtonsFrame) HidePanelBtn.Size = UDim2.new(0, 140, 0, 35) HidePanelBtn.BackgroundColor3 = C_DARK_GREY HidePanelBtn.Text = "❌ Esconder" HidePanelBtn.TextColor3 = C_WHITE HidePanelBtn.Font = Enum.Font.GothamBold HidePanelBtn.TextSize = 13 Instance.new("UICorner", HidePanelBtn).CornerRadius = UDim.new(0, 6) HidePanelBtn.MouseButton1Click:Connect(PlayHideAnimation)
         local MinimizePanelBtn = Instance.new("TextButton", ButtonsFrame) MinimizePanelBtn.Size = UDim2.new(0, 140, 0, 35) MinimizePanelBtn.BackgroundColor3 = CurrentTheme MinimizePanelBtn.Text = "➖ Minimizar" MinimizePanelBtn.TextColor3 = C_WHITE MinimizePanelBtn.Font = Enum.Font.GothamBold MinimizePanelBtn.TextSize = 13 Instance.new("UICorner", MinimizePanelBtn).CornerRadius = UDim.new(0, 6) table.insert(ThemeElements.Backgrounds, MinimizePanelBtn) MinimizePanelBtn.MouseButton1Click:Connect(PlayMinimizeAnimation)
