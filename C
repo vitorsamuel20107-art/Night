@@ -54,6 +54,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
     local Lighting = game:GetService("Lighting")
     local MarketplaceService = game:GetService("MarketplaceService")
     local TeleportService = game:GetService("TeleportService")
+    local Workspace = game:GetService("Workspace")
     
     local LocalPlayer = Players.LocalPlayer
     local Camera = workspace.CurrentCamera
@@ -80,6 +81,28 @@ local ExecucaoSegura, ErroFatal = pcall(function()
     local JogadoresOnlineCache = {}
     local NomeDoJogoAtual = "Roblox Game"
     pcall(function() NomeDoJogoAtual = MarketplaceService:GetProductInfo(game.PlaceId).Name end)
+
+    -- =========================================================================
+    -- ⚙️ SPOOFING DE ILUMINAÇÃO (ANTI-LAG ROOT)
+    -- =========================================================================
+    _G.AntiLagAtivadoGlobal = false
+    if not _G.LightingHooked then
+        _G.LightingHooked = true
+        pcall(function()
+            local oldIndex
+            oldIndex = hookmetamethod(game, "__index", function(self, key)
+                if not checkcaller() and self == Lighting and _G.AntiLagAtivadoGlobal then
+                    if key == "Brightness" then
+                        return 1.0 -- BrilhoFalso
+                    elseif key == "ExposureCompensation" then
+                        return 0 -- ExposicaoFalsa
+                    end
+                end
+                return oldIndex(self, key)
+            end)
+            SalvarNoDiario("Spoofing de Iluminação Hooked", "SUCCESS")
+        end)
+    end
 
     -- =========================================================================
     -- 💾 SISTEMA JSON DEEP SAVE
@@ -661,7 +684,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end
         end)
 
-        -- [ ABA PROFILE (REORGANIZADA) ]
+        -- [ ABA PROFILE (REORGANIZADA COM ANTI-LAG) ]
         local ProfileContainer = Instance.new("Frame", TabProfile) 
         ProfileContainer.Size = UDim2.new(1, 0, 1, 0) 
         ProfileContainer.BackgroundTransparency = 1
@@ -719,9 +742,77 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CreateProfileText("YouTube: eoNight_ofc", 105, 13, false, CorTextoSecundario)
         CreateProfileText("TikTok: night_pushhard", 125, 13, false, CorTextoSecundario)
 
+        -- ==========================================
+        -- SESSÃO DE OTIMIZAÇÃO (NOVO)
+        -- ==========================================
+        CreateProfileText("⚙️ Desempenho e Otimização", 160, 14, true, CurrentTheme)
+        
+        local AntiLagConns = {}
+        local function AplicarAntiLagObject(obj)
+            pcall(function()
+                if obj:IsA("Texture") or obj:IsA("Decal") or obj:IsA("SurfaceAppearance") then
+                    obj:Destroy()
+                elseif obj:IsA("BasePart") then
+                    if obj.Material ~= Enum.Material.SmoothPlastic then
+                        obj.Material = Enum.Material.SmoothPlastic
+                        obj.Reflectance = 0
+                        obj.CastShadow = false
+                    end
+                elseif obj:IsA("MeshPart") and obj.TextureID ~= "" then
+                    obj.TextureID = ""
+                elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") or obj:IsA("Explosion") then
+                    obj.Enabled = false
+                end
+            end)
+        end
+
+        CreateCheckbox(ProfileContainer, "Anti-Lag Extremo (Remove Texturas)", 5, 185, false, function(ativo)
+            _G.AntiLagAtivadoGlobal = ativo
+            if ativo then
+                SalvarNoDiario("Iniciando Otimização Extrema", "INFO")
+                
+                -- Limpa o que já existe
+                for _, v in pairs(Workspace:GetDescendants()) do AplicarAntiLagObject(v) end
+                
+                -- Continua limpando o que spawnar
+                AntiLagConns["Spawns"] = Workspace.DescendantAdded:Connect(AplicarAntiLagObject)
+                
+                -- Controle de Iluminação / Camuflagem (0.5 Real / Spoofing de 1.0)
+                AntiLagConns["Iluminacao"] = RunService.Heartbeat:Connect(function()
+                    Lighting.Brightness = 0.5
+                    Lighting.ExposureCompensation = -0.5
+                    Lighting.GlobalShadows = false
+                    
+                    for _, effect in pairs(Lighting:GetChildren()) do
+                        if effect:IsA("ColorCorrectionEffect") then
+                            effect.Brightness = 0 effect.Contrast = 0 effect.Saturation = 0
+                        elseif effect:IsA("BlurEffect") then effect.Size = 0
+                        elseif effect:IsA("SunRaysEffect") or effect:IsA("BloomEffect") then effect.Enabled = false
+                        end
+                    end
+                end)
+                
+                -- Setups finais via pcall
+                pcall(function()
+                    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+                    sethiddenproperty(Workspace, "StreamingEnabled", true)
+                    Workspace.StreamingMinRadius = 10
+                    Workspace.StreamingTargetRadius = 30
+                end)
+                
+            else
+                SalvarNoDiario("Otimização Suspensa (Texturas apagadas não voltam)", "INFO")
+                if AntiLagConns["Spawns"] then AntiLagConns["Spawns"]:Disconnect() end
+                if AntiLagConns["Iluminacao"] then AntiLagConns["Iluminacao"]:Disconnect() end
+                Lighting.GlobalShadows = true
+                Lighting.Brightness = 1
+                Lighting.ExposureCompensation = 0
+            end
+        end)
+
         local ButtonsFrame = Instance.new("Frame", ProfileContainer) 
         ButtonsFrame.Size = UDim2.new(1, -10, 0, 35) 
-        ButtonsFrame.Position = UDim2.new(0, 5, 0, 175) 
+        ButtonsFrame.Position = UDim2.new(0, 5, 0, 240) -- Empurrado para baixo para caber o botão
         ButtonsFrame.BackgroundTransparency = 1
         
         local UIListLayoutButtons = Instance.new("UIListLayout", ButtonsFrame) 
