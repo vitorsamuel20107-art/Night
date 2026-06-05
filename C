@@ -393,7 +393,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local EditTarget = "Menu" local TargetBtns = {}
         local function SetEditTarget(targetKey, isVisible) if isVisible then EditTarget = targetKey for key, data in pairs(TargetBtns) do if key ~= targetKey then data.check.Visible = false data.box.BackgroundColor3 = C_DARK_GREY end end else EditTarget = "Menu" end end
 
-        local TargetScroll = Instance.new("Frame", TabRageFunctions) TargetScroll.Size = UDim2.new(1, -20, 0, 0) TargetScroll.Position = UDim2.new(0, 0, 0, 225) TargetScroll.BackgroundTransparency = 1 TargetScroll.AutomaticSize = Enum.AutomaticSize.Y TargetScroll.BorderSizePixel = 0
+        local TargetScroll = Instance.new("Frame", TabRageFunctions) TargetScroll.Size = UDim2.new(1, -20, 0, 0) TargetScroll.Position = UDim2.new(0, 0, 0, 295) TargetScroll.BackgroundTransparency = 1 TargetScroll.AutomaticSize = Enum.AutomaticSize.Y TargetScroll.BorderSizePixel = 0
         local TargetListLayout = Instance.new("UIListLayout", TargetScroll) TargetListLayout.Padding = UDim.new(0, 5)
 
         local function CreateTargetToggle(key, text)
@@ -537,6 +537,83 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end)
         end
         CreateRainbowBtn()
+
+        -- ==========================================
+        -- SESSÃO DE OTIMIZAÇÃO (MOVIDO PARA CÁ)
+        -- ==========================================
+        local AntiLagHeader = Instance.new("TextLabel", TabRageFunctions)
+        AntiLagHeader.Size = UDim2.new(1, -10, 0, 25)
+        AntiLagHeader.Position = UDim2.new(0, 0, 0, 230)
+        AntiLagHeader.BackgroundTransparency = 1
+        AntiLagHeader.Text = "⚙️ Desempenho e Otimização"
+        AntiLagHeader.TextColor3 = CurrentTheme
+        AntiLagHeader.Font = Enum.Font.GothamBold
+        AntiLagHeader.TextSize = 14
+        AntiLagHeader.TextXAlignment = Enum.TextXAlignment.Left
+        table.insert(ThemeElements.Texts, AntiLagHeader)
+        
+        local AntiLagConns = {}
+        local function AplicarAntiLagObject(obj)
+            pcall(function()
+                if obj:IsA("Texture") or obj:IsA("Decal") or obj:IsA("SurfaceAppearance") then
+                    obj:Destroy()
+                elseif obj:IsA("BasePart") then
+                    if obj.Material ~= Enum.Material.SmoothPlastic then
+                        obj.Material = Enum.Material.SmoothPlastic
+                        obj.Reflectance = 0
+                        obj.CastShadow = false
+                    end
+                elseif obj:IsA("MeshPart") and obj.TextureID ~= "" then
+                    obj.TextureID = ""
+                elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") or obj:IsA("Explosion") then
+                    obj.Enabled = false
+                end
+            end)
+        end
+
+        CreateCheckbox(TabRageFunctions, "Anti-Lag Extremo (Remove Texturas)", 0, 255, false, function(ativo)
+            _G.AntiLagAtivadoGlobal = ativo
+            if ativo then
+                SalvarNoDiario("Iniciando Otimização Extrema", "INFO")
+                
+                -- Limpa o que já existe
+                for _, v in pairs(Workspace:GetDescendants()) do AplicarAntiLagObject(v) end
+                
+                -- Continua limpando o que spawnar
+                AntiLagConns["Spawns"] = Workspace.DescendantAdded:Connect(AplicarAntiLagObject)
+                
+                -- Controle de Iluminação / Camuflagem (0.5 Real / Spoofing de 1.0)
+                AntiLagConns["Iluminacao"] = RunService.Heartbeat:Connect(function()
+                    Lighting.Brightness = 0.5
+                    Lighting.ExposureCompensation = -0.5
+                    Lighting.GlobalShadows = false
+                    
+                    for _, effect in pairs(Lighting:GetChildren()) do
+                        if effect:IsA("ColorCorrectionEffect") then
+                            effect.Brightness = 0 effect.Contrast = 0 effect.Saturation = 0
+                        elseif effect:IsA("BlurEffect") then effect.Size = 0
+                        elseif effect:IsA("SunRaysEffect") or effect:IsA("BloomEffect") then effect.Enabled = false
+                        end
+                    end
+                end)
+                
+                -- Setups finais via pcall
+                pcall(function()
+                    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+                    sethiddenproperty(Workspace, "StreamingEnabled", true)
+                    Workspace.StreamingMinRadius = 10
+                    Workspace.StreamingTargetRadius = 30
+                end)
+                
+            else
+                SalvarNoDiario("Otimização Suspensa (Texturas apagadas não voltam)", "INFO")
+                if AntiLagConns["Spawns"] then AntiLagConns["Spawns"]:Disconnect() end
+                if AntiLagConns["Iluminacao"] then AntiLagConns["Iluminacao"]:Disconnect() end
+                Lighting.GlobalShadows = true
+                Lighting.Brightness = 1
+                Lighting.ExposureCompensation = 0
+            end
+        end)
 
         -- [ 💬 ABA: CHAT V8 FIREBASE ]
         local OnlineLabel_Chat = Instance.new("TextLabel", TabChat)
@@ -684,7 +761,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end
         end)
 
-        -- [ ABA PROFILE (REORGANIZADA COM ANTI-LAG) ]
+        -- [ ABA PROFILE (REORGANIZADA) ]
         local ProfileContainer = Instance.new("Frame", TabProfile) 
         ProfileContainer.Size = UDim2.new(1, 0, 1, 0) 
         ProfileContainer.BackgroundTransparency = 1
@@ -742,77 +819,9 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CreateProfileText("YouTube: eoNight_ofc", 105, 13, false, CorTextoSecundario)
         CreateProfileText("TikTok: night_pushhard", 125, 13, false, CorTextoSecundario)
 
-        -- ==========================================
-        -- SESSÃO DE OTIMIZAÇÃO (NOVO)
-        -- ==========================================
-        CreateProfileText("⚙️ Desempenho e Otimização", 160, 14, true, CurrentTheme)
-        
-        local AntiLagConns = {}
-        local function AplicarAntiLagObject(obj)
-            pcall(function()
-                if obj:IsA("Texture") or obj:IsA("Decal") or obj:IsA("SurfaceAppearance") then
-                    obj:Destroy()
-                elseif obj:IsA("BasePart") then
-                    if obj.Material ~= Enum.Material.SmoothPlastic then
-                        obj.Material = Enum.Material.SmoothPlastic
-                        obj.Reflectance = 0
-                        obj.CastShadow = false
-                    end
-                elseif obj:IsA("MeshPart") and obj.TextureID ~= "" then
-                    obj.TextureID = ""
-                elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") or obj:IsA("Explosion") then
-                    obj.Enabled = false
-                end
-            end)
-        end
-
-        CreateCheckbox(ProfileContainer, "Anti-Lag Extremo (Remove Texturas)", 5, 185, false, function(ativo)
-            _G.AntiLagAtivadoGlobal = ativo
-            if ativo then
-                SalvarNoDiario("Iniciando Otimização Extrema", "INFO")
-                
-                -- Limpa o que já existe
-                for _, v in pairs(Workspace:GetDescendants()) do AplicarAntiLagObject(v) end
-                
-                -- Continua limpando o que spawnar
-                AntiLagConns["Spawns"] = Workspace.DescendantAdded:Connect(AplicarAntiLagObject)
-                
-                -- Controle de Iluminação / Camuflagem (0.5 Real / Spoofing de 1.0)
-                AntiLagConns["Iluminacao"] = RunService.Heartbeat:Connect(function()
-                    Lighting.Brightness = 0.5
-                    Lighting.ExposureCompensation = -0.5
-                    Lighting.GlobalShadows = false
-                    
-                    for _, effect in pairs(Lighting:GetChildren()) do
-                        if effect:IsA("ColorCorrectionEffect") then
-                            effect.Brightness = 0 effect.Contrast = 0 effect.Saturation = 0
-                        elseif effect:IsA("BlurEffect") then effect.Size = 0
-                        elseif effect:IsA("SunRaysEffect") or effect:IsA("BloomEffect") then effect.Enabled = false
-                        end
-                    end
-                end)
-                
-                -- Setups finais via pcall
-                pcall(function()
-                    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-                    sethiddenproperty(Workspace, "StreamingEnabled", true)
-                    Workspace.StreamingMinRadius = 10
-                    Workspace.StreamingTargetRadius = 30
-                end)
-                
-            else
-                SalvarNoDiario("Otimização Suspensa (Texturas apagadas não voltam)", "INFO")
-                if AntiLagConns["Spawns"] then AntiLagConns["Spawns"]:Disconnect() end
-                if AntiLagConns["Iluminacao"] then AntiLagConns["Iluminacao"]:Disconnect() end
-                Lighting.GlobalShadows = true
-                Lighting.Brightness = 1
-                Lighting.ExposureCompensation = 0
-            end
-        end)
-
         local ButtonsFrame = Instance.new("Frame", ProfileContainer) 
         ButtonsFrame.Size = UDim2.new(1, -10, 0, 35) 
-        ButtonsFrame.Position = UDim2.new(0, 5, 0, 240) -- Empurrado para baixo para caber o botão
+        ButtonsFrame.Position = UDim2.new(0, 5, 0, 160) -- Puxado para cima de forma limpa e organizada
         ButtonsFrame.BackgroundTransparency = 1
         
         local UIListLayoutButtons = Instance.new("UIListLayout", ButtonsFrame) 
@@ -915,7 +924,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                         else drawings.Line.Visible = false drawings.Box.Visible = false drawings.Health.Visible = false for _, l in pairs(drawings.SkelLines) do l.Visible = false end drawings.SkelCircle.Visible = false if player.Character then local hl = player.Character:FindFirstChild("NIGHT_Chams") if hl then hl:Destroy() end end end
                     end
                 end)
-                if not ok then SalvarNoDiario("Erro Loop RenderStepped ESP: " .. tostring(err), "ERROR") end
+                if not ok then SalvarNoDiario("Erro Loop Loop RenderStepped ESP: " .. tostring(err), "ERROR") end
             end)
 
             local function GetClosestEnemyTarget()
