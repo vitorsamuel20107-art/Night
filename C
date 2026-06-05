@@ -662,29 +662,93 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         end)
 
         -- [ ABA PROFILE (REORGANIZADA) ]
-        local ProfileContainer = Instance.new("Frame", TabProfile) ProfileContainer.Size = UDim2.new(1, 0, 1, 0) ProfileContainer.BackgroundTransparency = 1
-        local function CreateProfileText(text, yPos, size, isBold, color) local lbl = Instance.new("TextLabel", ProfileContainer) lbl.Size = UDim2.new(1, 0, 0, 25) lbl.Position = UDim2.new(0, 0, 0, yPos) lbl.BackgroundTransparency = 1 lbl.Text = text lbl.TextColor3 = color or C_WHITE lbl.Font = isBold and Enum.Font.GothamBold or Enum.Font.Gotham lbl.TextSize = size or 14 lbl.TextXAlignment = Enum.TextXAlignment.Left end
-        
-        CreateProfileText("Usuário: " .. LocalPlayer.Name, 10, 14, true) 
-        CreateProfileText("ID: " .. LocalPlayer.UserId, 35, 14, true)
-        
-        local statusText = IsAdmin and "Acesso: DONO (Permanente)" or "Acesso: Usuário"
-        local statusColor = IsAdmin and Color3.fromRGB(255, 215, 0) or Color3.fromRGB(0, 255, 100)
-        CreateProfileText(statusText, 60, 14, true, statusColor)
-        
-        local CinzaTexto = Color3.fromRGB(180, 180, 180) 
-        CreateProfileText("Projeto: NIGHT-FFH4X", 95, 12, false, CinzaTexto) 
-        CreateProfileText("Autenticação: Ativa", 115, 12, false, CinzaTexto) 
+        local ProfileContainer = Instance.new("Frame", TabProfile) 
+        ProfileContainer.Size = UDim2.new(1, 0, 1, 0) 
+        ProfileContainer.BackgroundTransparency = 1
 
-        -- Créditos restaurados com base na referência visual solicitada
-        CreateProfileText("YouTube: eonight_uic", 150, 13, true, Color3.fromRGB(200, 200, 200))
-        CreateProfileText("TikTok: night_pushhard", 175, 13, true, Color3.fromRGB(200, 200, 200))
+        local function CreateProfileText(text, yPos, size, isBold, color) 
+            local lbl = Instance.new("TextLabel", ProfileContainer) 
+            lbl.Size = UDim2.new(1, 0, 0, 20) 
+            lbl.Position = UDim2.new(0, 5, 0, yPos) 
+            lbl.BackgroundTransparency = 1 
+            lbl.Text = text 
+            lbl.TextColor3 = color or C_WHITE 
+            lbl.Font = isBold and Enum.Font.GothamBold or Enum.Font.Gotham 
+            lbl.TextSize = size or 14 
+            lbl.TextXAlignment = Enum.TextXAlignment.Left 
+            return lbl
+        end
 
-        -- Botões reorganizados para ocupar o espaço de forma centralizada e sem necessidade de scroll
-        local ButtonsFrame = Instance.new("Frame", ProfileContainer) ButtonsFrame.Size = UDim2.new(1, 0, 0, 40) ButtonsFrame.Position = UDim2.new(0, 0, 0, 215) ButtonsFrame.BackgroundTransparency = 1
-        local UIListLayoutButtons = Instance.new("UIListLayout", ButtonsFrame) UIListLayoutButtons.FillDirection = Enum.FillDirection.Horizontal UIListLayoutButtons.SortOrder = Enum.SortOrder.LayoutOrder UIListLayoutButtons.Padding = UDim.new(0, 10)
-        local HidePanelBtn = Instance.new("TextButton", ButtonsFrame) HidePanelBtn.Size = UDim2.new(0, 140, 0, 35) HidePanelBtn.BackgroundColor3 = C_DARK_GREY HidePanelBtn.Text = "❌ Esconder" HidePanelBtn.TextColor3 = C_WHITE HidePanelBtn.Font = Enum.Font.GothamBold HidePanelBtn.TextSize = 13 Instance.new("UICorner", HidePanelBtn).CornerRadius = UDim.new(0, 6) HidePanelBtn.MouseButton1Click:Connect(PlayHideAnimation)
-        local MinimizePanelBtn = Instance.new("TextButton", ButtonsFrame) MinimizePanelBtn.Size = UDim2.new(0, 140, 0, 35) MinimizePanelBtn.BackgroundColor3 = CurrentTheme MinimizePanelBtn.Text = "➖ Minimizar" MinimizePanelBtn.TextColor3 = C_WHITE MinimizePanelBtn.Font = Enum.Font.GothamBold MinimizePanelBtn.TextSize = 13 Instance.new("UICorner", MinimizePanelBtn).CornerRadius = UDim.new(0, 6) table.insert(ThemeElements.Backgrounds, MinimizePanelBtn) MinimizePanelBtn.MouseButton1Click:Connect(PlayMinimizeAnimation)
+        local function CreateHiddenRow(labelPrefix, realValue, yPos)
+            local isHidden = false
+            local lbl = CreateProfileText(labelPrefix .. realValue, yPos, 14, true, C_WHITE)
+            lbl.Size = UDim2.new(0, 200, 0, 20) 
+            
+            local toggleBtn = Instance.new("TextButton", ProfileContainer)
+            toggleBtn.Size = UDim2.new(0, 25, 0, 20)
+            toggleBtn.Position = UDim2.new(0, 210, 0, yPos)
+            toggleBtn.BackgroundColor3 = C_DARK_GREY
+            toggleBtn.Text = "👁️"
+            toggleBtn.TextColor3 = C_WHITE
+            toggleBtn.TextSize = 12
+            Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 4)
+            
+            toggleBtn.MouseButton1Click:Connect(function()
+                isHidden = not isHidden
+                if isHidden then
+                    lbl.Text = labelPrefix .. "********"
+                    toggleBtn.Text = "🙈"
+                    toggleBtn.BackgroundColor3 = CurrentTheme
+                else
+                    lbl.Text = labelPrefix .. realValue
+                    toggleBtn.Text = "👁️"
+                    toggleBtn.BackgroundColor3 = C_DARK_GREY
+                end
+            end)
+            
+            table.insert(ThemeCallbacks, function(color)
+                if isHidden then toggleBtn.BackgroundColor3 = color end
+            end)
+        end
+
+        CreateHiddenRow("Usuário: ", LocalPlayer.Name, 15)
+        CreateHiddenRow("ID: ", tostring(LocalPlayer.UserId), 45)
+
+        local CorTextoSecundario = Color3.fromRGB(180, 180, 180)
+        CreateProfileText("Criador", 85, 12, false, CorTextoSecundario)
+        CreateProfileText("YouTube: eoNight_ofc", 105, 13, false, CorTextoSecundario)
+        CreateProfileText("TikTok: night_pushhard", 125, 13, false, CorTextoSecundario)
+
+        local ButtonsFrame = Instance.new("Frame", ProfileContainer) 
+        ButtonsFrame.Size = UDim2.new(1, -10, 0, 35) 
+        ButtonsFrame.Position = UDim2.new(0, 5, 0, 175) 
+        ButtonsFrame.BackgroundTransparency = 1
+        
+        local UIListLayoutButtons = Instance.new("UIListLayout", ButtonsFrame) 
+        UIListLayoutButtons.FillDirection = Enum.FillDirection.Horizontal 
+        UIListLayoutButtons.SortOrder = Enum.SortOrder.LayoutOrder 
+        UIListLayoutButtons.Padding = UDim.new(0, 10)
+
+        local HidePanelBtn = Instance.new("TextButton", ButtonsFrame) 
+        HidePanelBtn.Size = UDim2.new(0, 130, 1, 0) 
+        HidePanelBtn.BackgroundColor3 = C_DARK_GREY 
+        HidePanelBtn.Text = "Esconder" 
+        HidePanelBtn.TextColor3 = C_WHITE 
+        HidePanelBtn.Font = Enum.Font.GothamBold 
+        HidePanelBtn.TextSize = 13 
+        Instance.new("UICorner", HidePanelBtn).CornerRadius = UDim.new(0, 6) 
+        HidePanelBtn.MouseButton1Click:Connect(PlayHideAnimation)
+
+        local MinimizePanelBtn = Instance.new("TextButton", ButtonsFrame) 
+        MinimizePanelBtn.Size = UDim2.new(0, 130, 1, 0) 
+        MinimizePanelBtn.BackgroundColor3 = CurrentTheme 
+        MinimizePanelBtn.Text = "Minimizar" 
+        MinimizePanelBtn.TextColor3 = C_WHITE 
+        MinimizePanelBtn.Font = Enum.Font.GothamBold 
+        MinimizePanelBtn.TextSize = 13 
+        Instance.new("UICorner", MinimizePanelBtn).CornerRadius = UDim.new(0, 6) 
+        table.insert(ThemeElements.Backgrounds, MinimizePanelBtn) 
+        MinimizePanelBtn.MouseButton1Click:Connect(PlayMinimizeAnimation)
 
         if GlobalSettings.ThemeHex ~= "RAINBOW" then SetTheme(CurrentTheme) end
 
