@@ -18,5 +18,5 @@ local function ExibirAvisoManutencao()
     ScreenGui:Destroy()
 end
 
--- Chame esta função logo no início do script
+-- lop
 task.spawn(ExibirAvisoManutencao)
