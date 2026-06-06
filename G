@@ -2,12 +2,10 @@ local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
--- Salva a função original do motor antes de cortar o fio
 local RobloxPrint = print
 local RobloxWarn = warn
 local RobloxError = error
 
--- Corte do fio: Bloqueia a saída nativa do seu script para o F9
 print = function(...) end
 warn = function(...) end
 error = function(...) end
@@ -16,7 +14,6 @@ pcall(function()
     if makefolder and not isfolder(log_folder) then makefolder(log_folder) end
 end)
 
--- Função pura em Lua de Base64 (Garante funcionamento em qualquer executor)
 local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 local function toBase64(data)
     return ((data:gsub('.', function(x) 
@@ -33,16 +30,12 @@ end
 
 local function SalvarNoDiario(msg, status)
     if status ~= "SUCCESS" and status ~= "ERROR" and status ~= "INFO" then return end
-
     task.defer(function()
         pcall(function()
             local t = os.date("%H:%M:%S")
             local textoFinal = string.format("[%s] [%s] :: %s", t, status, tostring(msg))
-            
-            -- Inverte o texto e depois codifica em Base64
             local invertido = string.reverse(textoFinal)
             local logOfuscado = toBase64(invertido) .. "\n"
-            
             if appendfile then
                 appendfile(log_file, logOfuscado)
             elseif writefile and readfile and isfile(log_file) then
@@ -61,26 +54,20 @@ pcall(function()
     end)
 end)
 
--- Loop de Spoofing: Mente para o Anti-Cheat a cada 30 segundos
 task.spawn(function()
     while true do
         task.wait(30)
         pcall(function()
-            -- Usa a função nativa original para mandar apenas a mensagem falsa
             RobloxPrint("[System] Lighting Parameters Verified: NORMAL")
             RobloxPrint("[System] Environment Integrity: OK. GlobalShadows: true")
-            
-            -- Registra no seu diário privado que o bypass foi enviado
             SalvarNoDiario("Bypass de Iluminação enviado com sucesso.", "SUCCESS")
         end)
     end
 end)
 
--- Marca o início no log privado
 SalvarNoDiario("DIÁRIO PRIVADO NIGHT ATIVADO", "INFO")
 
 local ExecucaoSegura, ErroFatal = pcall(function()
-
     local CoreGui = game:GetService("CoreGui")
     local UserInputService = game:GetService("UserInputService")
     local RunService = game:GetService("RunService")
@@ -94,7 +81,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
     local LocalPlayer = Players.LocalPlayer
     local Camera = workspace.CurrentCamera
 
-    -- Validação de Permissões (Dono / Acesso Permanente)
     local IsAdmin = false
     local AdminList = {"mayra", "william"}
     for _, admin in ipairs(AdminList) do
@@ -117,7 +103,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
     local MainConfigFile = ConfigFolder .. "/NIGHT_Config.json"
     local GlobalSettings = {
         Toggles = {}, Sliders = {}, Dropdowns = {},
-        ThemeHex = "#FF0000", TriggerPos = {XScale = 0.7, XOffset = 0, YScale = 0.5, YOffset = 0}, TriggerLocked = false,
+        ThemeHex = "#FF0000", TriggerLocked = false,
         ESP_Colors = { Lines = "#FF0000", Boxes = "#FF0000", Skeleton = "#FFFFFF" }
     }
 
@@ -129,7 +115,11 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         return Color3.fromRGB(255, 0, 0)
     end
 
-    local function SaveAllSettings() pcall(function() if writefile then writefile(MainConfigFile, HttpService:JSONEncode(GlobalSettings)) end end) end
+    local function SaveAllSettings() 
+        pcall(function() 
+            if writefile then writefile(MainConfigFile, HttpService:JSONEncode(GlobalSettings)) end 
+        end) 
+    end
 
     local function LoadAllSettings()
         pcall(function()
@@ -142,7 +132,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                         for k, v in pairs(decoded.Sliders or {}) do GlobalSettings.Sliders[k] = tonumber(v) end
                         for k, v in pairs(decoded.Dropdowns or {}) do GlobalSettings.Dropdowns[k] = tostring(v) end
                         if decoded.ThemeHex then GlobalSettings.ThemeHex = tostring(decoded.ThemeHex) end
-                        if type(decoded.TriggerPos) == "table" then GlobalSettings.TriggerPos = decoded.TriggerPos end
                         if decoded.TriggerLocked ~= nil then GlobalSettings.TriggerLocked = (decoded.TriggerLocked == true) end
                         if type(decoded.ESP_Colors) == "table" then for k, v in pairs(decoded.ESP_Colors) do GlobalSettings.ESP_Colors[k] = tostring(v) end end
                     end
@@ -152,7 +141,11 @@ local ExecucaoSegura, ErroFatal = pcall(function()
     end
     LoadAllSettings()
 
-    local function GerarNomeAleatorio(tamanho) local res = "" for i = 1, tamanho do res = res .. string.char(math.random(65, 90)) end return res end
+    local function GerarNomeAleatorio(tamanho) 
+        local res = "" 
+        for i = 1, tamanho do res = res .. string.char(math.random(65, 90)) end 
+        return res 
+    end
 
     local function IniciarPainel()
         local targetParent = gethui and gethui() or (syn and syn.protect_gui and CoreGui or CoreGui)
@@ -184,13 +177,14 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         local Rainbow_Speed = 1 local Current_Rainbow_H = 0 local Current_Rainbow_Color = Color3.fromHSV(0, 1, 1)
 
-        local TriggerCircle = Instance.new("Frame", ScreenGui) TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) TriggerCircle.Position = UDim2.new(GlobalSettings.TriggerPos.XScale, GlobalSettings.TriggerPos.XOffset, GlobalSettings.TriggerPos.YScale, GlobalSettings.TriggerPos.YOffset) TriggerCircle.BackgroundColor3 = Trigger_Settings.Locked and Color3.fromRGB(100, 100, 100) or Color3.fromRGB(255, 0, 0) TriggerCircle.BackgroundTransparency = Trigger_Settings.Locked and 0.8 or 0.6 TriggerCircle.Visible = false TriggerCircle.Active = not Trigger_Settings.Locked
+        local TriggerCircle = Instance.new("Frame", ScreenGui) TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) TriggerCircle.Position = UDim2.new(0.7, 0, 0.5, 0) TriggerCircle.BackgroundColor3 = Trigger_Settings.Locked and Color3.fromRGB(100, 100, 100) or Color3.fromRGB(255, 0, 0) TriggerCircle.BackgroundTransparency = Trigger_Settings.Locked and 0.8 or 0.6 TriggerCircle.Visible = false TriggerCircle.Active = not Trigger_Settings.Locked
         Instance.new("UICorner", TriggerCircle).CornerRadius = UDim.new(1, 0)
         local TriggerText = Instance.new("TextLabel", TriggerCircle) TriggerText.Size = UDim2.new(1, 0, 1, 0) TriggerText.BackgroundTransparency = 1 TriggerText.Text = Trigger_Settings.Locked and "TRAVADO" or "ATIRAR" TriggerText.TextColor3 = C_WHITE TriggerText.Font = Enum.Font.GothamBold TriggerText.TextSize = 12
 
+        local draggingCircle, dragStartCircle, startPosCircle
         TriggerCircle.InputBegan:Connect(function(input) if not Trigger_Settings.Locked and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then draggingCircle = true dragStartCircle = input.Position startPosCircle = TriggerCircle.Position end end)
         UserInputService.InputChanged:Connect(function(input) if draggingCircle and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then local delta = input.Position - dragStartCircle TriggerCircle.Position = UDim2.new(startPosCircle.X.Scale, startPosCircle.X.Offset + delta.X, startPosCircle.Y.Scale, startPosCircle.Y.Offset + delta.Y) end end)
-        UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then draggingCircle = false GlobalSettings.TriggerPos = {XScale = TriggerCircle.Position.X.Scale, XOffset = TriggerCircle.Position.X.Offset, YScale = TriggerCircle.Position.Y.Scale, YOffset = TriggerCircle.Position.Y.Offset} SaveAllSettings() end end)
+        UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then draggingCircle = false end end)
 
         local TopRightOverlay = Instance.new("Frame", ScreenGui) TopRightOverlay.Size = UDim2.new(0, 120, 0, 50) TopRightOverlay.Position = UDim2.new(1, -130, 0, 40) TopRightOverlay.BackgroundTransparency = 1
         local FPSGui = Instance.new("Frame", TopRightOverlay) FPSGui.Size = UDim2.new(1, 0, 0, 20) FPSGui.BackgroundTransparency = 1 
@@ -213,22 +207,77 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local OpenButton = Instance.new("ImageButton", ScreenGui) OpenButton.Size = UDim2.new(0, 70, 0, 70) OpenButton.Position = UDim2.new(0, 15, 0.5, -35) OpenButton.BackgroundTransparency = 1 OpenButton.Image = "rbxthumb://type=Asset&id=115034808007829&w=420&h=420" OpenButton.ScaleType = Enum.ScaleType.Crop OpenButton.Visible = true OpenButton.Active = true Instance.new("UICorner", OpenButton).CornerRadius = UDim.new(1, 0)
         local OpenScale = Instance.new("UIScale", OpenButton) OpenScale.Scale = 1
 
-        local CurrentUIState = "Minimized" local animSpeed = 0.3
-        local function PlayMinimizeAnimation() CurrentUIState = "Minimized" TweenService:Create(MainScale, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Scale = 0}):Play() task.wait(0.2) MainFrame.Visible = false OpenButton.Visible = true OpenScale.Scale = 0 TweenService:Create(OpenScale, TweenInfo.new(animSpeed, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play() end
-        local function PlayMaximizeAnimation() CurrentUIState = "Open" TweenService:Create(OpenScale, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Scale = 0}):Play() task.wait(0.15) OpenButton.Visible = false MainFrame.Visible = true MainScale.Scale = 0 TweenService:Create(MainScale, TweenInfo.new(animSpeed, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play() end
-        local function PlayHideAnimation() CurrentUIState = "Hidden" TweenService:Create(MainScale, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Scale = 0}):Play() task.wait(0.2) MainFrame.Visible = false OpenButton.Visible = false end
+        local CurrentUIState = "Minimized" 
+        
+        local function PlayMinimizeAnimation() 
+            if CurrentUIState == "Minimized" then return end
+            CurrentUIState = "Minimized" 
+            OpenButton.Visible = true 
+            local t1 = TweenService:Create(MainScale, TweenInfo.new(0.25, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out), {Scale = 0})
+            local t2 = TweenService:Create(OpenScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1})
+            t1:Play() 
+            t2:Play() 
+            t1.Completed:Wait()
+            if CurrentUIState == "Minimized" then MainFrame.Visible = false end 
+        end
+        
+        local function PlayMaximizeAnimation() 
+            if CurrentUIState == "Open" then return end
+            CurrentUIState = "Open" 
+            MainFrame.Visible = true 
+            local t1 = TweenService:Create(OpenScale, TweenInfo.new(0.2, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out), {Scale = 0})
+            local t2 = TweenService:Create(MainScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1})
+            t1:Play() 
+            t2:Play() 
+            t1.Completed:Wait()
+            if CurrentUIState == "Open" then OpenButton.Visible = false end 
+        end
+        
+        local function PlayHideAnimation() 
+            CurrentUIState = "Hidden" 
+            TweenService:Create(MainScale, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Scale = 0}):Play() 
+            task.wait(0.2) 
+            MainFrame.Visible = false 
+            OpenButton.Visible = false 
+        end
 
-        local dragBtn, dragStartBtn, startPosBtn, isDraggingMovement = false
-        OpenButton.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragBtn = true isDraggingMovement = false dragStartBtn = input.Position startPosBtn = OpenButton.Position end end)
-        UserInputService.InputChanged:Connect(function(input) if dragBtn and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then local delta = input.Position - dragStartBtn if math.abs(delta.X) > 5 or math.abs(delta.Y) > 5 then isDraggingMovement = true end OpenButton.Position = UDim2.new(startPosBtn.X.Scale, startPosBtn.X.Offset + delta.X, startPosBtn.Y.Scale, startPosBtn.Y.Offset + delta.Y) end end)
-        UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragBtn = false if not isDraggingMovement then PlayMaximizeAnimation() end end end)
+        local dragBtn, dragStartBtn, startPosBtn, isDraggingBtn = false, nil, nil, false
+        OpenButton.InputBegan:Connect(function(input) 
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then 
+                dragBtn = true 
+                isDraggingBtn = false 
+                dragStartBtn = input.Position 
+                startPosBtn = OpenButton.Position 
+            end 
+        end)
+        
+        UserInputService.InputChanged:Connect(function(input) 
+            if dragBtn and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then 
+                local delta = input.Position - dragStartBtn 
+                if delta.Magnitude > 5 then 
+                    isDraggingBtn = true 
+                end 
+                OpenButton.Position = UDim2.new(startPosBtn.X.Scale, startPosBtn.X.Offset + delta.X, startPosBtn.Y.Scale, startPosBtn.Y.Offset + delta.Y) 
+            end 
+        end)
+        
+        UserInputService.InputEnded:Connect(function(input) 
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then 
+                if dragBtn then
+                    dragBtn = false 
+                    if not isDraggingBtn then 
+                        PlayMaximizeAnimation() 
+                    end 
+                end
+            end 
+        end)
 
         local function OpenFromHidden()
             CurrentUIState = "Open" 
-            OpenButton.Visible = false 
             MainFrame.Visible = true 
+            OpenButton.Visible = false 
             MainScale.Scale = 0
-            TweenService:Create(MainScale, TweenInfo.new(animSpeed, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play()
+            TweenService:Create(MainScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play()
         end
 
         local ActiveTouches = {} 
@@ -237,17 +286,13 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         UserInputService.TouchStarted:Connect(function(input, gameProcessed)
             if input.UserInputType == Enum.UserInputType.Touch then
                 ActiveTouches[input] = true
-                
                 local count = 0
                 for _ in pairs(ActiveTouches) do count = count + 1 end
-                
                 if count >= 3 and CurrentUIState == "Hidden" and not isOpening then
                     isOpening = true
                     task.wait(0.5) 
-                    
                     local stillTouching = 0
                     for _ in pairs(ActiveTouches) do stillTouching = stillTouching + 1 end
-                    
                     if stillTouching >= 3 and CurrentUIState == "Hidden" then
                         OpenFromHidden()
                     end
