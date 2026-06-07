@@ -1,7 +1,3 @@
-local RobloxPrint = print
-local RobloxWarn = warn
-local RobloxError = error
-
 print = function(...) end
 warn = function(...) end
 error = function(...) end
