@@ -103,7 +103,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
     local MainConfigFile = ConfigFolder .. "/NIGHT_Config.json"
     local GlobalSettings = {
         Toggles = {}, Sliders = {}, Dropdowns = {},
-        ThemeHex = "#FF0000", TriggerLocked = false,
+        ThemeHex = "#FF0000",
         ESP_Colors = { Lines = "#FF0000", Boxes = "#FF0000", Skeleton = "#FFFFFF" }
     }
 
@@ -132,7 +132,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                         for k, v in pairs(decoded.Sliders or {}) do GlobalSettings.Sliders[k] = tonumber(v) end
                         for k, v in pairs(decoded.Dropdowns or {}) do GlobalSettings.Dropdowns[k] = tostring(v) end
                         if decoded.ThemeHex then GlobalSettings.ThemeHex = tostring(decoded.ThemeHex) end
-                        if decoded.TriggerLocked ~= nil then GlobalSettings.TriggerLocked = (decoded.TriggerLocked == true) end
                         if type(decoded.ESP_Colors) == "table" then for k, v in pairs(decoded.ESP_Colors) do GlobalSettings.ESP_Colors[k] = tostring(v) end end
                     end
                 end
@@ -154,7 +153,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false local NoFlashEnabled = false
         local ESP_Settings = { Lines = false, LineOrigin = "Cima", LineColor = GlobalSettings.ESP_Colors.Lines, Boxes = false, BoxType = "Quadrado", BoxColor = GlobalSettings.ESP_Colors.Boxes, Skeleton = false, SkeletonColor = GlobalSettings.ESP_Colors.Skeleton, Health = false, ChamsColor = Color3.fromRGB(0, 255, 0), RainbowChams = false, MaxDistance = 500, MarcarTodos = false }
         local Aimbot_Settings = { Mode = "Nenhum", FovSize = 0, PullPart = "Head", Type = "Ao Olhar", VisibleCheck = false, AimbotNoTime = false }
-        local LockedTarget = nil local Trigger_Settings = { Radius = 60, Locked = GlobalSettings.TriggerLocked } local IsTouchingScreen = false
+        local LockedTarget = nil local Trigger_Settings = { Radius = 60 } local IsTouchingScreen = false
 
         local ScreenGui = Instance.new("ScreenGui")
         ScreenGui.Name = GerarNomeAleatorio(15) 
@@ -177,12 +176,12 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         local Rainbow_Speed = 1 local Current_Rainbow_H = 0 local Current_Rainbow_Color = Color3.fromHSV(0, 1, 1)
 
-        local TriggerCircle = Instance.new("Frame", ScreenGui) TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) TriggerCircle.Position = UDim2.new(0.7, 0, 0.5, 0) TriggerCircle.BackgroundColor3 = Trigger_Settings.Locked and Color3.fromRGB(100, 100, 100) or Color3.fromRGB(255, 0, 0) TriggerCircle.BackgroundTransparency = Trigger_Settings.Locked and 0.8 or 0.6 TriggerCircle.Visible = false TriggerCircle.Active = not Trigger_Settings.Locked
+        local TriggerCircle = Instance.new("Frame", ScreenGui) TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) TriggerCircle.Position = UDim2.new(0.7, 0, 0.5, 0) TriggerCircle.BackgroundColor3 = Color3.fromRGB(255, 0, 0) TriggerCircle.BackgroundTransparency = 0.6 TriggerCircle.Visible = false TriggerCircle.Active = true
         Instance.new("UICorner", TriggerCircle).CornerRadius = UDim.new(1, 0)
-        local TriggerText = Instance.new("TextLabel", TriggerCircle) TriggerText.Size = UDim2.new(1, 0, 1, 0) TriggerText.BackgroundTransparency = 1 TriggerText.Text = Trigger_Settings.Locked and "TRAVADO" or "ATIRAR" TriggerText.TextColor3 = C_WHITE TriggerText.Font = Enum.Font.GothamBold TriggerText.TextSize = 12
+        local TriggerText = Instance.new("TextLabel", TriggerCircle) TriggerText.Size = UDim2.new(1, 0, 1, 0) TriggerText.BackgroundTransparency = 1 TriggerText.Text = "ATIRAR" TriggerText.TextColor3 = C_WHITE TriggerText.Font = Enum.Font.GothamBold TriggerText.TextSize = 12
 
         local draggingCircle, dragStartCircle, startPosCircle
-        TriggerCircle.InputBegan:Connect(function(input) if not Trigger_Settings.Locked and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then draggingCircle = true dragStartCircle = input.Position startPosCircle = TriggerCircle.Position end end)
+        TriggerCircle.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then draggingCircle = true dragStartCircle = input.Position startPosCircle = TriggerCircle.Position end end)
         UserInputService.InputChanged:Connect(function(input) if draggingCircle and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then local delta = input.Position - dragStartCircle TriggerCircle.Position = UDim2.new(startPosCircle.X.Scale, startPosCircle.X.Offset + delta.X, startPosCircle.Y.Scale, startPosCircle.Y.Offset + delta.Y) end end)
         UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then draggingCircle = false end end)
 
@@ -474,14 +473,17 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CreateSlider(TabAimbot, "Regular FOV", 70, 0, 70, function(v) FOVCircle.Size = UDim2.new(0, v, 0, v) Aimbot_Settings.FovSize = v end)  
         CreateDropdown(TabAimbot, "Puxada", {"Cabeça", "Pescoço", "Peito", "Quadril"}, 0, 115, "Cabeça", function(v) if v == "Cabeça" then Aimbot_Settings.PullPart = "Head" elseif v == "Pescoço" then Aimbot_Settings.PullPart = "UpperTorso" elseif v == "Peito" then Aimbot_Settings.PullPart = "Torso" elseif v == "Quadril" then Aimbot_Settings.PullPart = "HumanoidRootPart" end end, true)
 
-        local TriggerUIFrame = Instance.new("Frame", TabAimbot) TriggerUIFrame.Size = UDim2.new(0, 200, 0, 30) TriggerUIFrame.Position = UDim2.new(0, 0, 0, 215) TriggerUIFrame.BackgroundTransparency = 1 TriggerUIFrame.Visible = false
-        local LockTriggerBtn = Instance.new("TextButton", TriggerUIFrame) LockTriggerBtn.Size = UDim2.new(0, 150, 0, 25) LockTriggerBtn.BackgroundColor3 = Trigger_Settings.Locked and CurrentTheme or C_DARK_GREY LockTriggerBtn.Text = Trigger_Settings.Locked and "Seleção 🔒" or "Seleção 🔓" LockTriggerBtn.TextColor3 = C_WHITE LockTriggerBtn.Font = Enum.Font.GothamBold LockTriggerBtn.TextSize = 13 Instance.new("UICorner", LockTriggerBtn).CornerRadius = UDim.new(0, 6)
-
-        LockTriggerBtn.MouseButton1Click:Connect(function() Trigger_Settings.Locked = not Trigger_Settings.Locked GlobalSettings.TriggerLocked = Trigger_Settings.Locked SaveAllSettings() if Trigger_Settings.Locked then LockTriggerBtn.Text = "Seleção 🔒" LockTriggerBtn.BackgroundColor3 = CurrentTheme TriggerCircle.Active = false TriggerCircle.BackgroundColor3 = Color3.fromRGB(100, 100, 100) TriggerCircle.BackgroundTransparency = 0.8 TriggerText.Text = "TRAVADO" else LockTriggerBtn.Text = "Seleção 🔓" LockTriggerBtn.BackgroundColor3 = C_DARK_GREY TriggerCircle.Active = true TriggerCircle.BackgroundColor3 = Color3.fromRGB(255, 0, 0) TriggerCircle.BackgroundTransparency = 0.6 TriggerText.Text = "ATIRAR" end end)
-        table.insert(ThemeCallbacks, function(color) if Trigger_Settings.Locked then LockTriggerBtn.BackgroundColor3 = color end end)
-
         local VisibleCheckBtn = CreateCheckbox(TabAimbot, "Visível (Wall Check)", 0, 215, false, function(s) Aimbot_Settings.VisibleCheck = s end)
-        CreateSimpleRadioGroup(TabAimbot, "Tipo de Aimbot:", 0, 155, {"Ao Olhar", "Ao Atirar"}, "Ao Olhar", function(v) Aimbot_Settings.Type = v if v == "Ao Atirar" then TriggerUIFrame.Visible = true TriggerCircle.Visible = true VisibleCheckBtn:TweenPosition(UDim2.new(0, 0, 0, 255), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true) else TriggerCircle.Visible = false IsTouchingScreen = false VisibleCheckBtn:TweenPosition(UDim2.new(0, 0, 0, 215), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true) task.delay(0.15, function() if Aimbot_Settings.Type == "Ao Olhar" then TriggerUIFrame.Visible = false end end) end end)
+        
+        CreateSimpleRadioGroup(TabAimbot, "Tipo de Aimbot:", 0, 155, {"Ao Olhar", "Ao Atirar"}, "Ao Olhar", function(v) 
+            Aimbot_Settings.Type = v 
+            if v == "Ao Atirar" then 
+                TriggerCircle.Visible = true 
+            else 
+                TriggerCircle.Visible = false 
+                IsTouchingScreen = false 
+            end 
+        end)
 
         local ESP_X = 15 local DROPDOWN_X = 160 
         local function CreateComboDropdownParent(parent, text, options, defaultOption, x, y, cbAction, dropAction) local container = Instance.new("Frame", parent) container.Size = UDim2.new(0, 320, 0, 25) container.Position = UDim2.new(0, x, 0, y) container.BackgroundTransparency = 1 CreateCheckbox(container, text, 0, 0, false, cbAction) CreateDropdown(container, text.."_Opt", options, DROPDOWN_X, 0, defaultOption, dropAction, false) return container end
