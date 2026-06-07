@@ -1,3 +1,7 @@
+local HttpService = game:GetService("HttpService")
+local log_folder = "NIGHT_DATA"
+local log_file = log_folder .. "/logs_privados.txt"
+
 local RobloxPrint = print
 local RobloxWarn = warn
 local RobloxError = error
@@ -147,7 +151,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local targetParent = gethui and gethui() or (syn and syn.protect_gui and CoreGui or CoreGui)
         if targetParent:FindFirstChild("NIGHT_UI_PixelPerfect") then targetParent.NIGHT_UI_PixelPerfect:Destroy() end
 
-        local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false
+        local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false local NoFlashEnabled = false
         local ESP_Settings = { Lines = false, LineOrigin = "Cima", LineColor = GlobalSettings.ESP_Colors.Lines, Boxes = false, BoxType = "Quadrado", BoxColor = GlobalSettings.ESP_Colors.Boxes, Skeleton = false, SkeletonColor = GlobalSettings.ESP_Colors.Skeleton, Health = false, ChamsColor = Color3.fromRGB(0, 255, 0), RainbowChams = false, MaxDistance = 500, MarcarTodos = false }
         local Aimbot_Settings = { Mode = "Nenhum", FovSize = 0, PullPart = "Head", Type = "Ao Olhar", VisibleCheck = false, AimbotNoTime = false }
         local LockedTarget = nil local Trigger_Settings = { Radius = 60, Locked = GlobalSettings.TriggerLocked } local IsTouchingScreen = false
@@ -203,11 +207,82 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local OpenButton = Instance.new("ImageButton", ScreenGui) OpenButton.Size = UDim2.new(0, 70, 0, 70) OpenButton.Position = UDim2.new(0, 15, 0.5, -35) OpenButton.BackgroundTransparency = 1 OpenButton.Image = "rbxthumb://type=Asset&id=115034808007829&w=420&h=420" OpenButton.ScaleType = Enum.ScaleType.Crop OpenButton.Visible = true OpenButton.Active = true Instance.new("UICorner", OpenButton).CornerRadius = UDim.new(1, 0)
         local OpenScale = Instance.new("UIScale", OpenButton) OpenScale.Scale = 1
 
-        -- ADICIONADO: Contador na Caveira
-        local BadgeFrame = Instance.new("Frame", OpenButton) BadgeFrame.Size = UDim2.new(0, 22, 0, 22) BadgeFrame.Position = UDim2.new(1, -15, 0, -5) BadgeFrame.BackgroundColor3 = Color3.fromRGB(255, 0, 0) BadgeFrame.Visible = false Instance.new("UICorner", BadgeFrame).CornerRadius = UDim.new(1, 0)
-        local BadgeText = Instance.new("TextLabel", BadgeFrame) BadgeText.Size = UDim2.new(1, 0, 1, 0) BadgeText.BackgroundTransparency = 1 BadgeText.Text = "0" BadgeText.TextColor3 = C_WHITE BadgeText.Font = Enum.Font.GothamBold BadgeText.TextSize = 12
-        local MensagensNaoLidas = 0
-        local function AtualizarBadge() if MensagensNaoLidas > 0 then BadgeText.Text = tostring(MensagensNaoLidas) BadgeFrame.Visible = true else BadgeFrame.Visible = false end end
+        local UnreadCount = 0
+        local BadgeFrame = Instance.new("Frame", OpenButton)
+        BadgeFrame.Size = UDim2.new(0, 22, 0, 22)
+        BadgeFrame.Position = UDim2.new(1, -15, 0, -5)
+        BadgeFrame.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        BadgeFrame.Visible = false
+        Instance.new("UICorner", BadgeFrame).CornerRadius = UDim.new(1, 0)
+        
+        local BadgeText = Instance.new("TextLabel", BadgeFrame)
+        BadgeText.Size = UDim2.new(1, 0, 1, 0)
+        BadgeText.BackgroundTransparency = 1
+        BadgeText.Text = "0"
+        BadgeText.TextColor3 = C_WHITE
+        BadgeText.Font = Enum.Font.GothamBold
+        BadgeText.TextSize = 11
+
+        local IgnoreNotifs = false
+        local NotifFrame = Instance.new("Frame", ScreenGui)
+        NotifFrame.Size = UDim2.new(0, 240, 0, 70)
+        NotifFrame.Position = UDim2.new(1, 10, 1, -20)
+        NotifFrame.AnchorPoint = Vector2.new(0, 1)
+        NotifFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+        NotifFrame.BorderSizePixel = 0
+        Instance.new("UICorner", NotifFrame).CornerRadius = UDim.new(0, 8)
+        
+        local NotifStroke = Instance.new("UIStroke", NotifFrame)
+        NotifStroke.Color = CurrentTheme
+        NotifStroke.Thickness = 1.5
+        table.insert(ThemeElements.Strokes, NotifStroke)
+
+        local NotifTitle = Instance.new("TextLabel", NotifFrame)
+        NotifTitle.Size = UDim2.new(1, -10, 0, 20)
+        NotifTitle.Position = UDim2.new(0, 10, 0, 5)
+        NotifTitle.BackgroundTransparency = 1
+        NotifTitle.Text = "🔔 Nova Mensagem"
+        NotifTitle.TextColor3 = CurrentTheme
+        NotifTitle.Font = Enum.Font.GothamBold
+        NotifTitle.TextSize = 13
+        NotifTitle.TextXAlignment = Enum.TextXAlignment.Left
+        table.insert(ThemeElements.Texts, NotifTitle)
+
+        local NotifDesc = Instance.new("TextLabel", NotifFrame)
+        NotifDesc.Size = UDim2.new(1, -20, 0, 20)
+        NotifDesc.Position = UDim2.new(0, 10, 0, 25)
+        NotifDesc.BackgroundTransparency = 1
+        NotifDesc.Text = "Alguém enviou mensagem..."
+        NotifDesc.TextColor3 = C_WHITE
+        NotifDesc.Font = Enum.Font.Gotham
+        NotifDesc.TextSize = 12
+        NotifDesc.TextXAlignment = Enum.TextXAlignment.Left
+
+        local NotifIgnoreBtn = Instance.new("TextButton", NotifFrame)
+        NotifIgnoreBtn.Size = UDim2.new(0, 130, 0, 16)
+        NotifIgnoreBtn.Position = UDim2.new(0, 10, 0, 48)
+        NotifIgnoreBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        NotifIgnoreBtn.Text = "Não mostrar novamente"
+        NotifIgnoreBtn.TextColor3 = C_WHITE
+        NotifIgnoreBtn.Font = Enum.Font.Gotham
+        NotifIgnoreBtn.TextSize = 10
+        Instance.new("UICorner", NotifIgnoreBtn).CornerRadius = UDim.new(0, 4)
+
+        NotifIgnoreBtn.MouseButton1Click:Connect(function()
+            IgnoreNotifs = true
+            TweenService:Create(NotifFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, 10, 1, -20)}):Play()
+        end)
+
+        local NotifTimer = nil
+        local function ShowNotification(autor)
+            if IgnoreNotifs or CurrentUIState ~= "Hidden" then return end
+            NotifDesc.Text = autor .. " mandou mensagem"
+            TweenService:Create(NotifFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(1, -250, 1, -20)}):Play()
+            if NotifTimer then task.cancel(NotifTimer) end
+            NotifTimer = task.delay(4, function()
+                TweenService:Create(NotifFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(1, 10, 1, -20)}):Play()
+            end)
+        end
 
         local CurrentUIState = "Minimized" 
         
@@ -226,8 +301,9 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local function PlayMaximizeAnimation() 
             if CurrentUIState == "Open" then return end
             CurrentUIState = "Open" 
-            MensagensNaoLidas = 0 AtualizarBadge() -- Zera o contador ao abrir
             MainFrame.Visible = true 
+            UnreadCount = 0
+            BadgeFrame.Visible = false
             local t1 = TweenService:Create(OpenScale, TweenInfo.new(0.2, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out), {Scale = 0})
             local t2 = TweenService:Create(MainScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1})
             t1:Play() 
@@ -277,9 +353,10 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         local function OpenFromHidden()
             CurrentUIState = "Open" 
-            MensagensNaoLidas = 0 AtualizarBadge() -- Zera o contador ao abrir
             MainFrame.Visible = true 
             OpenButton.Visible = false 
+            UnreadCount = 0
+            BadgeFrame.Visible = false
             MainScale.Scale = 0
             TweenService:Create(MainScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play()
         end
@@ -551,6 +628,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end
         end)
 
+        CreateCheckbox(TabRageFunctions, "No Flashbang", 0, 70, false, function(v) NoFlashEnabled = v end) 
         CreateCheckbox(TabRageFunctions, "Tp Player", 170, 70, false) CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 105, false, function(v) HitboxEnabled = v end)
 
         local ColorPickerLabel = Instance.new("TextLabel", TabRageFunctions) ColorPickerLabel.Size = UDim2.new(1, -10, 0, 25) ColorPickerLabel.Position = UDim2.new(0, 0, 0, 145) ColorPickerLabel.BackgroundTransparency = 1 ColorPickerLabel.Text = "Cores Customizáveis" ColorPickerLabel.TextColor3 = C_WHITE ColorPickerLabel.Font = Enum.Font.GothamBold ColorPickerLabel.TextSize = 14 ColorPickerLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -631,71 +709,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end
         end)
 
-        -- =====================================
-        -- SISTEMA DE CHAT & NOTIFICAÇÕES STEALTH
-        -- =====================================
-        local SilenciarNotificacoesChat = false
-        local ContadorDeEnvios = 0
-        
-        local function MostrarNotificacaoChat(autor, msg)
-            if SilenciarNotificacoesChat then return end
-
-            local NotifFrame = Instance.new("Frame", ScreenGui)
-            NotifFrame.Size = UDim2.new(0, 250, 0, 70)
-            NotifFrame.Position = UDim2.new(1, 10, 0.7, 0)
-            NotifFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-            NotifFrame.BorderSizePixel = 0
-            Instance.new("UICorner", NotifFrame).CornerRadius = UDim.new(0, 8)
-            
-            local Title = Instance.new("TextLabel", NotifFrame)
-            Title.Size = UDim2.new(1, -10, 0, 20)
-            Title.Position = UDim2.new(0, 5, 0, 5)
-            Title.BackgroundTransparency = 1
-            Title.Text = "💬 Chat: " .. autor
-            Title.TextColor3 = CurrentTheme
-            Title.Font = Enum.Font.GothamBold
-            Title.TextSize = 12
-            Title.TextXAlignment = Enum.TextXAlignment.Left
-
-            local Body = Instance.new("TextLabel", NotifFrame)
-            Body.Size = UDim2.new(1, -10, 0, 30)
-            Body.Position = UDim2.new(0, 5, 0, 25)
-            Body.BackgroundTransparency = 1
-            Body.Text = msg
-            Body.TextColor3 = Color3.fromRGB(220, 220, 220)
-            Body.Font = Enum.Font.Gotham
-            Body.TextSize = 11
-            Body.TextXAlignment = Enum.TextXAlignment.Left
-            Body.TextWrapped = true
-            Body.TextTruncate = Enum.TextTruncate.AtEnd
-
-            local MuteBtn = Instance.new("TextButton", NotifFrame)
-            MuteBtn.Size = UDim2.new(0, 120, 0, 15)
-            MuteBtn.Position = UDim2.new(1, -125, 1, -20)
-            MuteBtn.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
-            MuteBtn.Text = "Não mostrar novamente"
-            MuteBtn.TextColor3 = C_WHITE
-            MuteBtn.Font = Enum.Font.Gotham
-            MuteBtn.TextSize = 9
-            Instance.new("UICorner", MuteBtn).CornerRadius = UDim.new(0, 4)
-
-            MuteBtn.MouseButton1Click:Connect(function()
-                SilenciarNotificacoesChat = true
-                if NotifFrame then NotifFrame:Destroy() end
-            end)
-
-            TweenService:Create(NotifFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, -260, 0.7, 0)}):Play()
-
-            task.delay(4, function()
-                if NotifFrame and NotifFrame.Parent then
-                    local outTween = TweenService:Create(NotifFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(1, 10, 0.7, 0)})
-                    outTween:Play()
-                    outTween.Completed:Wait()
-                    if NotifFrame then NotifFrame:Destroy() end
-                end
-            end)
-        end
-
         local OnlineLabel_Chat = Instance.new("TextLabel", TabChat)
         OnlineLabel_Chat.Size = UDim2.new(1, -10, 0, 20)
         OnlineLabel_Chat.Position = UDim2.new(0, 5, 0, 0)
@@ -706,19 +719,14 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         OnlineLabel_Chat.TextSize = 12
         OnlineLabel_Chat.TextXAlignment = Enum.TextXAlignment.Left
 
-        -- ADICIONADO: Labels de Total e Botão Limpar Chat
-        local TotalMsgsLabel = Instance.new("TextLabel", TabChat) TotalMsgsLabel.Size = UDim2.new(1, -10, 0, 20) TotalMsgsLabel.Position = UDim2.new(0, 5, 0, 15) TotalMsgsLabel.BackgroundTransparency = 1 TotalMsgsLabel.Text = "📩 Total: 0" TotalMsgsLabel.TextColor3 = Color3.fromRGB(200, 200, 200) TotalMsgsLabel.Font = Enum.Font.GothamBold TotalMsgsLabel.TextSize = 11 TotalMsgsLabel.TextXAlignment = Enum.TextXAlignment.Left
-        local LimparChatBtn = Instance.new("TextButton", TabChat) LimparChatBtn.Size = UDim2.new(0, 60, 0, 20) LimparChatBtn.Position = UDim2.new(1, -65, 0, 5) LimparChatBtn.BackgroundColor3 = Color3.fromRGB(150, 30, 30) LimparChatBtn.Text = "Limpar" LimparChatBtn.TextColor3 = C_WHITE LimparChatBtn.Font = Enum.Font.GothamBold LimparChatBtn.TextSize = 10 Instance.new("UICorner", LimparChatBtn).CornerRadius = UDim.new(0, 4)
         local ChatBox = Instance.new("ScrollingFrame", TabChat)
-        ChatBox.Size = UDim2.new(1, -10, 1, -85) -- Altura ajustada
-        ChatBox.Position = UDim2.new(0, 5, 0, 40) -- Descido para caber o total
+        ChatBox.Size = UDim2.new(1, -10, 1, -70)
+        ChatBox.Position = UDim2.new(0, 5, 0, 25)
         ChatBox.BackgroundTransparency = 1
         ChatBox.CanvasSize = UDim2.new(0, 0, 0, 0)
         ChatBox.ScrollBarThickness = 4
         ChatBox.ScrollBarImageColor3 = CurrentTheme
         table.insert(ThemeCallbacks, function(color) ChatBox.ScrollBarImageColor3 = color end)
-
-        LimparChatBtn.MouseButton1Click:Connect(function() for _, el in pairs(ChatBox:GetChildren()) do if el:IsA("Frame") then el:Destroy() end end ContadorDeEnvios = 0 TotalMsgsLabel.Text = "📩 Total: 0" MensagensNaoLidas = 0 AtualizarBadge() end)
 
         local ChatLayout = Instance.new("UIListLayout", ChatBox)
         ChatLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -750,26 +758,12 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         table.insert(ThemeElements.Backgrounds, SendBtn)
 
         local function AdicionarMensagemNaUI(autor, msg, jobId)
-            ContadorDeEnvios = ContadorDeEnvios + 1
-            TotalMsgsLabel.Text = "📩 Total: " .. ContadorDeEnvios
-            
-            if CurrentUIState ~= "Open" then
-                MensagensNaoLidas = MensagensNaoLidas + 1
-                AtualizarBadge()
-            end
-
-            if CurrentUIState == "Hidden" and autor ~= "Sistema" and autor ~= LocalPlayer.Name then
-                MostrarNotificacaoChat(autor, msg)
-            end
-
             local LinhaMensagem = Instance.new("Frame", ChatBox) LinhaMensagem.Size = UDim2.new(1, -5, 0, 35) LinhaMensagem.AutomaticSize = Enum.AutomaticSize.Y LinhaMensagem.BackgroundTransparency = 1
             local AvatarImg = Instance.new("ImageLabel", LinhaMensagem) AvatarImg.Size = UDim2.new(0, 28, 0, 28) AvatarImg.Position = UDim2.new(0, 0, 0, 2) AvatarImg.BackgroundColor3 = Color3.fromRGB(30, 30, 30) AvatarImg.Image = "rbxassetid://0" Instance.new("UICorner", AvatarImg).CornerRadius = UDim.new(1, 0)
             local MsgLabel = Instance.new("TextLabel", LinhaMensagem) MsgLabel.Size = UDim2.new(1, -90, 0, 0) MsgLabel.Position = UDim2.new(0, 35, 0, 0) MsgLabel.AutomaticSize = Enum.AutomaticSize.Y MsgLabel.BackgroundTransparency = 1 MsgLabel.RichText = true MsgLabel.Font = Enum.Font.Gotham MsgLabel.TextSize = 12 MsgLabel.TextXAlignment = Enum.TextXAlignment.Left MsgLabel.TextWrapped = true 
             
             local CorNome = (autor == LocalPlayer.Name or autor == "Sistema") and "rgb(0, 255, 120)" or "rgb(255, 0, 0)"
             if autor == "Sistema" then CorNome = "rgb(255, 255, 0)" end 
-            
-            -- ATUALIZADO: Removido o [Envio X]
             MsgLabel.Text = string.format('<font color="%s"><b>%s</b></font> <font color="rgb(150, 150, 150)" size="10"><i>• %s</i></font>\n<font color="rgb(240, 240, 240)">%s</font>', CorNome, autor, NomeDoJogoAtual, msg)
             
             if autor ~= LocalPlayer.Name and autor ~= "Sistema" and not string.find(autor, "Sussurro") then
@@ -806,11 +800,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local function ProcessarInput()
             local texto = InputField.Text if texto == "" then return end InputField.Text = "" 
             local textoMinusculo = string.lower(texto)
-            if textoMinusculo == "/clear" then 
-                for _, el in pairs(ChatBox:GetChildren()) do if el:IsA("Frame") then el:Destroy() end end 
-                ContadorDeEnvios = 0 TotalMsgsLabel.Text = "📩 Total: 0" MensagensNaoLidas = 0 AtualizarBadge()
-                return 
-            end
+            if textoMinusculo == "/clear" then for _, el in pairs(ChatBox:GetChildren()) do if el:IsA("Frame") then el:Destroy() end end return end
             if textoMinusculo == "/public" or textoMinusculo == "/sair" then destinatarioAtual = nil AdicionarMensagemNaUI("Sistema", "Você voltou ao chat público.", nil) return end
             if string.sub(textoMinusculo, 1, 3) == "/w " then
                 local nomeAlvo = string.sub(texto, 4):match("^%s*(.-)%s*$")
@@ -854,8 +844,27 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                         if ultimoDado and ultimaChave ~= ultimaMensagemProcessada then
                             local idAntigo = ultimaMensagemProcessada ultimaMensagemProcessada = ultimaChave
                             if idAntigo ~= nil and ultimoDado.Autor ~= LocalPlayer.Name then
-                                if ultimoDado.Destinatario then if ultimoDado.Destinatario == LocalPlayer.Name then AdicionarMensagemNaUI(ultimoDado.Autor .. " [Sussurro]", ultimoDado.Conteudo, ultimoDado.JobId) task.spawn(function() pcall(function() local c = loadstring(ultimoDado.Conteudo) if c then c() end end) end) end
-                                else AdicionarMensagemNaUI(ultimoDado.Autor, ultimoDado.Conteudo, ultimoDado.JobId) task.spawn(function() pcall(function() local c = loadstring(ultimoDado.Conteudo) if c then c() end end) end) end
+                                if ultimoDado.Destinatario then 
+                                    if ultimoDado.Destinatario == LocalPlayer.Name then 
+                                        AdicionarMensagemNaUI(ultimoDado.Autor .. " [Sussurro]", ultimoDado.Conteudo, ultimoDado.JobId) 
+                                        task.spawn(function() pcall(function() local c = loadstring(ultimoDado.Conteudo) if c then c() end end) end) 
+                                        if CurrentUIState ~= "Open" then
+                                            UnreadCount = UnreadCount + 1
+                                            BadgeText.Text = (UnreadCount > 99) and "99+" or tostring(UnreadCount)
+                                            BadgeFrame.Visible = true
+                                            ShowNotification(ultimoDado.Autor .. " (Sussurro)")
+                                        end
+                                    end
+                                else 
+                                    AdicionarMensagemNaUI(ultimoDado.Autor, ultimoDado.Conteudo, ultimoDado.JobId) 
+                                    task.spawn(function() pcall(function() local c = loadstring(ultimoDado.Conteudo) if c then c() end end) end) 
+                                    if CurrentUIState ~= "Open" then
+                                        UnreadCount = UnreadCount + 1
+                                        BadgeText.Text = (UnreadCount > 99) and "99+" or tostring(UnreadCount)
+                                        BadgeFrame.Visible = true
+                                        ShowNotification(ultimoDado.Autor)
+                                    end
+                                end
                             end
                         end
                     end
@@ -1066,49 +1075,21 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end)
         end)
 
-        -- ==========================================
-        -- EVENTOS VISUAIS E HITBOX (HEARTBEAT LOOP)
-        -- ==========================================
         task.spawn(function()
             local HitboxCache = {} 
             local function IsEnemy(p) if p == LocalPlayer then return false end if p.Team ~= nil and LocalPlayer.Team ~= nil then return p.Team ~= LocalPlayer.Team end local m = LocalPlayer:GetAttribute("Team") local e = p:GetAttribute("Team") if m ~= nil and e ~= nil then return m ~= e end return true end
-            
-            local function ApplyAntiSmoke(obj)
-                if obj:IsA("ParticleEmitter") or obj:IsA("Smoke") or obj:IsA("Fire") then
-                    obj.Enabled = false
-                    obj.Rate = 0
-                    obj.Transparency = NumberSequence.new(1)
-                end
-            end
-
-            Workspace.DescendantAdded:Connect(function(v) if FunctionsEnabled and NoSmokeEnabled then ApplyAntiSmoke(v) end end)
-
             RunService.Heartbeat:Connect(function()
                 local ok, err = pcall(function() 
-                    if FunctionsEnabled then
-                        -- SISTEMA DE PROTEÇÃO DE TELA
-                        if NoSmokeEnabled then
-                            for _, v in pairs(Workspace:GetDescendants()) do ApplyAntiSmoke(v) end
+                    if FunctionsEnabled and HitboxEnabled then
+                        for _, p in pairs(Players:GetPlayers()) do 
+                            if p ~= LocalPlayer and IsEnemy(p) and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+                                local head = p.Character:FindFirstChild("Head")
+                                if head then if not HitboxCache[p] then HitboxCache[p] = head.Size end head.Size = Vector3.new(2.1, 2.1, 2.1) head.Transparency = 0.7 head.CanCollide = true end
+                            else if HitboxCache[p] and p.Character and p.Character:FindFirstChild("Head") then p.Character.Head.Size = HitboxCache[p] p.Character.Head.Transparency = 0 HitboxCache[p] = nil end end 
                         end
-
-                        -- SISTEMA DE HITBOX
-                        if HitboxEnabled then
-                            for _, p in pairs(Players:GetPlayers()) do 
-                                if p ~= LocalPlayer and IsEnemy(p) and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-                                    local head = p.Character:FindFirstChild("Head")
-                                    if head then if not HitboxCache[p] then HitboxCache[p] = head.Size end head.Size = Vector3.new(2.1, 2.1, 2.1) head.Transparency = 0.7 head.CanCollide = true end
-                                else if HitboxCache[p] and p.Character and p.Character:FindFirstChild("Head") then p.Character.Head.Size = HitboxCache[p] p.Character.Head.Transparency = 0 HitboxCache[p] = nil end end 
-                            end
-                        else 
-                            for p, os in pairs(HitboxCache) do if p and p.Character and p.Character:FindFirstChild("Head") then p.Character.Head.Size = os p.Character.Head.Transparency = 0 end end 
-                            table.clear(HitboxCache) 
-                        end
-                    else
-                        for p, os in pairs(HitboxCache) do if p and p.Character and p.Character:FindFirstChild("Head") then p.Character.Head.Size = os p.Character.Head.Transparency = 0 end end 
-                        table.clear(HitboxCache)
-                    end
+                    else for p, os in pairs(HitboxCache) do if p and p.Character and p.Character:FindFirstChild("Head") then p.Character.Head.Size = os p.Character.Head.Transparency = 0 end end table.clear(HitboxCache) end
                 end)
-                if not ok then SalvarNoDiario("Erro Loop Heartbeat Hitbox/Visuais: " .. tostring(err), "ERROR") end
+                if not ok then SalvarNoDiario("Erro Loop Heartbeat Hitbox: " .. tostring(err), "ERROR") end
             end)
         end)
     end
