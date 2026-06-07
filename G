@@ -103,7 +103,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
     local MainConfigFile = ConfigFolder .. "/NIGHT_Config.json"
     local GlobalSettings = {
         Toggles = {}, Sliders = {}, Dropdowns = {},
-        ThemeHex = "#FF0000", TriggerLocked = false,
+        ThemeHex = "#FF0000",
         ESP_Colors = { Lines = "#FF0000", Boxes = "#FF0000", Skeleton = "#FFFFFF" }
     }
 
@@ -132,7 +132,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                         for k, v in pairs(decoded.Sliders or {}) do GlobalSettings.Sliders[k] = tonumber(v) end
                         for k, v in pairs(decoded.Dropdowns or {}) do GlobalSettings.Dropdowns[k] = tostring(v) end
                         if decoded.ThemeHex then GlobalSettings.ThemeHex = tostring(decoded.ThemeHex) end
-                        if decoded.TriggerLocked ~= nil then GlobalSettings.TriggerLocked = (decoded.TriggerLocked == true) end
                         if type(decoded.ESP_Colors) == "table" then for k, v in pairs(decoded.ESP_Colors) do GlobalSettings.ESP_Colors[k] = tostring(v) end end
                     end
                 end
@@ -153,10 +152,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false local NoFlashEnabled = false
         local ESP_Settings = { Lines = false, LineOrigin = "Cima", LineColor = GlobalSettings.ESP_Colors.Lines, Boxes = false, BoxType = "Quadrado", BoxColor = GlobalSettings.ESP_Colors.Boxes, Skeleton = false, SkeletonColor = GlobalSettings.ESP_Colors.Skeleton, Health = false, ChamsColor = Color3.fromRGB(0, 255, 0), RainbowChams = false, MaxDistance = 500, MarcarTodos = false }
-        local Aimbot_Settings = { Mode = "Nenhum", FovSize = 0, PullPart = "Head", Type = "Ao Olhar", VisibleCheck = false, AimbotNoTime = false }
-        local LockedTarget = nil local IsTouchingScreen = false
-
-        -- [REMOVIDO]: Toda a interface visual antiga do TriggerCircle (Círculo, Cadeados, Texto e Arrastar)
+        local Aimbot_Settings = { Mode = "Nenhum", FovSize = 0, PullPart = "Head", VisibleCheck = false, AimbotNoTime = false }
+        local LockedTarget = nil 
 
         local ScreenGui = Instance.new("ScreenGui")
         ScreenGui.Name = GerarNomeAleatorio(15) 
@@ -494,20 +491,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             if action then task.spawn(function() action(currentOpt) end) end
         end
 
-        local function CreateSimpleRadioGroup(parent, textGroup, x, y, options, defaultOnGroup, action)
-            local currentOpt = GlobalSettings.Dropdowns[textGroup] if currentOpt == nil then currentOpt = defaultOnGroup end GlobalSettings.Dropdowns[textGroup] = currentOpt
-            local lblGroup = Instance.new("TextLabel", parent) lblGroup.Size = UDim2.new(0, 150, 0, 20) lblGroup.Position = UDim2.new(0, x, 0, y) lblGroup.BackgroundTransparency = 1 lblGroup.Text = textGroup lblGroup.TextColor3 = C_WHITE lblGroup.Font = Enum.Font.GothamBold lblGroup.TextSize = 14 lblGroup.TextXAlignment = Enum.TextXAlignment.Left
-            local radioGroupData = {} local offsetX = 0
-            for i, option in ipairs(options) do
-                local btnGroup = Instance.new("TextButton", parent) btnGroup.Size = UDim2.new(0, 95, 0, 25) btnGroup.Position = UDim2.new(0, x + offsetX, 0, y + 25) btnGroup.BackgroundTransparency = 1 btnGroup.Text = ""  
-                local outerGroup = Instance.new("Frame", btnGroup) outerGroup.Size = UDim2.new(0, 20, 0, 20) outerGroup.Position = UDim2.new(0, 0, 0, 2) outerGroup.BackgroundColor3 = C_DARK_GREY Instance.new("UICorner", outerGroup).CornerRadius = UDim.new(1, 0)  
-                local innerGroup = Instance.new("Frame", outerGroup) innerGroup.Size = UDim2.new(0, 12, 0, 12) innerGroup.Position = UDim2.new(0.5, 0, 0.5, 0) innerGroup.AnchorPoint = Vector2.new(0.5, 0.5) innerGroup.BackgroundColor3 = CurrentTheme innerGroup.Visible = (option == currentOpt) Instance.new("UICorner", innerGroup).CornerRadius = UDim.new(1, 0) table.insert(ThemeCallbacks, function(color) if innerGroup.Visible then innerGroup.BackgroundColor3 = color end end)
-                local lblGroupInner = Instance.new("TextLabel", btnGroup) lblGroupInner.Size = UDim2.new(1, -25, 1, 0) lblGroupInner.Position = UDim2.new(0, 25, 0, 0) lblGroupInner.BackgroundTransparency = 1 lblGroupInner.Text = option lblGroupInner.TextColor3 = C_WHITE lblGroupInner.Font = Enum.Font.GothamBold lblGroupInner.TextSize = 14 lblGroupInner.TextXAlignment = Enum.TextXAlignment.Left table.insert(radioGroupData, innerGroup)
-                btnGroup.MouseButton1Click:Connect(function() for _, inner in ipairs(radioGroupData) do inner.Visible = false end innerGroup.Visible = true innerGroup.BackgroundColor3 = CurrentTheme GlobalSettings.Dropdowns[textGroup] = option SaveAllSettings() if action then action(option) end end) offsetX = offsetX + 100
-            end
-            if action then task.spawn(function() action(currentOpt) end) end
-        end
-
         local EditTarget = "Menu" local TargetBtns = {}
         local function SetEditTarget(targetKey, isVisible) if isVisible then EditTarget = targetKey for key, data in pairs(TargetBtns) do if key ~= targetKey then data.check.Visible = false data.box.BackgroundColor3 = C_DARK_GREY end end else EditTarget = "Menu" end end
 
@@ -548,13 +531,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CreateSlider(TabAimbot, "Regular FOV", 70, 0, 70, function(v) FOVCircle.Size = UDim2.new(0, v, 0, v) Aimbot_Settings.FovSize = v end)  
         CreateDropdown(TabAimbot, "Puxada", {"Cabeça", "Pescoço", "Peito", "Quadril"}, 0, 115, "Cabeça", function(v) if v == "Cabeça" then Aimbot_Settings.PullPart = "Head" elseif v == "Pescoço" then Aimbot_Settings.PullPart = "UpperTorso" elseif v == "Peito" then Aimbot_Settings.PullPart = "Torso" elseif v == "Quadril" then Aimbot_Settings.PullPart = "HumanoidRootPart" end end, true)
 
-        -- [FIXADO]: O botão do Wall Check agora fica estático e bonito na posição correta (y = 215)
-        local VisibleCheckBtn = CreateCheckbox(TabAimbot, "Visível (Wall Check)", 0, 215, false, function(s) Aimbot_Settings.VisibleCheck = s end)
-        
-        -- [MODIFICADO]: Selecionar "Ao Atirar" agora não executa nenhuma animação e não abre o menu antigo do cadeado
-        CreateSimpleRadioGroup(TabAimbot, "Tipo de Aimbot:", 0, 155, {"Ao Olhar", "Ao Atirar"}, "Ao Olhar", function(v) 
-            Aimbot_Settings.Type = v 
-        end)
+        local VisibleCheckBtn = CreateCheckbox(TabAimbot, "Visível (Wall Check)", 0, 155, false, function(s) Aimbot_Settings.VisibleCheck = s end)
 
         local ESP_X = 15 local DROPDOWN_X = 160 
         local function CreateComboDropdownParent(parent, text, options, defaultOption, x, y, cbAction, dropAction) local container = Instance.new("Frame", parent) container.Size = UDim2.new(0, 320, 0, 25) container.Position = UDim2.new(0, x, 0, y) container.BackgroundTransparency = 1 CreateCheckbox(container, text, 0, 0, false, cbAction) CreateDropdown(container, text.."_Opt", options, DROPDOWN_X, 0, defaultOption, dropAction, false) return container end
@@ -767,7 +744,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             else
                 task.spawn(function()
                     local nomeLimpo = string.split(autor, " ")[1] local userId = nil local jogador = Players:FindFirstChild(nomeLimpo)
-                    if @jogador then userId = jogador.UserId else pcall(function() userId = Players:GetUserIdFromNameAsync(nomeLimpo) end) end
+                    if jogador then userId = jogador.UserId else pcall(function() userId = Players:GetUserIdFromNameAsync(nomeLimpo) end) end
                     if userId and AvatarImg then local ok, res = pcall(function() return Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48) end) if ok and AvatarImg then AvatarImg.Image = res end end
                 end)
             end SalvarNoDiario("Chat - " .. autor .. ": " .. msg, "INFO")
@@ -956,19 +933,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         if GlobalSettings.ThemeHex ~= "RAINBOW" then SetTheme(CurrentTheme) end
 
-        -- [NOVO ADICIONADO]: Sistema direto que capta se o clique/toque está pressionado na tela globamente
-        UserInputService.InputBegan:Connect(function(input, processed)
-            if not processed and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-                IsTouchingScreen = true
-            end
-        end)
-
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                IsTouchingScreen = false
-            end
-        end)
-
         task.spawn(function()
             local PlayerDrawings = {} 
             local Bones = { {"Head", "UpperTorso"}, {"UpperTorso", "LowerTorso"}, {"UpperTorso", "LeftUpperArm"}, {"LeftUpperArm", "LeftLowerArm"}, {"UpperTorso", "RightUpperArm"}, {"RightUpperArm", "RightLowerArm"}, {"LowerTorso", "LeftUpperLeg"}, {"LeftUpperLeg", "LeftLowerLeg"}, {"LowerTorso", "RightUpperLeg"}, {"RightUpperLeg", "RightLowerLeg"} }
@@ -1050,29 +1014,23 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             RunService:BindToRenderStep("NIGHT_Aimbot_Priority", Enum.RenderPriority.Camera.Value - 1, function()
                 local ok, err = pcall(function() 
                     if FunctionsEnabled and Aimbot_Settings.Mode ~= "Nenhum" and IsAlive(LocalPlayer) then
-                        
-                        -- [MODIFICADO]: Agora "Ao Atirar" roda de verdade usando a captação direta de toque/clique global
-                        local canAim = (Aimbot_Settings.Type == "Ao Olhar") or (Aimbot_Settings.Type == "Ao Atirar" and IsTouchingScreen)
-                        
-                        if canAim then
-                            if LockedTarget and (not LockedTarget.Parent or not IsAlive(Players:GetPlayerFromCharacter(LockedTarget.Parent.Parent or LockedTarget.Parent))) then LockedTarget = nil end
-                            if not LockedTarget then LockedTarget = GetClosestEnemyTarget() end
-                            if LockedTarget then
-                                if not IsPartVisible(LockedTarget) then LockedTarget = nil return end
-                                local targetPos = LockedTarget.Position
-                                local dist = (targetPos - Camera.CFrame.Position).Magnitude
-                                if dist < 0.5 then LockedTarget = nil return end
-                                local velocity = LockedTarget.AssemblyLinearVelocity or Vector3.new(0, 0, 0)
-                                if Aimbot_Settings.PullPart == "Head" and dist > 80 then targetPos = targetPos - Vector3.new(0, 0.4, 0) end
-                                local predictedPos = targetPos + (velocity * (dist / 1000))
-                                local pos, onS = Camera:WorldToViewportPoint(predictedPos)
-                                if (Vector2.new(pos.X, pos.Y) - Camera.ViewportSize/2).Magnitude > ((tonumber(Aimbot_Settings.FovSize) or 0) / 2) then LockedTarget = nil return end
-                                local smoothBase = Aimbot_Settings.Mode == "Rage" and 0.85 or 0.15
-                                local distanceFactor = math.clamp(1 - (dist / 1000), 0.5, 1) 
-                                local smoothFinal = smoothBase * distanceFactor
-                                Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, predictedPos), smoothFinal)
-                            end
-                        else LockedTarget = nil end
+                        if LockedTarget and (not LockedTarget.Parent or not IsAlive(Players:GetPlayerFromCharacter(LockedTarget.Parent.Parent or LockedTarget.Parent))) then LockedTarget = nil end
+                        if not LockedTarget then LockedTarget = GetClosestEnemyTarget() end
+                        if LockedTarget then
+                            if not IsPartVisible(LockedTarget) then LockedTarget = nil return end
+                            local targetPos = LockedTarget.Position
+                            local dist = (targetPos - Camera.CFrame.Position).Magnitude
+                            if dist < 0.5 then LockedTarget = nil return end
+                            local velocity = LockedTarget.AssemblyLinearVelocity or Vector3.new(0, 0, 0)
+                            if Aimbot_Settings.PullPart == "Head" and dist > 80 then targetPos = targetPos - Vector3.new(0, 0.4, 0) end
+                            local predictedPos = targetPos + (velocity * (dist / 1000))
+                            local pos, onS = Camera:WorldToViewportPoint(predictedPos)
+                            if (Vector2.new(pos.X, pos.Y) - Camera.ViewportSize/2).Magnitude > ((tonumber(Aimbot_Settings.FovSize) or 0) / 2) then LockedTarget = nil return end
+                            local smoothBase = Aimbot_Settings.Mode == "Rage" and 0.85 or 0.15
+                            local distanceFactor = math.clamp(1 - (dist / 1000), 0.5, 1) 
+                            local smoothFinal = smoothBase * distanceFactor
+                            Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, predictedPos), smoothFinal)
+                        end
                     else LockedTarget = nil end
                 end)
                 if not ok then SalvarNoDiario("Erro Loop RenderStep Aimbot: " .. tostring(err), "ERROR") end
