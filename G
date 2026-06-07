@@ -151,7 +151,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local targetParent = gethui and gethui() or (syn and syn.protect_gui and CoreGui or CoreGui)
         if targetParent:FindFirstChild("NIGHT_UI_PixelPerfect") then targetParent.NIGHT_UI_PixelPerfect:Destroy() end
 
-        local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false local NoFlashEnabled = false
+        local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false
         local ESP_Settings = { Lines = false, LineOrigin = "Cima", LineColor = GlobalSettings.ESP_Colors.Lines, Boxes = false, BoxType = "Quadrado", BoxColor = GlobalSettings.ESP_Colors.Boxes, Skeleton = false, SkeletonColor = GlobalSettings.ESP_Colors.Skeleton, Health = false, ChamsColor = Color3.fromRGB(0, 255, 0), RainbowChams = false, MaxDistance = 500, MarcarTodos = false }
         local Aimbot_Settings = { Mode = "Nenhum", FovSize = 0, PullPart = "Head", Type = "Ao Olhar", VisibleCheck = false, AimbotNoTime = false }
         local LockedTarget = nil local Trigger_Settings = { Radius = 60, Locked = GlobalSettings.TriggerLocked } local IsTouchingScreen = false
@@ -547,7 +547,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end
         end)
 
-        CreateCheckbox(TabRageFunctions, "No Flashbang", 0, 70, false, function(v) NoFlashEnabled = v end) 
         CreateCheckbox(TabRageFunctions, "Tp Player", 170, 70, false) CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 105, false, function(v) HitboxEnabled = v end)
 
         local ColorPickerLabel = Instance.new("TextLabel", TabRageFunctions) ColorPickerLabel.Size = UDim2.new(1, -10, 0, 25) ColorPickerLabel.Position = UDim2.new(0, 0, 0, 145) ColorPickerLabel.BackgroundTransparency = 1 ColorPickerLabel.Text = "Cores Customizáveis" ColorPickerLabel.TextColor3 = C_WHITE ColorPickerLabel.Font = Enum.Font.GothamBold ColorPickerLabel.TextSize = 14 ColorPickerLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -1066,17 +1065,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 end
             end
 
-            local function ApplyAntiFlash(obj)
-                if obj:IsA("Frame") or obj:IsA("CanvasGroup") or obj:IsA("ImageLabel") then
-                    if obj.Name:lower():find("flash") or obj.Name:lower():find("blind") or obj.BackgroundColor3 == Color3.new(1, 1, 1) then
-                        obj.BackgroundTransparency = 1
-                        obj.Visible = false
-                    end
-                end
-            end
-
             Workspace.DescendantAdded:Connect(function(v) if FunctionsEnabled and NoSmokeEnabled then ApplyAntiSmoke(v) end end)
-            LocalPlayer.PlayerGui.DescendantAdded:Connect(function(v) if FunctionsEnabled and NoFlashEnabled then ApplyAntiFlash(v) end end)
 
             RunService.Heartbeat:Connect(function()
                 local ok, err = pcall(function() 
@@ -1084,15 +1073,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                         -- SISTEMA DE PROTEÇÃO DE TELA
                         if NoSmokeEnabled then
                             for _, v in pairs(Workspace:GetDescendants()) do ApplyAntiSmoke(v) end
-                        end
-                        if NoFlashEnabled then
-                            Lighting.ExposureCompensation = 0
-                            for _, effect in pairs(Lighting:GetChildren()) do
-                                if effect:IsA("ColorCorrectionEffect") or effect:IsA("BlurEffect") or effect:IsA("SunRaysEffect") then
-                                    effect.Enabled = false
-                                end
-                            end
-                            for _, v in pairs(LocalPlayer.PlayerGui:GetDescendants()) do ApplyAntiFlash(v) end
                         end
 
                         -- SISTEMA DE HITBOX
