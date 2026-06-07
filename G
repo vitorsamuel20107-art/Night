@@ -628,6 +628,73 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end
         end)
 
+        -- =====================================
+        -- SISTEMA DE CHAT & NOTIFICAÇÕES STEALTH
+        -- =====================================
+        local SilenciarNotificacoesChat = false
+        local ContadorDeEnvios = 0
+        
+        local function MostrarNotificacaoChat(autor, msg)
+            if SilenciarNotificacoesChat then return end
+
+            local NotifFrame = Instance.new("Frame", ScreenGui)
+            NotifFrame.Size = UDim2.new(0, 250, 0, 70)
+            NotifFrame.Position = UDim2.new(1, 10, 0.7, 0)
+            NotifFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+            NotifFrame.BorderSizePixel = 0
+            Instance.new("UICorner", NotifFrame).CornerRadius = UDim.new(0, 8)
+            
+            local Title = Instance.new("TextLabel", NotifFrame)
+            Title.Size = UDim2.new(1, -10, 0, 20)
+            Title.Position = UDim2.new(0, 5, 0, 5)
+            Title.BackgroundTransparency = 1
+            Title.Text = "💬 Chat: " .. autor
+            Title.TextColor3 = CurrentTheme
+            Title.Font = Enum.Font.GothamBold
+            Title.TextSize = 12
+            Title.TextXAlignment = Enum.TextXAlignment.Left
+
+            local Body = Instance.new("TextLabel", NotifFrame)
+            Body.Size = UDim2.new(1, -10, 0, 30)
+            Body.Position = UDim2.new(0, 5, 0, 25)
+            Body.BackgroundTransparency = 1
+            Body.Text = msg
+            Body.TextColor3 = Color3.fromRGB(220, 220, 220)
+            Body.Font = Enum.Font.Gotham
+            Body.TextSize = 11
+            Body.TextXAlignment = Enum.TextXAlignment.Left
+            Body.TextWrapped = true
+            Body.TextTruncate = Enum.TextTruncate.AtEnd
+
+            local MuteBtn = Instance.new("TextButton", NotifFrame)
+            MuteBtn.Size = UDim2.new(0, 120, 0, 15)
+            MuteBtn.Position = UDim2.new(1, -125, 1, -20)
+            MuteBtn.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
+            MuteBtn.Text = "Não mostrar novamente"
+            MuteBtn.TextColor3 = C_WHITE
+            MuteBtn.Font = Enum.Font.Gotham
+            MuteBtn.TextSize = 9
+            Instance.new("UICorner", MuteBtn).CornerRadius = UDim.new(0, 4)
+
+            MuteBtn.MouseButton1Click:Connect(function()
+                SilenciarNotificacoesChat = true
+                if NotifFrame then NotifFrame:Destroy() end
+            end)
+
+            -- Animação de Entrada
+            TweenService:Create(NotifFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, -260, 0.7, 0)}):Play()
+
+            -- Some automaticamente depois de 4 segundos
+            task.delay(4, function()
+                if NotifFrame and NotifFrame.Parent then
+                    local outTween = TweenService:Create(NotifFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(1, 10, 0.7, 0)})
+                    outTween:Play()
+                    outTween.Completed:Wait()
+                    if NotifFrame then NotifFrame:Destroy() end
+                end
+            end)
+        end
+
         local OnlineLabel_Chat = Instance.new("TextLabel", TabChat)
         OnlineLabel_Chat.Size = UDim2.new(1, -10, 0, 20)
         OnlineLabel_Chat.Position = UDim2.new(0, 5, 0, 0)
@@ -677,13 +744,22 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         table.insert(ThemeElements.Backgrounds, SendBtn)
 
         local function AdicionarMensagemNaUI(autor, msg, jobId)
+            ContadorDeEnvios = ContadorDeEnvios + 1
+            
+            -- Dispara Notificação no modo Stealth se não for do Sistema
+            if CurrentUIState == "Hidden" and autor ~= "Sistema" and autor ~= LocalPlayer.Name then
+                MostrarNotificacaoChat(autor, msg)
+            end
+
             local LinhaMensagem = Instance.new("Frame", ChatBox) LinhaMensagem.Size = UDim2.new(1, -5, 0, 35) LinhaMensagem.AutomaticSize = Enum.AutomaticSize.Y LinhaMensagem.BackgroundTransparency = 1
             local AvatarImg = Instance.new("ImageLabel", LinhaMensagem) AvatarImg.Size = UDim2.new(0, 28, 0, 28) AvatarImg.Position = UDim2.new(0, 0, 0, 2) AvatarImg.BackgroundColor3 = Color3.fromRGB(30, 30, 30) AvatarImg.Image = "rbxassetid://0" Instance.new("UICorner", AvatarImg).CornerRadius = UDim.new(1, 0)
             local MsgLabel = Instance.new("TextLabel", LinhaMensagem) MsgLabel.Size = UDim2.new(1, -90, 0, 0) MsgLabel.Position = UDim2.new(0, 35, 0, 0) MsgLabel.AutomaticSize = Enum.AutomaticSize.Y MsgLabel.BackgroundTransparency = 1 MsgLabel.RichText = true MsgLabel.Font = Enum.Font.Gotham MsgLabel.TextSize = 12 MsgLabel.TextXAlignment = Enum.TextXAlignment.Left MsgLabel.TextWrapped = true 
             
             local CorNome = (autor == LocalPlayer.Name or autor == "Sistema") and "rgb(0, 255, 120)" or "rgb(255, 0, 0)"
             if autor == "Sistema" then CorNome = "rgb(255, 255, 0)" end 
-            MsgLabel.Text = string.format('<font color="%s"><b>%s</b></font> <font color="rgb(150, 150, 150)" size="10"><i>• %s</i></font>\n<font color="rgb(240, 240, 240)">%s</font>', CorNome, autor, NomeDoJogoAtual, msg)
+            
+            -- Injeta o contador visual na caixa de texto
+            MsgLabel.Text = string.format('<font color="%s"><b>[Envio %d] %s</b></font> <font color="rgb(150, 150, 150)" size="10"><i>• %s</i></font>\n<font color="rgb(240, 240, 240)">%s</font>', CorNome, ContadorDeEnvios, autor, NomeDoJogoAtual, msg)
             
             if autor ~= LocalPlayer.Name and autor ~= "Sistema" and not string.find(autor, "Sussurro") then
                 local JoinBtn = Instance.new("TextButton", LinhaMensagem) JoinBtn.Size = UDim2.new(0, 45, 0, 18) JoinBtn.Position = UDim2.new(1, -45, 0, 4) JoinBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30) JoinBtn.Text = "Entrar" JoinBtn.TextColor3 = C_WHITE JoinBtn.TextSize = 10 JoinBtn.Font = Enum.Font.GothamBold Instance.new("UICorner", JoinBtn).CornerRadius = UDim.new(0, 4)
@@ -975,21 +1051,68 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end)
         end)
 
+        -- ==========================================
+        -- EVENTOS VISUAIS E HITBOX (HEARTBEAT LOOP)
+        -- ==========================================
         task.spawn(function()
             local HitboxCache = {} 
             local function IsEnemy(p) if p == LocalPlayer then return false end if p.Team ~= nil and LocalPlayer.Team ~= nil then return p.Team ~= LocalPlayer.Team end local m = LocalPlayer:GetAttribute("Team") local e = p:GetAttribute("Team") if m ~= nil and e ~= nil then return m ~= e end return true end
+            
+            local function ApplyAntiSmoke(obj)
+                if obj:IsA("ParticleEmitter") or obj:IsA("Smoke") or obj:IsA("Fire") then
+                    obj.Enabled = false
+                    obj.Rate = 0
+                    obj.Transparency = NumberSequence.new(1)
+                end
+            end
+
+            local function ApplyAntiFlash(obj)
+                if obj:IsA("Frame") or obj:IsA("CanvasGroup") or obj:IsA("ImageLabel") then
+                    if obj.Name:lower():find("flash") or obj.Name:lower():find("blind") or obj.BackgroundColor3 == Color3.new(1, 1, 1) then
+                        obj.BackgroundTransparency = 1
+                        obj.Visible = false
+                    end
+                end
+            end
+
+            Workspace.DescendantAdded:Connect(function(v) if FunctionsEnabled and NoSmokeEnabled then ApplyAntiSmoke(v) end end)
+            LocalPlayer.PlayerGui.DescendantAdded:Connect(function(v) if FunctionsEnabled and NoFlashEnabled then ApplyAntiFlash(v) end end)
+
             RunService.Heartbeat:Connect(function()
                 local ok, err = pcall(function() 
-                    if FunctionsEnabled and HitboxEnabled then
-                        for _, p in pairs(Players:GetPlayers()) do 
-                            if p ~= LocalPlayer and IsEnemy(p) and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-                                local head = p.Character:FindFirstChild("Head")
-                                if head then if not HitboxCache[p] then HitboxCache[p] = head.Size end head.Size = Vector3.new(2.1, 2.1, 2.1) head.Transparency = 0.7 head.CanCollide = true end
-                            else if HitboxCache[p] and p.Character and p.Character:FindFirstChild("Head") then p.Character.Head.Size = HitboxCache[p] p.Character.Head.Transparency = 0 HitboxCache[p] = nil end end 
+                    if FunctionsEnabled then
+                        -- SISTEMA DE PROTEÇÃO DE TELA
+                        if NoSmokeEnabled then
+                            for _, v in pairs(Workspace:GetDescendants()) do ApplyAntiSmoke(v) end
                         end
-                    else for p, os in pairs(HitboxCache) do if p and p.Character and p.Character:FindFirstChild("Head") then p.Character.Head.Size = os p.Character.Head.Transparency = 0 end end table.clear(HitboxCache) end
+                        if NoFlashEnabled then
+                            Lighting.ExposureCompensation = 0
+                            for _, effect in pairs(Lighting:GetChildren()) do
+                                if effect:IsA("ColorCorrectionEffect") or effect:IsA("BlurEffect") or effect:IsA("SunRaysEffect") then
+                                    effect.Enabled = false
+                                end
+                            end
+                            for _, v in pairs(LocalPlayer.PlayerGui:GetDescendants()) do ApplyAntiFlash(v) end
+                        end
+
+                        -- SISTEMA DE HITBOX
+                        if HitboxEnabled then
+                            for _, p in pairs(Players:GetPlayers()) do 
+                                if p ~= LocalPlayer and IsEnemy(p) and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+                                    local head = p.Character:FindFirstChild("Head")
+                                    if head then if not HitboxCache[p] then HitboxCache[p] = head.Size end head.Size = Vector3.new(2.1, 2.1, 2.1) head.Transparency = 0.7 head.CanCollide = true end
+                                else if HitboxCache[p] and p.Character and p.Character:FindFirstChild("Head") then p.Character.Head.Size = HitboxCache[p] p.Character.Head.Transparency = 0 HitboxCache[p] = nil end end 
+                            end
+                        else 
+                            for p, os in pairs(HitboxCache) do if p and p.Character and p.Character:FindFirstChild("Head") then p.Character.Head.Size = os p.Character.Head.Transparency = 0 end end 
+                            table.clear(HitboxCache) 
+                        end
+                    else
+                        for p, os in pairs(HitboxCache) do if p and p.Character and p.Character:FindFirstChild("Head") then p.Character.Head.Size = os p.Character.Head.Transparency = 0 end end 
+                        table.clear(HitboxCache)
+                    end
                 end)
-                if not ok then SalvarNoDiario("Erro Loop Heartbeat Hitbox: " .. tostring(err), "ERROR") end
+                if not ok then SalvarNoDiario("Erro Loop Heartbeat Hitbox/Visuais: " .. tostring(err), "ERROR") end
             end)
         end)
     end
