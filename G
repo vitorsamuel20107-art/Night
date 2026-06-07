@@ -2,6 +2,10 @@ local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
+local RobloxPrint = print
+local RobloxWarn = warn
+local RobloxError = error
+
 print = function(...) end
 warn = function(...) end
 error = function(...) end
@@ -150,8 +154,9 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false local NoFlashEnabled = false
         local ESP_Settings = { Lines = false, LineOrigin = "Cima", LineColor = GlobalSettings.ESP_Colors.Lines, Boxes = false, BoxType = "Quadrado", BoxColor = GlobalSettings.ESP_Colors.Boxes, Skeleton = false, SkeletonColor = GlobalSettings.ESP_Colors.Skeleton, Health = false, ChamsColor = Color3.fromRGB(0, 255, 0), RainbowChams = false, MaxDistance = 500, MarcarTodos = false }
         local Aimbot_Settings = { Mode = "Nenhum", FovSize = 0, PullPart = "Head", Type = "Ao Olhar", VisibleCheck = false, AimbotNoTime = false }
-        local LockedTarget = nil local Trigger_Settings = { Radius = 60, Locked = GlobalSettings.TriggerLocked } local IsTouchingScreen = false
-        local ToqueDoTiroAtivo = nil
+        local LockedTarget = nil local IsTouchingScreen = false
+
+        -- [REMOVIDO]: Toda a interface visual antiga do TriggerCircle (Círculo, Cadeados, Texto e Arrastar)
 
         local ScreenGui = Instance.new("ScreenGui")
         ScreenGui.Name = GerarNomeAleatorio(15) 
@@ -173,36 +178,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         end
 
         local Rainbow_Speed = 1 local Current_Rainbow_H = 0 local Current_Rainbow_Color = Color3.fromHSV(0, 1, 1)
-
-        local TriggerCircle = Instance.new("Frame", ScreenGui) TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) TriggerCircle.Position = UDim2.new(0.7, 0, 0.5, 0) TriggerCircle.BackgroundColor3 = Trigger_Settings.Locked and Color3.fromRGB(100, 100, 100) or Color3.fromRGB(255, 0, 0) TriggerCircle.BackgroundTransparency = Trigger_Settings.Locked and 0.8 or 0.6 TriggerCircle.Visible = false TriggerCircle.Active = not Trigger_Settings.Locked
-        Instance.new("UICorner", TriggerCircle).CornerRadius = UDim.new(1, 0)
-        local TriggerText = Instance.new("TextLabel", TriggerCircle) TriggerText.Size = UDim2.new(1, 0, 1, 0) TriggerText.BackgroundTransparency = 1 TriggerText.Text = Trigger_Settings.Locked and "TRAVADO" or "ATIRAR" TriggerText.TextColor3 = C_WHITE TriggerText.Font = Enum.Font.GothamBold TriggerText.TextSize = 12
-
-        local draggingCircle, dragStartCircle, startPosCircle
-        TriggerCircle.InputBegan:Connect(function(input) if not Trigger_Settings.Locked and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then draggingCircle = true dragStartCircle = input.Position startPosCircle = TriggerCircle.Position end end)
-        UserInputService.InputChanged:Connect(function(input) if draggingCircle and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then local delta = input.Position - dragStartCircle TriggerCircle.Position = UDim2.new(startPosCircle.X.Scale, startPosCircle.X.Offset + delta.X, startPosCircle.Y.Scale, startPosCircle.Y.Offset + delta.Y) end end)
-        UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then draggingCircle = false end end)
-
-        -- Rastreamento Inteligente Corrigido do Botão de Tiro Mobile
-        UserInputService.InputBegan:Connect(function(input, gpe)
-            if gpe and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1) then
-                local guis = Players.LocalPlayer.PlayerGui:GetGuiObjectsAtPosition(input.Position.X, input.Position.Y)
-                for _, obj in ipairs(guis) do
-                    if obj.Name == "Shoot" then
-                        IsTouchingScreen = true
-                        ToqueDoTiroAtivo = input
-                        break
-                    end
-                end
-            end
-        end)
-
-        UserInputService.InputEnded:Connect(function(input)
-            if input == ToqueDoTiroAtivo or (ToqueDoTiroAtivo and input.UserInputType == Enum.UserInputType.MouseButton1) then
-                IsTouchingScreen = false
-                ToqueDoTiroAtivo = nil
-            end
-        end)
 
         local TopRightOverlay = Instance.new("Frame", ScreenGui) TopRightOverlay.Size = UDim2.new(0, 120, 0, 50) TopRightOverlay.Position = UDim2.new(1, -130, 0, 40) TopRightOverlay.BackgroundTransparency = 1
         local FPSGui = Instance.new("Frame", TopRightOverlay) FPSGui.Size = UDim2.new(1, 0, 0, 20) FPSGui.BackgroundTransparency = 1 
@@ -573,46 +548,13 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CreateSlider(TabAimbot, "Regular FOV", 70, 0, 70, function(v) FOVCircle.Size = UDim2.new(0, v, 0, v) Aimbot_Settings.FovSize = v end)  
         CreateDropdown(TabAimbot, "Puxada", {"Cabeça", "Pescoço", "Peito", "Quadril"}, 0, 115, "Cabeça", function(v) if v == "Cabeça" then Aimbot_Settings.PullPart = "Head" elseif v == "Pescoço" then Aimbot_Settings.PullPart = "UpperTorso" elseif v == "Peito" then Aimbot_Settings.PullPart = "Torso" elseif v == "Quadril" then Aimbot_Settings.PullPart = "HumanoidRootPart" end end, true)
 
-        local TriggerUIFrame = Instance.new("Frame", TabAimbot) TriggerUIFrame.Size = UDim2.new(0, 200, 0, 30) TriggerUIFrame.Position = UDim2.new(0, 0, 0, 215) TriggerUIFrame.BackgroundTransparency = 1 TriggerUIFrame.Visible = false
-        local LockTriggerBtn = Instance.new("TextButton", TriggerUIFrame) LockTriggerBtn.Size = UDim2.new(0, 100, 0, 25) LockTriggerBtn.BackgroundColor3 = Trigger_Settings.Locked and CurrentTheme or C_DARK_GREY LockTriggerBtn.Text = Trigger_Settings.Locked and "Seleção 🔒" or "Seleção 🔓" LockTriggerBtn.TextColor3 = C_WHITE LockTriggerBtn.Font = Enum.Font.GothamBold LockTriggerBtn.TextSize = 13 Instance.new("UICorner", LockTriggerBtn).CornerRadius = UDim.new(0, 6)
-        local MinusBtn = Instance.new("TextButton", TriggerUIFrame) MinusBtn.Size = UDim2.new(0, 30, 0, 25) MinusBtn.Position = UDim2.new(0, 110, 0, 0) MinusBtn.BackgroundColor3 = C_DARK_GREY MinusBtn.Text = "−" MinusBtn.TextColor3 = C_WHITE MinusBtn.Font = Enum.Font.GothamBold MinusBtn.TextSize = 18 Instance.new("UICorner", MinusBtn).CornerRadius = UDim.new(0, 6)
-        local PlusBtn = Instance.new("TextButton", TriggerUIFrame) PlusBtn.Size = UDim2.new(0, 30, 0, 25) PlusBtn.Position = UDim2.new(0, 145, 0, 0) PlusBtn.BackgroundColor3 = C_DARK_GREY PlusBtn.Text = "+" PlusBtn.TextColor3 = C_WHITE PlusBtn.Font = Enum.Font.GothamBold PlusBtn.TextSize = 18 Instance.new("UICorner", PlusBtn).CornerRadius = UDim.new(0, 6)
-
-        LockTriggerBtn.MouseButton1Click:Connect(function() Trigger_Settings.Locked = not Trigger_Settings.Locked GlobalSettings.TriggerLocked = Trigger_Settings.Locked SaveAllSettings() if Trigger_Settings.Locked then LockTriggerBtn.Text = "Seleção 🔒" LockTriggerBtn.BackgroundColor3 = color TriggerCircle.Active = false TriggerCircle.BackgroundColor3 = Color3.fromRGB(100, 100, 100) TriggerCircle.BackgroundTransparency = 0.8 TriggerText.Text = "TRAVADO" else LockTriggerBtn.Text = "Seleção 🔓" LockTriggerBtn.BackgroundColor3 = C_DARK_GREY TriggerCircle.Active = true TriggerCircle.BackgroundColor3 = Color3.fromRGB(255, 0, 0) TriggerCircle.BackgroundTransparency = 0.6 TriggerText.Text = "ATIRAR" end end)
-        table.insert(ThemeCallbacks, function(color) if Trigger_Settings.Locked then LockTriggerBtn.BackgroundColor3 = color end end)
-        MinusBtn.MouseButton1Click:Connect(function() Trigger_Settings.Radius = math.clamp(Trigger_Settings.Radius - 5, 20, 150) TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) end)
-        PlusBtn.MouseButton1Click:Connect(function() Trigger_Settings.Radius = math.clamp(Trigger_Settings.Radius + 5, 20, 150) TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) end)
-
+        -- [FIXADO]: O botão do Wall Check agora fica estático e bonito na posição correta (y = 215)
         local VisibleCheckBtn = CreateCheckbox(TabAimbot, "Visível (Wall Check)", 0, 215, false, function(s) Aimbot_Settings.VisibleCheck = s end)
-        CreateSimpleRadioGroup(TabAimbot, "Tipo de Aimbot:", 0, 155, {"Ao Olhar", "Ao Atirar"}, "Ao Olhar", function(v) Aimbot_Settings.Type = v if v == "Ao Atirar" then TriggerUIFrame.Visible = true TriggerCircle.Visible = true VisibleCheckBtn:TweenPosition(UDim2.new(0, 0, 0, 255), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true) else TriggerCircle.Visible = false IsTouchingScreen = false VisibleCheckBtn:TweenPosition(UDim2.new(0, 0, 0, 215), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true) task.delay(0.15, function() if Aimbot_Settings.Type == "Ao Olhar" then TriggerUIFrame.Visible = false end end) end end)
-
-        local ESP_X = 15 local DROPDOWN_X = 160 
-        local function CreateComboDropdownParent(parent, text, options, defaultOption, x, y, cbAction, dropAction) local container = Instance.new("Frame", parent) container.Size = UDim2.new(0, 320, 0, 25) container.Position = UDim2.new(0, x, 0, y) container.BackgroundTransparency = 1 CreateCheckbox(container, text, 0, 0, false, cbAction) CreateDropdown(container, text.."_Opt", options, DROPDOWN_X, 0, defaultOption, dropAction, false) return container end
-        local Chams_Colors_Map = { ["Verde"] = Color3.fromRGB(0, 255, 0), ["Vermelho"] = Color3.fromRGB(255, 0, 0), ["Roxo"] = Color3.fromRGB(150, 0, 255), ["Azul"] = Color3.fromRGB(0, 100, 255), ["Preto"] = Color3.fromRGB(0, 0, 0), ["Branco"] = Color3.fromRGB(255, 255, 255), ["Cinza"] = Color3.fromRGB(128, 128, 128), ["rainbow"] = "rainbow" }
-        local CoresContainer = Instance.new("Frame", TabESP) CoresContainer.Size = UDim2.new(0, 150, 0, 25) CoresContainer.Position = UDim2.new(0, ESP_X + DROPDOWN_X, 0, 80) CoresContainer.BackgroundTransparency = 1 CoresContainer.Visible = false 
-        CreateDropdown(CoresContainer, "ChamsColor", {"Verde", "Vermelho", "Roxo", "Azul", "Preto", "Branco", "Cinza", "rainbow"}, 0, 0, "Verde", function(option) if option == "rainbow" then ESP_Settings.RainbowChams = true else ESP_Settings.RainbowChams = false ESP_Settings.ChamsColor = Chams_Colors_Map[option] end end, false)
-
-        local function UpdateAimbotState(mode)
-            if mode == "Rage" then if cbRageCheck.Visible then cbRageCheck.Visible = false cbRageBox.BackgroundColor3 = C_DARK_GREY Aimbot_Settings.Mode = "Nenhum" else cbRageCheck.Visible = true cbRageBox.BackgroundColor3 = CurrentTheme cbLegitCheck.Visible = false cbLegitBox.BackgroundColor3 = C_DARK_GREY Aimbot_Settings.Mode = "Rage" end
-            elseif mode == "Legit" then if cbLegitCheck.Visible then cbLegitCheck.Visible = false cbLegitBox.BackgroundColor3 = C_DARK_GREY Aimbot_Settings.Mode = "Nenhum" else cbLegitCheck.Visible = true cbLegitBox.BackgroundColor3 = CurrentTheme cbRageCheck.Visible = false cbRageBox.BackgroundColor3 = C_DARK_GREY Aimbot_Settings.Mode = "Legit" end end GlobalSettings.Dropdowns["AimbotMode"] = Aimbot_Settings.Mode SaveAllSettings()
-        end
-        cbRageBtn.MouseButton1Click:Connect(function() UpdateAimbotState("Rage") end) cbLegitBtn.MouseButton1Click:Connect(function() UpdateAimbotState("Legit") end)
-
-        CreateSlider(TabAimbot, "Regular FOV", 70, 0, 70, function(v) FOVCircle.Size = UDim2.new(0, v, 0, v) Aimbot_Settings.FovSize = v end)  
-        CreateDropdown(TabAimbot, "Puxada", {"Cabeça", "Pescoço", "Peito", "Quadril"}, 0, 115, "Cabeça", function(v) if v == "Cabeça" then Aimbot_Settings.PullPart = "Head" elseif v == "Pescoço" then Aimbot_Settings.PullPart = "UpperTorso" elseif v == "Peito" then Aimbot_Settings.PullPart = "Torso" elseif v == "Quadril" then Aimbot_Settings.PullPart = "HumanoidRootPart" end end, true)
-
-        local TriggerUIFrame = Instance.new("Frame", TabAimbot) TriggerUIFrame.Size = UDim2.new(0, 200, 0, 30) TriggerUIFrame.Position = UDim2.new(0, 0, 0, 215) TriggerUIFrame.BackgroundTransparency = 1 TriggerUIFrame.Visible = false
-        local LockTriggerBtn = Instance.new("TextButton", TriggerUIFrame) LockTriggerBtn.Size = UDim2.new(0, 100, 0, 25) LockTriggerBtn.BackgroundColor3 = Trigger_Settings.Locked and CurrentTheme or C_DARK_GREY LockTriggerBtn.Text = Trigger_Settings.Locked and "Seleção 🔒" or "Seleção 🔓" LockTriggerBtn.TextColor3 = C_WHITE LockTriggerBtn.Font = Enum.Font.GothamBold LockTriggerBtn.TextSize = 13 Instance.new("UICorner", LockTriggerBtn).CornerRadius = UDim.new(0, 6)
-        local MinusBtn = Instance.new("TextButton", TriggerUIFrame) MinusBtn.Size = UDim2.new(0, 30, 0, 25) MinusBtn.Position = UDim2.new(0, 110, 0, 0) MinusBtn.BackgroundColor3 = C_DARK_GREY MinusBtn.Text = "−" MinusBtn.TextColor3 = C_WHITE MinusBtn.Font = Enum.Font.GothamBold MinusBtn.TextSize = 18 Instance.new("UICorner", MinusBtn).CornerRadius = UDim.new(0, 6)
-        local PlusBtn = Instance.new("TextButton", TriggerUIFrame) PlusBtn.Size = UDim2.new(0, 30, 0, 25) PlusBtn.Position = UDim2.new(0, 145, 0, 0) PlusBtn.BackgroundColor3 = C_DARK_GREY PlusBtn.Text = "+" PlusBtn.TextColor3 = C_WHITE PlusBtn.Font = Enum.Font.GothamBold PlusBtn.TextSize = 18 Instance.new("UICorner", PlusBtn).CornerRadius = UDim.new(0, 6)
-
-        LockTriggerBtn.MouseButton1Click:Connect(function() Trigger_Settings.Locked = not Trigger_Settings.Locked GlobalSettings.TriggerLocked = Trigger_Settings.Locked SaveAllSettings() if Trigger_Settings.Locked then LockTriggerBtn.Text = "Seleção 🔒" LockTriggerBtn.BackgroundColor3 = CurrentTheme TriggerCircle.Active = false TriggerCircle.BackgroundColor3 = Color3.fromRGB(100, 100, 100) TriggerCircle.BackgroundTransparency = 0.8 TriggerText.Text = "TRAVADO" else LockTriggerBtn.Text = "Seleção 🔓" LockTriggerBtn.BackgroundColor3 = C_DARK_GREY TriggerCircle.Active = true TriggerCircle.BackgroundColor3 = Color3.fromRGB(255, 0, 0) TriggerCircle.BackgroundTransparency = 0.6 TriggerText.Text = "ATIRAR" end end)
-        table.insert(ThemeCallbacks, function(color) if Trigger_Settings.Locked then LockTriggerBtn.BackgroundColor3 = color end end)
-        MinusBtn.MouseButton1Click:Connect(function() Trigger_Settings.Radius = math.clamp(Trigger_Settings.Radius - 5, 20, 150) TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) end)
-        PlusBtn.MouseButton1Click:Connect(function() Trigger_Settings.Radius = math.clamp(Trigger_Settings.Radius + 5, 20, 150) TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) end)
-
-        local VisibleCheckBtn = CreateCheckbox(TabAimbot, "Visível (Wall Check)", 0, 215, false, function(s) Aimbot_Settings.VisibleCheck = s end)
-        CreateSimpleRadioGroup(TabAimbot, "Tipo de Aimbot:", 0, 155, {"Ao Olhar", "Ao Atirar"}, "Ao Olhar", function(v) Aimbot_Settings.Type = v if v == "Ao Atirar" then TriggerUIFrame.Visible = true TriggerCircle.Visible = true VisibleCheckBtn:TweenPosition(UDim2.new(0, 0, 0, 255), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true) else TriggerCircle.Visible = false IsTouchingScreen = false VisibleCheckBtn:TweenPosition(UDim2.new(0, 0, 0, 215), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true) task.delay(0.15, function() if Aimbot_Settings.Type == "Ao Olhar" then TriggerUIFrame.Visible = false end end) end end)
+        
+        -- [MODIFICADO]: Selecionar "Ao Atirar" agora não executa nenhuma animação e não abre o menu antigo do cadeado
+        CreateSimpleRadioGroup(TabAimbot, "Tipo de Aimbot:", 0, 155, {"Ao Olhar", "Ao Atirar"}, "Ao Olhar", function(v) 
+            Aimbot_Settings.Type = v 
+        end)
 
         local ESP_X = 15 local DROPDOWN_X = 160 
         local function CreateComboDropdownParent(parent, text, options, defaultOption, x, y, cbAction, dropAction) local container = Instance.new("Frame", parent) container.Size = UDim2.new(0, 320, 0, 25) container.Position = UDim2.new(0, x, 0, y) container.BackgroundTransparency = 1 CreateCheckbox(container, text, 0, 0, false, cbAction) CreateDropdown(container, text.."_Opt", options, DROPDOWN_X, 0, defaultOption, dropAction, false) return container end
@@ -692,7 +634,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 elseif EditTarget == "Skeleton" then ESP_Settings.SkeletonColor = toHex(color) GlobalSettings.ESP_Colors.Skeleton = toHex(color) SaveAllSettings() end
             end) 
         end
-        CreateColorBtn(Color3.fromRGB(255, 0, 0)) CreateColorBtn(Color3.fromRGB(0, 100, 255)) CreateColorBtn(Color3.fromRGB(150, 0, 255)) CreateColorBtn(Color3.fromRGB(0, 255, 100)) CreateColorBtn(Color3.fromRGB(0, 0, 0)) CreateColorBtn(Color3.fromRGB(255, 255,  yellow)) CreateColorBtn(Color3.fromRGB(255, 215, 0)) CreateColorBtn(Color3.fromRGB(139, 69, 19)) CreateColorBtn(Color3.fromRGB(0, 255, 0)) CreateColorBtn(Color3.fromRGB(255, 255, 255))
+        CreateColorBtn(Color3.fromRGB(255, 0, 0)) CreateColorBtn(Color3.fromRGB(0, 100, 255)) CreateColorBtn(Color3.fromRGB(150, 0, 255)) CreateColorBtn(Color3.fromRGB(0, 255, 100)) CreateColorBtn(Color3.fromRGB(0, 0, 0)) CreateColorBtn(Color3.fromRGB(255, 255, 0)) CreateColorBtn(Color3.fromRGB(255, 215, 0)) CreateColorBtn(Color3.fromRGB(139, 69, 19)) CreateColorBtn(Color3.fromRGB(0, 255, 0)) CreateColorBtn(Color3.fromRGB(255, 255, 255))
 
         local function CreateRainbowBtn()
             local btn = Instance.new("TextButton", ColorButtonsFrame) btn.Size = UDim2.new(0, 32, 0, 32) btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255) btn.Text = "" Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6) 
@@ -825,7 +767,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             else
                 task.spawn(function()
                     local nomeLimpo = string.split(autor, " ")[1] local userId = nil local jogador = Players:FindFirstChild(nomeLimpo)
-                    if jogador then userId = jogador.UserId else pcall(function() userId = Players:GetUserIdFromNameAsync(nomeLimpo) end) end
+                    if @jogador then userId = jogador.UserId else pcall(function() userId = Players:GetUserIdFromNameAsync(nomeLimpo) end) end
                     if userId and AvatarImg then local ok, res = pcall(function() return Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48) end) if ok and AvatarImg then AvatarImg.Image = res end end
                 end)
             end SalvarNoDiario("Chat - " .. autor .. ": " .. msg, "INFO")
@@ -1014,6 +956,19 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         if GlobalSettings.ThemeHex ~= "RAINBOW" then SetTheme(CurrentTheme) end
 
+        -- [NOVO ADICIONADO]: Sistema direto que capta se o clique/toque está pressionado na tela globamente
+        UserInputService.InputBegan:Connect(function(input, processed)
+            if not processed and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+                IsTouchingScreen = true
+            end
+        end)
+
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                IsTouchingScreen = false
+            end
+        end)
+
         task.spawn(function()
             local PlayerDrawings = {} 
             local Bones = { {"Head", "UpperTorso"}, {"UpperTorso", "LowerTorso"}, {"UpperTorso", "LeftUpperArm"}, {"LeftUpperArm", "LeftLowerArm"}, {"UpperTorso", "RightUpperArm"}, {"RightUpperArm", "RightLowerArm"}, {"LowerTorso", "LeftUpperLeg"}, {"LeftUpperLeg", "LeftLowerLeg"}, {"LowerTorso", "RightUpperLeg"}, {"RightUpperLeg", "RightLowerLeg"} }
@@ -1095,7 +1050,10 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             RunService:BindToRenderStep("NIGHT_Aimbot_Priority", Enum.RenderPriority.Camera.Value - 1, function()
                 local ok, err = pcall(function() 
                     if FunctionsEnabled and Aimbot_Settings.Mode ~= "Nenhum" and IsAlive(LocalPlayer) then
+                        
+                        -- [MODIFICADO]: Agora "Ao Atirar" roda de verdade usando a captação direta de toque/clique global
                         local canAim = (Aimbot_Settings.Type == "Ao Olhar") or (Aimbot_Settings.Type == "Ao Atirar" and IsTouchingScreen)
+                        
                         if canAim then
                             if LockedTarget and (not LockedTarget.Parent or not IsAlive(Players:GetPlayerFromCharacter(LockedTarget.Parent.Parent or LockedTarget.Parent))) then LockedTarget = nil end
                             if not LockedTarget then LockedTarget = GetClosestEnemyTarget() end
@@ -1144,5 +1102,5 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 end)
 
 if not ExecucaoSegura then
-    SalvarNoDiario("FALHA NA INICIALIZAÇÃO: " .. tostring(ErroFatal), "ERROR")
+    SalvarNoDiario("FALHA FATAL NA INICIALIZAÇÃO: " .. tostring(ErroFatal), "ERROR")
 end
