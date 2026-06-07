@@ -1,4 +1,4 @@
-local HttpService = game:GetService("HttpService")
+Local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -182,28 +182,9 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local TriggerText = Instance.new("TextLabel", TriggerCircle) TriggerText.Size = UDim2.new(1, 0, 1, 0) TriggerText.BackgroundTransparency = 1 TriggerText.Text = Trigger_Settings.Locked and "TRAVADO" or "ATIRAR" TriggerText.TextColor3 = C_WHITE TriggerText.Font = Enum.Font.GothamBold TriggerText.TextSize = 12
 
         local draggingCircle, dragStartCircle, startPosCircle
-        TriggerCircle.InputBegan:Connect(function(input) 
-            if not Trigger_Settings.Locked and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
-                draggingCircle = true 
-                dragStartCircle = input.Position 
-                startPosCircle = TriggerCircle.Position 
-                -- Efeito visual ao clicar no trigger
-                TweenService:Create(TriggerCircle, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.3}):Play()
-            end 
-        end)
-        UserInputService.InputChanged:Connect(function(input) 
-            if draggingCircle and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then 
-                local delta = input.Position - dragStartCircle 
-                TriggerCircle.Position = UDim2.new(startPosCircle.X.Scale, startPosCircle.X.Offset + delta.X, startPosCircle.Y.Scale, startPosCircle.Y.Offset + delta.Y) 
-            end 
-        end)
-        UserInputService.InputEnded:Connect(function(input) 
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then 
-                draggingCircle = false 
-                -- Retorna ao visual normal após soltar
-                TweenService:Create(TriggerCircle, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.6}):Play()
-            end 
-        end)
+        TriggerCircle.InputBegan:Connect(function(input) if not Trigger_Settings.Locked and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then draggingCircle = true dragStartCircle = input.Position startPosCircle = TriggerCircle.Position end end)
+        UserInputService.InputChanged:Connect(function(input) if draggingCircle and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then local delta = input.Position - dragStartCircle TriggerCircle.Position = UDim2.new(startPosCircle.X.Scale, startPosCircle.X.Offset + delta.X, startPosCircle.Y.Scale, startPosCircle.Y.Offset + delta.Y) end end)
+        UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then draggingCircle = false end end)
 
         local TopRightOverlay = Instance.new("Frame", ScreenGui) TopRightOverlay.Size = UDim2.new(0, 120, 0, 50) TopRightOverlay.Position = UDim2.new(1, -130, 0, 40) TopRightOverlay.BackgroundTransparency = 1
         local FPSGui = Instance.new("Frame", TopRightOverlay) FPSGui.Size = UDim2.new(1, 0, 0, 20) FPSGui.BackgroundTransparency = 1 
@@ -494,14 +475,10 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CreateDropdown(TabAimbot, "Puxada", {"Cabeça", "Pescoço", "Peito", "Quadril"}, 0, 115, "Cabeça", function(v) if v == "Cabeça" then Aimbot_Settings.PullPart = "Head" elseif v == "Pescoço" then Aimbot_Settings.PullPart = "UpperTorso" elseif v == "Peito" then Aimbot_Settings.PullPart = "Torso" elseif v == "Quadril" then Aimbot_Settings.PullPart = "HumanoidRootPart" end end, true)
 
         local TriggerUIFrame = Instance.new("Frame", TabAimbot) TriggerUIFrame.Size = UDim2.new(0, 200, 0, 30) TriggerUIFrame.Position = UDim2.new(0, 0, 0, 215) TriggerUIFrame.BackgroundTransparency = 1 TriggerUIFrame.Visible = false
-        local LockTriggerBtn = Instance.new("TextButton", TriggerUIFrame) LockTriggerBtn.Size = UDim2.new(0, 100, 0, 25) LockTriggerBtn.BackgroundColor3 = Trigger_Settings.Locked and CurrentTheme or C_DARK_GREY LockTriggerBtn.Text = Trigger_Settings.Locked and "Seleção 🔒" or "Seleção 🔓" LockTriggerBtn.TextColor3 = C_WHITE LockTriggerBtn.Font = Enum.Font.GothamBold LockTriggerBtn.TextSize = 13 Instance.new("UICorner", LockTriggerBtn).CornerRadius = UDim.new(0, 6)
-        local MinusBtn = Instance.new("TextButton", TriggerUIFrame) MinusBtn.Size = UDim2.new(0, 30, 0, 25) MinusBtn.Position = UDim2.new(0, 110, 0, 0) MinusBtn.BackgroundColor3 = C_DARK_GREY MinusBtn.Text = "−" MinusBtn.TextColor3 = C_WHITE MinusBtn.Font = Enum.Font.GothamBold MinusBtn.TextSize = 18 Instance.new("UICorner", MinusBtn).CornerRadius = UDim.new(0, 6)
-        local PlusBtn = Instance.new("TextButton", TriggerUIFrame) PlusBtn.Size = UDim2.new(0, 30, 0, 25) PlusBtn.Position = UDim2.new(0, 145, 0, 0) PlusBtn.BackgroundColor3 = C_DARK_GREY PlusBtn.Text = "+" PlusBtn.TextColor3 = C_WHITE PlusBtn.Font = Enum.Font.GothamBold PlusBtn.TextSize = 18 Instance.new("UICorner", PlusBtn).CornerRadius = UDim.new(0, 6)
+        local LockTriggerBtn = Instance.new("TextButton", TriggerUIFrame) LockTriggerBtn.Size = UDim2.new(0, 150, 0, 25) LockTriggerBtn.BackgroundColor3 = Trigger_Settings.Locked and CurrentTheme or C_DARK_GREY LockTriggerBtn.Text = Trigger_Settings.Locked and "Seleção 🔒" or "Seleção 🔓" LockTriggerBtn.TextColor3 = C_WHITE LockTriggerBtn.Font = Enum.Font.GothamBold LockTriggerBtn.TextSize = 13 Instance.new("UICorner", LockTriggerBtn).CornerRadius = UDim.new(0, 6)
 
         LockTriggerBtn.MouseButton1Click:Connect(function() Trigger_Settings.Locked = not Trigger_Settings.Locked GlobalSettings.TriggerLocked = Trigger_Settings.Locked SaveAllSettings() if Trigger_Settings.Locked then LockTriggerBtn.Text = "Seleção 🔒" LockTriggerBtn.BackgroundColor3 = CurrentTheme TriggerCircle.Active = false TriggerCircle.BackgroundColor3 = Color3.fromRGB(100, 100, 100) TriggerCircle.BackgroundTransparency = 0.8 TriggerText.Text = "TRAVADO" else LockTriggerBtn.Text = "Seleção 🔓" LockTriggerBtn.BackgroundColor3 = C_DARK_GREY TriggerCircle.Active = true TriggerCircle.BackgroundColor3 = Color3.fromRGB(255, 0, 0) TriggerCircle.BackgroundTransparency = 0.6 TriggerText.Text = "ATIRAR" end end)
         table.insert(ThemeCallbacks, function(color) if Trigger_Settings.Locked then LockTriggerBtn.BackgroundColor3 = color end end)
-        MinusBtn.MouseButton1Click:Connect(function() Trigger_Settings.Radius = math.clamp(Trigger_Settings.Radius - 5, 20, 150) TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) end)
-        PlusBtn.MouseButton1Click:Connect(function() Trigger_Settings.Radius = math.clamp(Trigger_Settings.Radius + 5, 20, 150) TriggerCircle.Size = UDim2.new(0, Trigger_Settings.Radius * 2, 0, Trigger_Settings.Radius * 2) end)
 
         local VisibleCheckBtn = CreateCheckbox(TabAimbot, "Visível (Wall Check)", 0, 215, false, function(s) Aimbot_Settings.VisibleCheck = s end)
         CreateSimpleRadioGroup(TabAimbot, "Tipo de Aimbot:", 0, 155, {"Ao Olhar", "Ao Atirar"}, "Ao Olhar", function(v) Aimbot_Settings.Type = v if v == "Ao Atirar" then TriggerUIFrame.Visible = true TriggerCircle.Visible = true VisibleCheckBtn:TweenPosition(UDim2.new(0, 0, 0, 255), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true) else TriggerCircle.Visible = false IsTouchingScreen = false VisibleCheckBtn:TweenPosition(UDim2.new(0, 0, 0, 215), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true) task.delay(0.15, function() if Aimbot_Settings.Type == "Ao Olhar" then TriggerUIFrame.Visible = false end end) end end)
@@ -968,9 +945,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             RunService:BindToRenderStep("NIGHT_Aimbot_Priority", Enum.RenderPriority.Camera.Value - 1, function()
                 local ok, err = pcall(function() 
                     if FunctionsEnabled and Aimbot_Settings.Mode ~= "Nenhum" and IsAlive(LocalPlayer) then
-                        -- Lógica de atirar removida do canAim, funcionando apenas como "Ao Olhar" 
-                        local canAim = (Aimbot_Settings.Type == "Ao Olhar") 
-                        
+                        local canAim = (Aimbot_Settings.Type == "Ao Olhar") or (Aimbot_Settings.Type == "Ao Atirar" and IsTouchingScreen)
                         if canAim then
                             if LockedTarget and (not LockedTarget.Parent or not IsAlive(Players:GetPlayerFromCharacter(LockedTarget.Parent.Parent or LockedTarget.Parent))) then LockedTarget = nil end
                             if not LockedTarget then LockedTarget = GetClosestEnemyTarget() end
