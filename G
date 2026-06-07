@@ -182,9 +182,28 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local TriggerText = Instance.new("TextLabel", TriggerCircle) TriggerText.Size = UDim2.new(1, 0, 1, 0) TriggerText.BackgroundTransparency = 1 TriggerText.Text = Trigger_Settings.Locked and "TRAVADO" or "ATIRAR" TriggerText.TextColor3 = C_WHITE TriggerText.Font = Enum.Font.GothamBold TriggerText.TextSize = 12
 
         local draggingCircle, dragStartCircle, startPosCircle
-        TriggerCircle.InputBegan:Connect(function(input) if not Trigger_Settings.Locked and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then draggingCircle = true dragStartCircle = input.Position startPosCircle = TriggerCircle.Position end end)
-        UserInputService.InputChanged:Connect(function(input) if draggingCircle and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then local delta = input.Position - dragStartCircle TriggerCircle.Position = UDim2.new(startPosCircle.X.Scale, startPosCircle.X.Offset + delta.X, startPosCircle.Y.Scale, startPosCircle.Y.Offset + delta.Y) end end)
-        UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then draggingCircle = false end end)
+        TriggerCircle.InputBegan:Connect(function(input) 
+            if not Trigger_Settings.Locked and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
+                draggingCircle = true 
+                dragStartCircle = input.Position 
+                startPosCircle = TriggerCircle.Position 
+                -- Efeito visual ao clicar no trigger
+                TweenService:Create(TriggerCircle, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.3}):Play()
+            end 
+        end)
+        UserInputService.InputChanged:Connect(function(input) 
+            if draggingCircle and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then 
+                local delta = input.Position - dragStartCircle 
+                TriggerCircle.Position = UDim2.new(startPosCircle.X.Scale, startPosCircle.X.Offset + delta.X, startPosCircle.Y.Scale, startPosCircle.Y.Offset + delta.Y) 
+            end 
+        end)
+        UserInputService.InputEnded:Connect(function(input) 
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then 
+                draggingCircle = false 
+                -- Retorna ao visual normal após soltar
+                TweenService:Create(TriggerCircle, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0.6}):Play()
+            end 
+        end)
 
         local TopRightOverlay = Instance.new("Frame", ScreenGui) TopRightOverlay.Size = UDim2.new(0, 120, 0, 50) TopRightOverlay.Position = UDim2.new(1, -130, 0, 40) TopRightOverlay.BackgroundTransparency = 1
         local FPSGui = Instance.new("Frame", TopRightOverlay) FPSGui.Size = UDim2.new(1, 0, 0, 20) FPSGui.BackgroundTransparency = 1 
@@ -949,7 +968,9 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             RunService:BindToRenderStep("NIGHT_Aimbot_Priority", Enum.RenderPriority.Camera.Value - 1, function()
                 local ok, err = pcall(function() 
                     if FunctionsEnabled and Aimbot_Settings.Mode ~= "Nenhum" and IsAlive(LocalPlayer) then
-                        local canAim = (Aimbot_Settings.Type == "Ao Olhar") or (Aimbot_Settings.Type == "Ao Atirar" and IsTouchingScreen)
+                        -- Lógica de atirar removida do canAim, funcionando apenas como "Ao Olhar" 
+                        local canAim = (Aimbot_Settings.Type == "Ao Olhar") 
+                        
                         if canAim then
                             if LockedTarget and (not LockedTarget.Parent or not IsAlive(Players:GetPlayerFromCharacter(LockedTarget.Parent.Parent or LockedTarget.Parent))) then LockedTarget = nil end
                             if not LockedTarget then LockedTarget = GetClosestEnemyTarget() end
