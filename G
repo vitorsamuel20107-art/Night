@@ -1,6 +1,6 @@
-local RobloxPrint = print
-local RobloxWarn = warn
-local RobloxError = error
+local HttpService = game:GetService("HttpService")
+local log_folder = "NIGHT_DATA"
+local log_file = log_folder .. "/logs_privados.txt"
 
 print = function(...) end
 warn = function(...) end
