@@ -1,4 +1,4 @@
-local HttpService = game:GetService("HttpService")
+Local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -207,6 +207,12 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local OpenButton = Instance.new("ImageButton", ScreenGui) OpenButton.Size = UDim2.new(0, 70, 0, 70) OpenButton.Position = UDim2.new(0, 15, 0.5, -35) OpenButton.BackgroundTransparency = 1 OpenButton.Image = "rbxthumb://type=Asset&id=115034808007829&w=420&h=420" OpenButton.ScaleType = Enum.ScaleType.Crop OpenButton.Visible = true OpenButton.Active = true Instance.new("UICorner", OpenButton).CornerRadius = UDim.new(1, 0)
         local OpenScale = Instance.new("UIScale", OpenButton) OpenScale.Scale = 1
 
+        -- ADICIONADO: Contador na Caveira
+        local BadgeFrame = Instance.new("Frame", OpenButton) BadgeFrame.Size = UDim2.new(0, 22, 0, 22) BadgeFrame.Position = UDim2.new(1, -15, 0, -5) BadgeFrame.BackgroundColor3 = Color3.fromRGB(255, 0, 0) BadgeFrame.Visible = false Instance.new("UICorner", BadgeFrame).CornerRadius = UDim.new(1, 0)
+        local BadgeText = Instance.new("TextLabel", BadgeFrame) BadgeText.Size = UDim2.new(1, 0, 1, 0) BadgeText.BackgroundTransparency = 1 BadgeText.Text = "0" BadgeText.TextColor3 = C_WHITE BadgeText.Font = Enum.Font.GothamBold BadgeText.TextSize = 12
+        local MensagensNaoLidas = 0
+        local function AtualizarBadge() if MensagensNaoLidas > 0 then BadgeText.Text = tostring(MensagensNaoLidas) BadgeFrame.Visible = true else BadgeFrame.Visible = false end end
+
         local CurrentUIState = "Minimized" 
         
         local function PlayMinimizeAnimation() 
@@ -224,6 +230,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local function PlayMaximizeAnimation() 
             if CurrentUIState == "Open" then return end
             CurrentUIState = "Open" 
+            MensagensNaoLidas = 0 AtualizarBadge() -- Zera o contador ao abrir
             MainFrame.Visible = true 
             local t1 = TweenService:Create(OpenScale, TweenInfo.new(0.2, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out), {Scale = 0})
             local t2 = TweenService:Create(MainScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1})
@@ -274,6 +281,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         local function OpenFromHidden()
             CurrentUIState = "Open" 
+            MensagensNaoLidas = 0 AtualizarBadge() -- Zera o contador ao abrir
             MainFrame.Visible = true 
             OpenButton.Visible = false 
             MainScale.Scale = 0
@@ -680,10 +688,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 if NotifFrame then NotifFrame:Destroy() end
             end)
 
-            -- Animação de Entrada
             TweenService:Create(NotifFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, -260, 0.7, 0)}):Play()
 
-            -- Some automaticamente depois de 4 segundos
             task.delay(4, function()
                 if NotifFrame and NotifFrame.Parent then
                     local outTween = TweenService:Create(NotifFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(1, 10, 0.7, 0)})
@@ -704,14 +710,19 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         OnlineLabel_Chat.TextSize = 12
         OnlineLabel_Chat.TextXAlignment = Enum.TextXAlignment.Left
 
+        -- ADICIONADO: Labels de Total e Botão Limpar Chat
+        local TotalMsgsLabel = Instance.new("TextLabel", TabChat) TotalMsgsLabel.Size = UDim2.new(1, -10, 0, 20) TotalMsgsLabel.Position = UDim2.new(0, 5, 0, 15) TotalMsgsLabel.BackgroundTransparency = 1 TotalMsgsLabel.Text = "📩 Total: 0" TotalMsgsLabel.TextColor3 = Color3.fromRGB(200, 200, 200) TotalMsgsLabel.Font = Enum.Font.GothamBold TotalMsgsLabel.TextSize = 11 TotalMsgsLabel.TextXAlignment = Enum.TextXAlignment.Left
+        local LimparChatBtn = Instance.new("TextButton", TabChat) LimparChatBtn.Size = UDim2.new(0, 60, 0, 20) LimparChatBtn.Position = UDim2.new(1, -65, 0, 5) LimparChatBtn.BackgroundColor3 = Color3.fromRGB(150, 30, 30) LimparChatBtn.Text = "Limpar" LimparChatBtn.TextColor3 = C_WHITE LimparChatBtn.Font = Enum.Font.GothamBold LimparChatBtn.TextSize = 10 Instance.new("UICorner", LimparChatBtn).CornerRadius = UDim.new(0, 4)
         local ChatBox = Instance.new("ScrollingFrame", TabChat)
-        ChatBox.Size = UDim2.new(1, -10, 1, -70)
-        ChatBox.Position = UDim2.new(0, 5, 0, 25)
+        ChatBox.Size = UDim2.new(1, -10, 1, -85) -- Altura ajustada
+        ChatBox.Position = UDim2.new(0, 5, 0, 40) -- Descido para caber o total
         ChatBox.BackgroundTransparency = 1
         ChatBox.CanvasSize = UDim2.new(0, 0, 0, 0)
         ChatBox.ScrollBarThickness = 4
         ChatBox.ScrollBarImageColor3 = CurrentTheme
         table.insert(ThemeCallbacks, function(color) ChatBox.ScrollBarImageColor3 = color end)
+
+        LimparChatBtn.MouseButton1Click:Connect(function() for _, el in pairs(ChatBox:GetChildren()) do if el:IsA("Frame") then el:Destroy() end end ContadorDeEnvios = 0 TotalMsgsLabel.Text = "📩 Total: 0" MensagensNaoLidas = 0 AtualizarBadge() end)
 
         local ChatLayout = Instance.new("UIListLayout", ChatBox)
         ChatLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -744,8 +755,13 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         local function AdicionarMensagemNaUI(autor, msg, jobId)
             ContadorDeEnvios = ContadorDeEnvios + 1
+            TotalMsgsLabel.Text = "📩 Total: " .. ContadorDeEnvios
             
-            -- Dispara Notificação no modo Stealth se não for do Sistema
+            if CurrentUIState ~= "Open" then
+                MensagensNaoLidas = MensagensNaoLidas + 1
+                AtualizarBadge()
+            end
+
             if CurrentUIState == "Hidden" and autor ~= "Sistema" and autor ~= LocalPlayer.Name then
                 MostrarNotificacaoChat(autor, msg)
             end
@@ -757,8 +773,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             local CorNome = (autor == LocalPlayer.Name or autor == "Sistema") and "rgb(0, 255, 120)" or "rgb(255, 0, 0)"
             if autor == "Sistema" then CorNome = "rgb(255, 255, 0)" end 
             
-            -- Injeta o contador visual na caixa de texto
-            MsgLabel.Text = string.format('<font color="%s"><b>[Envio %d] %s</b></font> <font color="rgb(150, 150, 150)" size="10"><i>• %s</i></font>\n<font color="rgb(240, 240, 240)">%s</font>', CorNome, ContadorDeEnvios, autor, NomeDoJogoAtual, msg)
+            -- ATUALIZADO: Removido o [Envio X]
+            MsgLabel.Text = string.format('<font color="%s"><b>%s</b></font> <font color="rgb(150, 150, 150)" size="10"><i>• %s</i></font>\n<font color="rgb(240, 240, 240)">%s</font>', CorNome, autor, NomeDoJogoAtual, msg)
             
             if autor ~= LocalPlayer.Name and autor ~= "Sistema" and not string.find(autor, "Sussurro") then
                 local JoinBtn = Instance.new("TextButton", LinhaMensagem) JoinBtn.Size = UDim2.new(0, 45, 0, 18) JoinBtn.Position = UDim2.new(1, -45, 0, 4) JoinBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30) JoinBtn.Text = "Entrar" JoinBtn.TextColor3 = C_WHITE JoinBtn.TextSize = 10 JoinBtn.Font = Enum.Font.GothamBold Instance.new("UICorner", JoinBtn).CornerRadius = UDim.new(0, 4)
@@ -794,7 +810,11 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local function ProcessarInput()
             local texto = InputField.Text if texto == "" then return end InputField.Text = "" 
             local textoMinusculo = string.lower(texto)
-            if textoMinusculo == "/clear" then for _, el in pairs(ChatBox:GetChildren()) do if el:IsA("Frame") then el:Destroy() end end return end
+            if textoMinusculo == "/clear" then 
+                for _, el in pairs(ChatBox:GetChildren()) do if el:IsA("Frame") then el:Destroy() end end 
+                ContadorDeEnvios = 0 TotalMsgsLabel.Text = "📩 Total: 0" MensagensNaoLidas = 0 AtualizarBadge()
+                return 
+            end
             if textoMinusculo == "/public" or textoMinusculo == "/sair" then destinatarioAtual = nil AdicionarMensagemNaUI("Sistema", "Você voltou ao chat público.", nil) return end
             if string.sub(textoMinusculo, 1, 3) == "/w " then
                 local nomeAlvo = string.sub(texto, 4):match("^%s*(.-)%s*$")
