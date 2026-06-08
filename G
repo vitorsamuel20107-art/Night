@@ -11,7 +11,13 @@ warn = function(...) end
 error = function(...) end
 
 pcall(function()
-    if makefolder and not isfolder(log_folder) then makefolder(log_folder) end
+    if type(makefolder) == "function" then
+        if type(isfolder) == "function" then
+            if not isfolder(log_folder) then makefolder(log_folder) end
+        else
+            makefolder(log_folder)
+        end
+    end
 end)
 
 local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -36,12 +42,12 @@ local function SalvarNoDiario(msg, status)
             local textoFinal = string.format("[%s] [%s] :: %s", t, status, tostring(msg))
             local invertido = string.reverse(textoFinal)
             local logOfuscado = toBase64(invertido) .. "\n"
-            if appendfile then
+            if type(appendfile) == "function" then
                 appendfile(log_file, logOfuscado)
-            elseif writefile and readfile and isfile(log_file) then
+            elseif type(writefile) == "function" and type(readfile) == "function" and type(isfile) == "function" and isfile(log_file) then
                 local antigo = readfile(log_file)
                 writefile(log_file, antigo .. logOfuscado)
-            elseif writefile then
+            elseif type(writefile) == "function" then
                 writefile(log_file, logOfuscado)
             end
         end)
@@ -91,7 +97,13 @@ local ExecucaoSegura, ErroFatal = pcall(function()
     end
 
     local ConfigFolder = "NIGHT_FFH4X_Data"
-    if makefolder and not isfolder(ConfigFolder) then makefolder(ConfigFolder) end
+    if type(makefolder) == "function" then
+        if type(isfolder) == "function" then
+            if not isfolder(ConfigFolder) then makefolder(ConfigFolder) end
+        else
+            makefolder(ConfigFolder)
+        end
+    end
 
     local FIREBASE_URL = "https://chat-teste-c98e5-default-rtdb.firebaseio.com/chat.json"
     local FIREBASE_PRESENCE_URL = "https://chat-teste-c98e5-default-rtdb.firebaseio.com/presenca"
@@ -117,13 +129,13 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
     local function SaveAllSettings() 
         pcall(function() 
-            if writefile then writefile(MainConfigFile, HttpService:JSONEncode(GlobalSettings)) end 
+            if type(writefile) == "function" then writefile(MainConfigFile, HttpService:JSONEncode(GlobalSettings)) end 
         end) 
     end
 
     local function LoadAllSettings()
         pcall(function()
-            if isfile and isfile(MainConfigFile) and readfile then
+            if type(isfile) == "function" and isfile(MainConfigFile) and type(readfile) == "function" then
                 local data = readfile(MainConfigFile)
                 if data and data ~= "" then
                     local decoded = HttpService:JSONDecode(data)
@@ -154,14 +166,10 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false local NoFlashEnabled = false
         local ESP_Settings = { Lines = false, LineOrigin = "Cima", LineColor = GlobalSettings.ESP_Colors.Lines, Boxes = false, BoxType = "Quadrado", BoxColor = GlobalSettings.ESP_Colors.Boxes, Skeleton = false, SkeletonColor = GlobalSettings.ESP_Colors.Skeleton, Health = false, ChamsColor = Color3.fromRGB(0, 255, 0), RainbowChams = false, MaxDistance = 500, MarcarTodos = false }
         
-        -- ATUALIZADO: Nome do botão inserido na tabela principal de configurações
         local Aimbot_Settings = { Mode = "Nenhum", FovSize = 0, PullPart = "Head", Type = "Ao Olhar", VisibleCheck = false, AimbotNoTime = false, NomeBotaoTiro = "Shoot" }
         
         local LockedTarget = nil local IsTouchingScreen = false
 
-        -- ==============================================================================
-        -- INTEGRAÇÃO: SCANNER DO GATILHO "AO ATIRAR"
-        -- ==============================================================================
         UserInputService.InputBegan:Connect(function(input, processed)
             if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local guis = LocalPlayer.PlayerGui:GetGuiObjectsAtPosition(input.Position.X, input.Position.Y)
@@ -179,7 +187,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 IsTouchingScreen = false
             end
         end)
-        -- ==============================================================================
 
         local ScreenGui = Instance.new("ScreenGui")
         ScreenGui.Name = GerarNomeAleatorio(15) 
