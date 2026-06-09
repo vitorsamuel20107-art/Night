@@ -1,4 +1,4 @@
-local HttpService = game:GetService("HttpService")
+Local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -168,33 +168,23 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         
         local Aimbot_Settings = { Mode = "Nenhum", FovSize = 0, PullPart = "Head", Type = "Ao Olhar", VisibleCheck = false, AimbotNoTime = false, NomeBotaoTiro = "Shoot" }
         
-        local LockedTarget = nil 
-        
-        -- [[ LÓGICA DE GATILHO AO ATIRAR (CORRIGIDA PARA RESPOSTA 0.98) ]]
-        _G.StatusAtirando = false
+        local LockedTarget = nil local IsTouchingScreen = false
 
-        local function eBotaoDeTiro(input)
-            local guis = LocalPlayer.PlayerGui:GetGuiObjectsAtPosition(input.Position.X, input.Position.Y)
-            for _, obj in next, guis do
-                if obj.Name == Aimbot_Settings.NomeBotaoTiro then
-                    return true
-                end
-            end
-            return false
-        end
-
-        UserInputService.InputBegan:Connect(function(input, gpe)
+        UserInputService.InputBegan:Connect(function(input, processed)
             if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                if eBotaoDeTiro(input) then
-                    _G.StatusAtirando = true
+                local guis = LocalPlayer.PlayerGui:GetGuiObjectsAtPosition(input.Position.X, input.Position.Y)
+                for _, obj in ipairs(guis) do
+                    if obj.Name == Aimbot_Settings.NomeBotaoTiro and (obj:IsA("GuiButton") or obj:IsA("PluginDragEvent") or obj:IsA("ImageButton") or obj:IsA("TextButton")) then
+                        IsTouchingScreen = true
+                        break
+                    end
                 end
             end
         end)
 
         UserInputService.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                _G.StatusAtirando = false
-                LockedTarget = nil
+                IsTouchingScreen = false
             end
         end)
 
@@ -471,7 +461,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local function SetEditTarget(targetKey, isVisible) if isVisible then EditTarget = targetKey for key, data in pairs(TargetBtns) do if key ~= targetKey then data.check.Visible = false data.box.BackgroundColor3 = C_DARK_GREY end end else EditTarget = "Menu" end end
 
         local TargetScroll = Instance.new("Frame", TabRageFunctions) TargetScroll.Size = UDim2.new(1, -20, 0, 0) TargetScroll.Position = UDim2.new(0, 0, 0, 295) TargetScroll.BackgroundTransparency = 1 TargetScroll.AutomaticSize = Enum.AutomaticSize.Y TargetScroll.BorderSizePixel = 0
-        local TargetListLayout = Instance.new("UIListLayout", TargetScroll) TargetListLayout.Padding = UDim2.new(0, 5)
+        local TargetListLayout = Instance.new("UIListLayout", TargetScroll) TargetListLayout.Padding = UDim.new(0, 5)
 
         local function CreateTargetToggle(key, text)
             local btn = Instance.new("TextButton", TargetScroll) btn.Size = UDim2.new(1, 0, 0, 25) btn.BackgroundTransparency = 1 btn.Text = "" btn.Visible = false 
@@ -575,8 +565,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         local ColorPickerLabel = Instance.new("TextLabel", TabRageFunctions) ColorPickerLabel.Size = UDim2.new(1, -10, 0, 25) ColorPickerLabel.Position = UDim2.new(0, 0, 0, 145) ColorPickerLabel.BackgroundTransparency = 1 ColorPickerLabel.Text = "Cores Customizáveis" ColorPickerLabel.TextColor3 = C_WHITE ColorPickerLabel.Font = Enum.Font.GothamBold ColorPickerLabel.TextSize = 14 ColorPickerLabel.TextXAlignment = Enum.TextXAlignment.Left
         local ColorButtonsFrame = Instance.new("ScrollingFrame", TabRageFunctions) ColorButtonsFrame.Size = UDim2.new(1, -20, 0, 48) ColorButtonsFrame.Position = UDim2.new(0, 0, 0, 175) ColorButtonsFrame.BackgroundTransparency = 1 ColorButtonsFrame.CanvasSize = UDim2.new(0, 0, 0, 0) ColorButtonsFrame.AutomaticCanvasSize = Enum.AutomaticSize.X ColorButtonsFrame.ScrollBarThickness = 3 ColorButtonsFrame.ScrollingDirection = Enum.ScrollingDirection.X ColorButtonsFrame.ClipsDescendants = true
-        local ColorPadding = Instance.new("UIPadding", ColorButtonsFrame) ColorPadding.PaddingTop = UDim0.new(0, 3) ColorPadding.PaddingBottom = UDim2.new(0, 3) ColorPadding.PaddingLeft = UDim2.new(0, 3)
-        local ColorListLayout = Instance.new("UIListLayout", ColorButtonsFrame) ColorListLayout.FillDirection = Enum.FillDirection.Horizontal ColorListLayout.Padding = UDim2.new(0, 10) ColorListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        local ColorPadding = Instance.new("UIPadding", ColorButtonsFrame) ColorPadding.PaddingTop = UDim.new(0, 3) ColorPadding.PaddingBottom = UDim.new(0, 3) ColorPadding.PaddingLeft = UDim.new(0, 3)
+        local ColorListLayout = Instance.new("UIListLayout", ColorButtonsFrame) ColorListLayout.FillDirection = Enum.FillDirection.Horizontal ColorListLayout.Padding = UDim.new(0, 10) ColorListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
         local function CreateColorBtn(color) 
             local btn = Instance.new("TextButton", ColorButtonsFrame) btn.Size = UDim2.new(0, 32, 0, 32) btn.BackgroundColor3 = color btn.Text = "" Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6) 
@@ -672,7 +662,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         local ChatLayout = Instance.new("UIListLayout", ChatBox)
         ChatLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        ChatLayout.Padding = UDim2.new(0, 10)
+        ChatLayout.Padding = UDim.new(0, 10)
 
         local InputField = Instance.new("TextBox", TabChat)
         InputField.Size = UDim2.new(1, -85, 0, 30)
@@ -960,7 +950,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                         else drawings.Line.Visible = false drawings.Box.Visible = false drawings.Health.Visible = false for _, l in pairs(drawings.SkelLines) do l.Visible = false end drawings.SkelCircle.Visible = false if player.Character then local hl = player.Character:FindFirstChild("NIGHT_Chams") if hl then hl:Destroy() end end end
                     end
                 end)
-                if not ok then SalvarNoDiario("Erro Loop RenderStepped ESP: " .. tostring(err), "ERROR") end
+                if not ok then SalvarNoDiario("Erro Loop Loop RenderStepped ESP: " .. tostring(err), "ERROR") end
             end)
 
             local function GetClosestEnemyTarget()
@@ -972,56 +962,29 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             RunService:BindToRenderStep("NIGHT_Aimbot_Priority", Enum.RenderPriority.Camera.Value - 1, function()
                 local ok, err = pcall(function() 
                     if FunctionsEnabled and Aimbot_Settings.Mode ~= "Nenhum" and IsAlive(LocalPlayer) then
-                        local isAoAtirar = (Aimbot_Settings.Type == "Ao Atirar")
-                        local canAim = false
-                        
-                        if Aimbot_Settings.Type == "Ao Olhar" then
-                            canAim = true
-                        elseif isAoAtirar and _G.StatusAtirando then
-                            canAim = true
-                        end
-                        
+                        local canAim = (Aimbot_Settings.Type == "Ao Olhar") or (Aimbot_Settings.Type == "Ao Atirar" and IsTouchingScreen)
                         if canAim then
-                            if LockedTarget and (not LockedTarget.Parent or not IsAlive(Players:GetPlayerFromCharacter(LockedTarget.Parent.Parent or LockedTarget.Parent))) then 
-                                LockedTarget = nil 
-                            end
-                            
-                            if not LockedTarget or isAoAtirar then 
-                                LockedTarget = GetClosestEnemyTarget() 
-                            end
-                            
+                            if LockedTarget and (not LockedTarget.Parent or not IsAlive(Players:GetPlayerFromCharacter(LockedTarget.Parent.Parent or LockedTarget.Parent))) then LockedTarget = nil end
+                            if not LockedTarget then LockedTarget = GetClosestEnemyTarget() end
                             if LockedTarget then
                                 if not IsPartVisible(LockedTarget) then LockedTarget = nil return end
-                                
                                 local targetPos = LockedTarget.Position
                                 local dist = (targetPos - Camera.CFrame.Position).Magnitude
                                 if dist < 0.5 then LockedTarget = nil return end
-                                
                                 local velocity = LockedTarget.AssemblyLinearVelocity or Vector3.new(0, 0, 0)
-                                if Aimbot_Settings.PullPart == "Head" and dist > 80 then 
-                                    targetPos = targetPos - Vector3.new(0, 0.4, 0) 
-                                end
+                                if Aimbot_Settings.PullPart == "Head" and dist > 80 then targetPos = targetPos - Vector3.new(0, 0.4, 0) end
                                 local predictedPos = targetPos + (velocity * (dist / 1000))
-                                
                                 local pos, onS = Camera:WorldToViewportPoint(predictedPos)
-                                if (Vector2.new(pos.X, pos.Y) - Camera.ViewportSize/2).Magnitude > ((tonumber(Aimbot_Settings.FovSize) or 0) / 2) then 
-                                    LockedTarget = nil 
-                                    return 
-                                end
-                                
-                                -- Reatividade ajustada para 0.98
-                                local smoothFinal = 0.98
-                                
+                                if (Vector2.new(pos.X, pos.Y) - Camera.ViewportSize/2).Magnitude > ((tonumber(Aimbot_Settings.FovSize) or 0) / 2) then LockedTarget = nil return end
+                                local smoothBase = Aimbot_Settings.Mode == "Rage" and 0.98 or 0.15
+                                local distanceFactor = math.clamp(1 - (dist / 1000), 0.5, 1) 
+                                local smoothFinal = smoothBase * distanceFactor
                                 Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, predictedPos), smoothFinal)
                             end
-                        else 
-                            LockedTarget = nil 
-                        end
-                    else 
-                        LockedTarget = nil 
-                    end
+                        else LockedTarget = nil end
+                    else LockedTarget = nil end
                 end)
-                if not ok then SalvarNoDiario("Erro Loop RenderStep Aimbot Otimizado: " .. tostring(err), "ERROR") end
+                if not ok then SalvarNoDiario("Erro Loop RenderStep Aimbot: " .. tostring(err), "ERROR") end
             end)
         end)
 
