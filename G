@@ -168,25 +168,49 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         
         local Aimbot_Settings = { Mode = "Nenhum", FovSize = 0, PullPart = "Head", Type = "Ao Olhar", VisibleCheck = false, AimbotNoTime = false, NomeBotaoTiro = "Shoot" }
         
-        local LockedTarget = nil local IsTouchingScreen = false
+        local LockedTarget = nil 
+        
+        -- [[ CAPTURA DE INPUT ULTRA-RÁPIDA E ISOLADA (CORRIGIDA) ]]
+        local IsShooting = false
+        local ActiveShootInputs = {}
 
-        -- [[ CAPTURA DE INPUT ULTRA-RÁPIDA PARA O BOTÃO DE TIRO (ATUALIZADA) ]]
         UserInputService.InputBegan:Connect(function(input, processed)
             if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                local guis = LocalPlayer.PlayerGui:GetGuiObjectsAtPosition(input.Position.X, input.Position.Y)
-                for _, obj in ipairs(guis) do
-                    if obj.Name == Aimbot_Settings.NomeBotaoTiro or obj.Name == "MobileButtons" or obj.Name == "Play" then
-                        IsTouchingScreen = true
-                        break
+                local isShootAction = false
+
+                if input.UserInputType == Enum.UserInputType.MouseButton1 and not processed then
+                    isShootAction = true
+                else
+                    local guis = LocalPlayer.PlayerGui:GetGuiObjectsAtPosition(input.Position.X, input.Position.Y)
+                    for _, obj in ipairs(guis) do
+                        if obj.Name == Aimbot_Settings.NomeBotaoTiro or obj.Name == "MobileButtons" or obj.Name == "Play" then
+                            isShootAction = true
+                            break
+                        end
                     end
+                end
+
+                if isShootAction then
+                    IsShooting = true
+                    ActiveShootInputs[input] = true
                 end
             end
         end)
 
         UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                IsTouchingScreen = false
-                LockedTarget = nil
+            if ActiveShootInputs[input] then
+                ActiveShootInputs[input] = nil
+                
+                local stillShooting = false
+                for _ in pairs(ActiveShootInputs) do
+                    stillShooting = true
+                    break
+                end
+                
+                if not stillShooting then
+                    IsShooting = false
+                    LockedTarget = nil
+                end
             end
         end)
 
@@ -961,12 +985,18 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 return closestPart
             end
 
-            -- [[ LOOP DE MIRA REMODELADO - INSTANTÂNEO AO ATIRAR (ATUALIZADO) ]]
+            -- [[ LOOP DE MIRA REMODELADO - INSTANTÂNEO AO ATIRAR (ATUALIZADO E CORRIGIDO) ]]
             RunService:BindToRenderStep("NIGHT_Aimbot_Priority", Enum.RenderPriority.Camera.Value - 1, function()
                 local ok, err = pcall(function() 
                     if FunctionsEnabled and Aimbot_Settings.Mode ~= "Nenhum" and IsAlive(LocalPlayer) then
                         local isAoAtirar = (Aimbot_Settings.Type == "Ao Atirar")
-                        local canAim = (Aimbot_Settings.Type == "Ao Olhar") or (isAoAtirar and IsTouchingScreen)
+                        local canAim = false
+                        
+                        if Aimbot_Settings.Type == "Ao Olhar" then
+                            canAim = true
+                        elseif isAoAtirar and IsShooting then
+                            canAim = true
+                        end
                         
                         if canAim then
                             if LockedTarget and (not LockedTarget.Parent or not IsAlive(Players:GetPlayerFromCharacter(LockedTarget.Parent.Parent or LockedTarget.Parent))) then 
