@@ -1,3 +1,6 @@
+local HttpService = game:GetService("HttpService")
+local log_folder = "NIGHT_DATA"
+local log_file = log_folder .. "/logs_privados.txt"
 
 local RobloxPrint = print
 local RobloxWarn = warn
@@ -512,10 +515,47 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         AtivaAimbotBtn = CreateCheckbox(TabESP, "ativa aimbot (Ignorar Time)", ESP_X, 200, false, function(v) Aimbot_Settings.AimbotNoTime = v end) AtivaAimbotBtn.Visible = false
 
         local RageHeaderFrame = Instance.new("Frame", TabRageFunctions) RageHeaderFrame.Size = UDim2.new(1, 0, 0, 30) RageHeaderFrame.BackgroundTransparency = 1
-        local RageHeaderText = Instance.new("TextLabel", RageHeaderFrame) RageHeaderText.Size = UDim2.new(1, 0, 1, 0) RageHeaderText.BackgroundTransparency = 1 RageHeaderText.Text = "Configurações" RageHeaderText.TextColor3 = C_WHITE RageHeaderText.Font = Enum.Font.GothamBold RageHeaderText.TextSize = 16 RageHeaderText.TextXAlignment = Enum.TextXAlignment.Left
+        local RageHeaderText = Instance.new("TextLabel", RageHeaderFrame) RageHeaderText.Size = UDim2.new(1, 0, 1, 0) RageHeaderText.BackgroundTransparency = 1 RageHeaderText.Text = "⚠️ Funções Rage (Seguras)" RageHeaderText.TextColor3 = C_WHITE RageHeaderText.Font = Enum.Font.GothamBold RageHeaderText.TextSize = 16 RageHeaderText.TextXAlignment = Enum.TextXAlignment.Left
+
+        -- ---------------------------------------------------------
+        -- SISTEMA SEGURO DE NO SMOKE E LIMPEZA
+        -- ---------------------------------------------------------
+        local function ApplyNoSmokeSafely(obj)
+            if not obj or typeof(obj) ~= "Instance" then return end
+            if obj:IsA("ParticleEmitter") or obj:IsA("Smoke") or obj:IsA("Fire") then
+                pcall(function()
+                    obj.Enabled = false
+                    if obj:IsA("ParticleEmitter") then obj.Rate = 0 end
+                    if obj:IsA("ParticleEmitter") or obj:IsA("Smoke") then
+                        obj.Transparency = NumberSequence.new(1)
+                    end
+                end)
+            end
+        end
+
+        Workspace.DescendantAdded:Connect(function(obj)
+            if FunctionsEnabled and NoSmokeEnabled then ApplyNoSmokeSafely(obj) end
+        end)
+        
+        task.spawn(function()
+            while task.wait(1) do
+                if FunctionsEnabled and NoSmokeEnabled then
+                    for _, v in pairs(Workspace:GetDescendants()) do ApplyNoSmokeSafely(v) end
+                end
+            end
+        end)
 
         CreateCheckbox(TabRageFunctions, "No Smoke", 0, 35, false, function(v) NoSmokeEnabled = v end) 
         
+        -- ---------------------------------------------------------
+        -- BALA MÁGICA LOBOTOMIZADA (Apenas Visual)
+        -- ---------------------------------------------------------
+        _G.WallBangAtivado = false
+        CreateCheckbox(TabRageFunctions, "Bala Mágica", 170, 35, false, function(v)
+            _G.WallBangAtivado = v
+            -- Cérebro do script removido conforme o pedido. O botão só muda a variável visualmente.
+        end)
+
         CreateCheckbox(TabRageFunctions, "No Flashbang", 0, 70, false, function(v) NoFlashEnabled = v end) 
         CreateCheckbox(TabRageFunctions, "Tp Player", 170, 70, false) CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 105, false, function(v) HitboxEnabled = v end)
 
@@ -562,6 +602,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         
         local AntiLagConns = {}
         local function AplicarAntiLagObject(obj)
+            if not obj or typeof(obj) ~= "Instance" then return end
             pcall(function()
                 if obj:IsA("Texture") or obj:IsA("Decal") or obj:IsA("SurfaceAppearance") or obj:IsA("Shirt") or obj:IsA("Pants") or obj:IsA("ShirtGraphic") or obj:IsA("CharacterMesh") or obj:IsA("Accessory") then
                     obj:Destroy()
@@ -944,34 +985,45 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end)
         end)
 
+        -- ---------------------------------------------------------
+        -- HITBOX 2.1 (Com checagens de segurança)
+        -- ---------------------------------------------------------
         task.spawn(function()
             local HitboxCache = {} 
             local function IsEnemy(p) if p == LocalPlayer then return false end if p.Team ~= nil and LocalPlayer.Team ~= nil then return p.Team ~= LocalPlayer.Team end local m = LocalPlayer:GetAttribute("Team") local e = p:GetAttribute("Team") if m ~= nil and e ~= nil then return m ~= e end return true end
-            
-            local function LimparCache(p) if HitboxCache[p] then HitboxCache[p] = nil end end
-            Players.PlayerAdded:Connect(function(p) p.CharacterAdded:Connect(function() LimparCache(p) end) end)
-            for _, p in pairs(Players:GetPlayers()) do p.CharacterAdded:Connect(function() LimparCache(p) end) end
-
             RunService.Heartbeat:Connect(function()
                 local ok, err = pcall(function() 
                     if FunctionsEnabled and HitboxEnabled then
                         for _, p in pairs(Players:GetPlayers()) do 
                             if p ~= LocalPlayer and IsEnemy(p) and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-                                local head = p.Character:FindFirstChild("Head")
-                                if head then 
-                                    if HitboxCache[p] and HitboxCache[p].Char ~= p.Character then HitboxCache[p] = nil end
-                                    if not HitboxCache[p] then HitboxCache[p] = {Size = head.Size, Char = p.Character} end 
-                                    head.Size = Vector3.new(2.1, 2.1, 2.1) head.Transparency = 0.7 head.CanCollide = true head.Massless = true
+                                local head = p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
+                                if head and head:IsA("BasePart") then
+                                    if not HitboxCache[p] then HitboxCache[p] = head.Size end 
+                                    head.Size = Vector3.new(2.1, 2.1, 2.1) 
+                                    head.Transparency = 0.7 
+                                    head.CanCollide = true 
                                 end
                             else 
-                                if HitboxCache[p] then 
-                                    if p.Character and p.Character == HitboxCache[p].Char and p.Character:FindFirstChild("Head") then p.Character.Head.Size = HitboxCache[p].Size p.Character.Head.Transparency = 0 p.Character.Head.Massless = false end 
+                                if HitboxCache[p] and p.Character then 
+                                    local head = p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
+                                    if head and head:IsA("BasePart") then
+                                        head.Size = HitboxCache[p] 
+                                        head.Transparency = 0 
+                                    end
                                     HitboxCache[p] = nil 
                                 end 
                             end 
                         end
                     else 
-                        for p, cache in pairs(HitboxCache) do if p and p.Character and p.Character == cache.Char and p.Character:FindFirstChild("Head") then p.Character.Head.Size = cache.Size p.Character.Head.Transparency = 0 p.Character.Head.Massless = false end end 
+                        for p, os in pairs(HitboxCache) do 
+                            if p and p.Character then
+                                local head = p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
+                                if head and head:IsA("BasePart") then
+                                    head.Size = os 
+                                    head.Transparency = 0 
+                                end
+                            end 
+                        end 
                         table.clear(HitboxCache) 
                     end
                 end)
