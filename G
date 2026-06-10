@@ -1,4 +1,4 @@
-local HttpService = game:GetService("HttpService")
+Local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -515,51 +515,10 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         AtivaAimbotBtn = CreateCheckbox(TabESP, "ativa aimbot (Ignorar Time)", ESP_X, 200, false, function(v) Aimbot_Settings.AimbotNoTime = v end) AtivaAimbotBtn.Visible = false
 
         local RageHeaderFrame = Instance.new("Frame", TabRageFunctions) RageHeaderFrame.Size = UDim2.new(1, 0, 0, 30) RageHeaderFrame.BackgroundTransparency = 1
-        local RageHeaderText = Instance.new("TextLabel", RageHeaderFrame) RageHeaderText.Size = UDim2.new(1, 0, 1, 0) RageHeaderText.BackgroundTransparency = 1 RageHeaderText.Text = "⚠️ Funções Rage (Seguras)" RageHeaderText.TextColor3 = C_WHITE RageHeaderText.Font = Enum.Font.GothamBold RageHeaderText.TextSize = 16 RageHeaderText.TextXAlignment = Enum.TextXAlignment.Left
+        local RageHeaderText = Instance.new("TextLabel", RageHeaderFrame) RageHeaderText.Size = UDim2.new(1, 0, 1, 0) RageHeaderText.BackgroundTransparency = 1 RageHeaderText.Text = "Configurações" RageHeaderText.TextColor3 = C_WHITE RageHeaderText.Font = Enum.Font.GothamBold RageHeaderText.TextSize = 16 RageHeaderText.TextXAlignment = Enum.TextXAlignment.Left
 
         CreateCheckbox(TabRageFunctions, "No Smoke", 0, 35, false, function(v) NoSmokeEnabled = v end) 
         
-        _G.WallBangAtivado = false local WallbangHooked = false
-        
-        CreateCheckbox(TabRageFunctions, "Bala Mágica", 170, 35, false, function(v)
-            _G.WallBangAtivado = v
-            if v and not WallbangHooked then
-                WallbangHooked = true
-                pcall(function()
-                    local LOG_PRIVADO = -3.0999999046325684 
-                    local mt = getrawmetatable(game) 
-                    local oldNamecall = mt.__namecall 
-                    setreadonly(mt, false)
-
-                    local rayParams = RaycastParams.new() 
-                    rayParams.FilterType = Enum.RaycastFilterType.Exclude 
-                    rayParams.FilterDescendantsInstances = {LocalPlayer.Character, workspace:FindFirstChild("Map") or workspace:FindFirstChild("Geometry")}
-                    rayParams.IgnoreWater = true
-
-                    mt.__namecall = newcclosure(function(self, ...)
-                        local method = getnamecallmethod() 
-                        local args = {...}
-                        
-                        if _G.WallBangAtivado and method == "Raycast" and not checkcaller() then
-                            local dirOriginal = args[2]
-                            if typeof(dirOriginal) == "Vector3" and math.abs(dirOriginal.Y - LOG_PRIVADO) < 0.0001 then 
-                                return oldNamecall(self, unpack(args)) 
-                            end
-                            
-                            args[1] = Camera.CFrame.Position 
-                            args[2] = Camera.CFrame.LookVector * 1e6 
-                            args[3] = rayParams 
-                            
-                            return oldNamecall(self, unpack(args))
-                        end
-                        return oldNamecall(self, ...)
-                    end)
-                    setreadonly(mt, true) 
-                    SalvarNoDiario("Bala Mágica Hooked (Otimizado)", "SUCCESS")
-                end)
-            end
-        end)
-
         CreateCheckbox(TabRageFunctions, "No Flashbang", 0, 70, false, function(v) NoFlashEnabled = v end) 
         CreateCheckbox(TabRageFunctions, "Tp Player", 170, 70, false) CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 105, false, function(v) HitboxEnabled = v end)
 
@@ -991,16 +950,33 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         task.spawn(function()
             local HitboxCache = {} 
             local function IsEnemy(p) if p == LocalPlayer then return false end if p.Team ~= nil and LocalPlayer.Team ~= nil then return p.Team ~= LocalPlayer.Team end local m = LocalPlayer:GetAttribute("Team") local e = p:GetAttribute("Team") if m ~= nil and e ~= nil then return m ~= e end return true end
+            
+            local function LimparCache(p) if HitboxCache[p] then HitboxCache[p] = nil end end
+            Players.PlayerAdded:Connect(function(p) p.CharacterAdded:Connect(function() LimparCache(p) end) end)
+            for _, p in pairs(Players:GetPlayers()) do p.CharacterAdded:Connect(function() LimparCache(p) end) end
+
             RunService.Heartbeat:Connect(function()
                 local ok, err = pcall(function() 
                     if FunctionsEnabled and HitboxEnabled then
                         for _, p in pairs(Players:GetPlayers()) do 
                             if p ~= LocalPlayer and IsEnemy(p) and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
                                 local head = p.Character:FindFirstChild("Head")
-                                if head then if not HitboxCache[p] then HitboxCache[p] = head.Size end head.Size = Vector3.new(2.1, 2.1, 2.1) head.Transparency = 0.7 head.CanCollide = true end
-                            else if HitboxCache[p] and p.Character and p.Character:FindFirstChild("Head") then p.Character.Head.Size = HitboxCache[p] p.Character.Head.Transparency = 0 HitboxCache[p] = nil end end 
+                                if head then 
+                                    if HitboxCache[p] and HitboxCache[p].Char ~= p.Character then HitboxCache[p] = nil end
+                                    if not HitboxCache[p] then HitboxCache[p] = {Size = head.Size, Char = p.Character} end 
+                                    head.Size = Vector3.new(2.1, 2.1, 2.1) head.Transparency = 0.7 head.CanCollide = true head.Massless = true
+                                end
+                            else 
+                                if HitboxCache[p] then 
+                                    if p.Character and p.Character == HitboxCache[p].Char and p.Character:FindFirstChild("Head") then p.Character.Head.Size = HitboxCache[p].Size p.Character.Head.Transparency = 0 p.Character.Head.Massless = false end 
+                                    HitboxCache[p] = nil 
+                                end 
+                            end 
                         end
-                    else for p, os in pairs(HitboxCache) do if p and p.Character and p.Character:FindFirstChild("Head") then p.Character.Head.Size = os p.Character.Head.Transparency = 0 end end table.clear(HitboxCache) end
+                    else 
+                        for p, cache in pairs(HitboxCache) do if p and p.Character and p.Character == cache.Char and p.Character:FindFirstChild("Head") then p.Character.Head.Size = cache.Size p.Character.Head.Transparency = 0 p.Character.Head.Massless = false end end 
+                        table.clear(HitboxCache) 
+                    end
                 end)
                 if not ok then SalvarNoDiario("Erro Loop Heartbeat Hitbox: " .. tostring(err), "ERROR") end
             end)
