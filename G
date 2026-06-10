@@ -973,7 +973,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                                 local predictedPos = targetPos + (velocity * (dist / 1000))
                                 local pos, onS = Camera:WorldToViewportPoint(predictedPos)
                                 if (Vector2.new(pos.X, pos.Y) - Camera.ViewportSize/2).Magnitude > ((tonumber(Aimbot_Settings.FovSize) or 0) / 2) then LockedTarget = nil return end
-                                local smoothBase = Aimbot_Settings.Mode == "Rage" and 0.85 or 0.15
+                                local smoothBase = Aimbot_Settings.Mode == "Rage" and 1.0 or 0.15
                                 local distanceFactor = math.clamp(1 - (dist / 1000), 0.5, 1) 
                                 local smoothFinal = smoothBase * distanceFactor
                                 Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, predictedPos), smoothFinal)
