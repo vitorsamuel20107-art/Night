@@ -514,8 +514,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local AtivaAimbotBtn local MarcarTodosBtn = CreateCheckbox(TabESP, "marcar todos", ESP_X, 160, false, function(v) ESP_Settings.MarcarTodos = v if AtivaAimbotBtn then AtivaAimbotBtn.Visible = v end end)
         AtivaAimbotBtn = CreateCheckbox(TabESP, "ativa aimbot (Ignorar Time)", ESP_X, 200, false, function(v) Aimbot_Settings.AimbotNoTime = v end) AtivaAimbotBtn.Visible = false
 
-        local RageHeaderFrame = Instance.new("Frame", TabRageFunctions) RageHeaderFrame.Size = UDim2.new(1, 0, 0, 30) RageHeaderFrame.BackgroundTransparency = 1
-        local RageHeaderText = Instance.new("TextLabel", RageHeaderFrame) RageHeaderText.Size = UDim2.new(1, 0, 1, 0) RageHeaderText.BackgroundTransparency = 1 RageHeaderText.Text = "⚠️ Funções Rage (Seguras)" RageHeaderText.TextColor3 = C_WHITE RageHeaderText.Font = Enum.Font.GothamBold RageHeaderText.TextSize = 16 RageHeaderText.TextXAlignment = Enum.TextXAlignment.Left
+        local RangerHeaderFrame = Instance.new("Frame", TabRageFunctions) RangerHeaderFrame.Size = UDim2.new(1, 0, 0, 30) RangerHeaderFrame.BackgroundTransparency = 1
+        local RageHeaderText = Instance.new("TextLabel", RangerHeaderFrame) RageHeaderText.Size = UDim2.new(1, 0, 1, 0) RageHeaderText.BackgroundTransparency = 1 RageHeaderText.Text = "⚠️ Funções Rage (Seguras)" RageHeaderText.TextColor3 = C_WHITE RageHeaderText.Font = Enum.Font.GothamBold RageHeaderText.TextSize = 16 RageHeaderText.TextXAlignment = Enum.TextXAlignment.Left
 
         -- ---------------------------------------------------------
         -- SISTEMA SEGURO DE NO SMOKE E LIMPEZA
@@ -553,7 +553,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         _G.WallBangAtivado = false
         CreateCheckbox(TabRageFunctions, "Bala Mágica", 170, 35, false, function(v)
             _G.WallBangAtivado = v
-            -- Cérebro do script removido conforme o pedido. O botão só muda a variável visualmente.
         end)
 
         CreateCheckbox(TabRageFunctions, "No Flashbang", 0, 70, false, function(v) NoFlashEnabled = v end) 
@@ -574,7 +573,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 elseif EditTarget == "Skeleton" then ESP_Settings.SkeletonColor = toHex(color) GlobalSettings.ESP_Colors.Skeleton = toHex(color) SaveAllSettings() end
             end) 
         end
-        CreateColorBtn(Color3.fromRGB(255, 0, 0)) CreateColorBtn(Color3.fromRGB(0, 100, 255)) CreateColorBtn(Color3.fromRGB(150, 0, 255)) CreateColorBtn(Color3.fromRGB(0, 255, 100)) CreateColorBtn(Color3.fromRGB(0, 0, 0)) CreateColorBtn(Color3.fromRGB(255, 255, 0)) CreateColorBtn(Color3.fromRGB(255, 215, 0)) CreateColorBtn(Color3.fromRGB(139, 69, 19)) CreateColorBtn(Color3.fromRGB(0, 255, 0)) CreateColorBtn(Color3.fromRGB(255, 255, 255))
+        CreateColorBtn(Color3.fromRGB(255, 0, 0)) CreateColorBtn(Color3.fromRGB(0, 100, 255)) CreateColorBtn(Color3.fromRGB(150, 0, 255)) CreateColorBtn(Color3.fromRGB(0, 255, 100)) CreateColorBtn(Color3.fromRGB(0, 0, 0)) CreateColorBtn(Color3.fromRGB(255, 255,  yellow)) CreateColorBtn(Color3.fromRGB(255, 215, 0)) CreateColorBtn(Color3.fromRGB(139, 69, 19)) CreateColorBtn(Color3.fromRGB(0, 255, 0)) CreateColorBtn(Color3.fromRGB(255, 255, 255))
 
         local function CreateRainbowBtn()
             local btn = Instance.new("TextButton", ColorButtonsFrame) btn.Size = UDim2.new(0, 32, 0, 32) btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255) btn.Text = "" Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6) 
@@ -973,9 +972,17 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                                 local predictedPos = targetPos + (velocity * (dist / 1000))
                                 local pos, onS = Camera:WorldToViewportPoint(predictedPos)
                                 if (Vector2.new(pos.X, pos.Y) - Camera.ViewportSize/2).Magnitude > ((tonumber(Aimbot_Settings.FovSize) or 0) / 2) then LockedTarget = nil return end
+                                
                                 local smoothBase = Aimbot_Settings.Mode == "Rage" and 1.0 or 0.15
                                 local distanceFactor = math.clamp(1 - (dist / 1000), 0.5, 1) 
                                 local smoothFinal = smoothBase * distanceFactor
+                                
+                                -- SNAP INSTANTÂNEO NO CLIQUE OU NO MODO RAGE
+                                -- Desativa qualquer atraso de interpolação no primeiro disparo para travar direto no Predict
+                                if IsTouchingScreen or Aimbot_Settings.Mode == "Rage" then
+                                    smoothFinal = 1.0
+                                end
+                                
                                 Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, predictedPos), smoothFinal)
                             end
                         else LockedTarget = nil end
