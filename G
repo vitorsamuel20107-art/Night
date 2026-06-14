@@ -1,4 +1,4 @@
-Local HttpService = game:GetService("HttpService")
+local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -163,6 +163,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local targetParent = gethui and gethui() or (syn and syn.protect_gui and CoreGui or CoreGui)
         if targetParent:FindFirstChild("NIGHT_UI_PixelPerfect") then targetParent.NIGHT_UI_PixelPerfect:Destroy() end
 
+        -- REMOVIDO: NoFlashEnabled para dar espaço à nova lógica
         local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false
         local ESP_Settings = { Lines = false, LineOrigin = "Cima", LineColor = GlobalSettings.ESP_Colors.Lines, Boxes = false, BoxType = "Quadrado", BoxColor = GlobalSettings.ESP_Colors.Boxes, Skeleton = false, SkeletonColor = GlobalSettings.ESP_Colors.Skeleton, Health = false, ChamsColor = Color3.fromRGB(0, 255, 0), RainbowChams = false, MaxDistance = 500, MarcarTodos = false }
         
@@ -544,89 +545,52 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         CreateCheckbox(TabRageFunctions, "No Smoke", 0, 35, false, function(v) NoSmokeEnabled = v end) 
         
-        -- =========================================================
-        -- SPIN BOT MOBILE VIA CFRAME
-        -- =========================================================
-        local VelocidadeGiro = 35
-        local anguloAtual = 0
-        local SpinBotConnection = nil
-
-        CreateCheckbox(TabRageFunctions, "Spin Bot", 170, 35, false, function(v)
-            if v then
-                SalvarNoDiario("SpinBot Mobile Ativado.", "INFO")
-                SpinBotConnection = RunService.RenderStepped:Connect(function()
-                    local char = LocalPlayer.Character
-                    local root = char and char:FindFirstChild("HumanoidRootPart")
-                    local hum = char and char:FindFirstChild("Humanoid")
-                    
-                    if root and hum then
-                        anguloAtual = (anguloAtual + VelocidadeGiro) % 360
-                        local posicaoAtual = root.Position
-                        root.CFrame = CFrame.new(posicaoAtual) * CFrame.Angles(0, math.rad(anguloAtual), 0)
-                    end
-                end)
-            else
-                SalvarNoDiario("SpinBot Mobile Desativado.", "INFO")
-                if SpinBotConnection then 
-                    SpinBotConnection:Disconnect() 
-                    SpinBotConnection = nil 
-                end
-            end
+        -- NOVAS OPÇÕES: SpinBot e Flutuar (Substituindo Bala Mágica e No Flashbang)
+        local SpinBotAtivo = false
+        CreateCheckbox(TabRageFunctions, "SpinBot", 170, 35, false, function(v)
+            SpinBotAtivo = v
         end)
 
-        -- =========================================================
-        -- FLUTUAR (SISTEMA DE APOIO ESTÁTICO)
-        -- =========================================================
-        local plataformas = {}
-        local FlutuarConnection = nil
-        local ultimaPosicao = Vector3.new(0, 0, 0)
-
-        CreateCheckbox(TabRageFunctions, "Flutuar", 0, 70, false, function(v)
-            if v then
-                SalvarNoDiario("Sistema ativado (Flutuar).", "INFO")
-                for i = 1, 2 do
-                    local p = Instance.new("Part")
-                    p.Size = Vector3.new(4, 0.5, 4)
-                    p.Transparency = 1 
-                    p.Anchored = true
-                    p.CanCollide = true
-                    p.Parent = Workspace
-                    table.insert(plataformas, p)
-                end
-
-                FlutuarConnection = RunService.RenderStepped:Connect(function()
-                    local char = LocalPlayer.Character
-                    local hum = char and char:FindFirstChild("Humanoid")
-                    local root = char and char:FindFirstChild("HumanoidRootPart")
-                    
-                    if root and hum then
-                        local estaSeMovendo = hum.MoveDirection.Magnitude > 0
-                        local estaNoAr = (hum:GetState() == Enum.HumanoidStateType.Freefall or hum:GetState() == Enum.HumanoidStateType.Jumping)
-                        
-                        if estaSeMovendo or estaNoAr then
-                            local posBase = root.Position - Vector3.new(0, 3.5, 0)
-                            plataformas[1].CFrame = CFrame.new(posBase)
-                            plataformas[2].CFrame = CFrame.new(posBase + (root.CFrame.LookVector * 2))
-                            ultimaPosicao = posBase
-                        else
-                            plataformas[1].CFrame = CFrame.new(ultimaPosicao)
-                            plataformas[2].CFrame = CFrame.new(ultimaPosicao + (root.CFrame.LookVector * 2))
-                        end
-                    end
-                end)
-            else
-                SalvarNoDiario("Sistema desativado (Flutuar).", "INFO")
-                if FlutuarConnection then 
-                    FlutuarConnection:Disconnect() 
-                    FlutuarConnection = nil 
-                end
-                for _, p in pairs(plataformas) do p:Destroy() end
-                plataformas = {}
-            end
-        end)
-
+        local FlutuarAtivo = false
+        CreateCheckbox(TabRageFunctions, "Flutuar", 0, 70, false, function(v) 
+            FlutuarAtivo = v 
+        end) 
+        
         CreateCheckbox(TabRageFunctions, "Tp Player", 170, 70, false) 
         CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 105, false, function(v) HitboxEnabled = v end)
+
+        -- LÓGICA INDEPENDENTE: SpinBot
+        RunService.RenderStepped:Connect(function(deltaTime)
+            if FunctionsEnabled and SpinBotAtivo then
+                local char = LocalPlayer.Character
+                if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 then
+                    -- Rotaciona com base no framerate para manter sempre rápido e constante
+                    char.HumanoidRootPart.CFrame = char.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(500 * deltaTime), 0)
+                end
+            end
+        end)
+
+        -- LÓGICA INDEPENDENTE: Flutuar
+        task.spawn(function()
+            while task.wait(0.1) do
+                local char = LocalPlayer.Character
+                if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 then
+                    local hrp = char.HumanoidRootPart
+                    if FunctionsEnabled and FlutuarAtivo then
+                        if not hrp:FindFirstChild("NIGHT_Float") then
+                            local bv = Instance.new("BodyVelocity")
+                            bv.Name = "NIGHT_Float"
+                            bv.MaxForce = Vector3.new(0, math.huge, 0)
+                            bv.Velocity = Vector3.new(0, 0, 0) -- Força 0 no Y para anular a gravidade
+                            bv.Parent = hrp
+                        end
+                    else
+                        local float = hrp:FindFirstChild("NIGHT_Float")
+                        if float then float:Destroy() end
+                    end
+                end
+            end
+        end)
 
         -- =========================================================
         -- SISTEMA DE CÂMERA: 3ª PESSOA E FREE CAM
