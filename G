@@ -1,3 +1,25 @@
+Local HttpService = game:GetService("HttpService")
+local log_folder = "NIGHT_DATA"
+local log_file = log_folder .. "/logs_privados.txt"
+
+local RobloxPrint = print
+local RobloxWarn = warn
+local RobloxError = error
+
+print = function(...) end
+warn = function(...) end
+error = function(...) end
+
+pcall(function()
+    if type(makefolder) == "function" then
+        if type(isfolder) == "function" then
+            if not isfolder(log_folder) then makefolder(log_folder) end
+        else
+            makefolder(log_folder)
+        end
+    end
+end)
+
 local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 local function toBase64(data)
     return ((data:gsub('.', function(x) 
@@ -141,19 +163,24 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local targetParent = gethui and gethui() or (syn and syn.protect_gui and CoreGui or CoreGui)
         if targetParent:FindFirstChild("NIGHT_UI_PixelPerfect") then targetParent.NIGHT_UI_PixelPerfect:Destroy() end
 
-        local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false
+        local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false local NoFlashEnabled = false
         local ESP_Settings = { Lines = false, LineOrigin = "Cima", LineColor = GlobalSettings.ESP_Colors.Lines, Boxes = false, BoxType = "Quadrado", BoxColor = GlobalSettings.ESP_Colors.Boxes, Skeleton = false, SkeletonColor = GlobalSettings.ESP_Colors.Skeleton, Health = false, ChamsColor = Color3.fromRGB(0, 255, 0), RainbowChams = false, MaxDistance = 500, MarcarTodos = false }
         
         local Aimbot_Settings = { Mode = "Nenhum", FovSize = 0, PullPart = "Head", Type = "Ao Olhar", VisibleCheck = false, AimbotNoTime = false, NomeBotaoTiro = "Shoot" }
         
-        local LockedTarget = nil local IsTouchingScreen = false
+        -- NOVA LÓGICA DO AO ATIRAR APLICADA AQUI
+        local LockedTarget = nil 
+        _G.StatusAtirando = false
 
-        UserInputService.InputBegan:Connect(function(input, processed)
-            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        -- Filtro inteligente aplicado ao botão real capturado:
+        UserInputService.InputBegan:Connect(function(input, gpe)
+            if gpe and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1) then
                 local guis = LocalPlayer.PlayerGui:GetGuiObjectsAtPosition(input.Position.X, input.Position.Y)
+                
+                -- Varre todas as camadas tocadas para garantir a ativação pelo botão correto
                 for _, obj in ipairs(guis) do
                     if obj.Name == Aimbot_Settings.NomeBotaoTiro and (obj:IsA("GuiButton") or obj:IsA("PluginDragEvent") or obj:IsA("ImageButton") or obj:IsA("TextButton")) then
-                        IsTouchingScreen = true
+                        _G.StatusAtirando = true
                         break
                     end
                 end
@@ -162,7 +189,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         UserInputService.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                IsTouchingScreen = false
+                _G.StatusAtirando = false
             end
         end)
 
@@ -438,7 +465,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local EditTarget = "Menu" local TargetBtns = {}
         local function SetEditTarget(targetKey, isVisible) if isVisible then EditTarget = targetKey for key, data in pairs(TargetBtns) do if key ~= targetKey then data.check.Visible = false data.box.BackgroundColor3 = C_DARK_GREY end end else EditTarget = "Menu" end end
 
-        local TargetScroll = Instance.new("Frame", TabRageFunctions) TargetScroll.Size = UDim2.new(1, -20, 0, 0) TargetScroll.Position = UDim2.new(0, 0, 0, 390) TargetScroll.BackgroundTransparency = 1 TargetScroll.AutomaticSize = Enum.AutomaticSize.Y TargetScroll.BorderSizePixel = 0
+        local TargetScroll = Instance.new("Frame", TabRageFunctions) TargetScroll.Size = UDim2.new(1, -20, 0, 0) TargetScroll.Position = UDim2.new(0, 0, 0, 295) TargetScroll.BackgroundTransparency = 1 TargetScroll.AutomaticSize = Enum.AutomaticSize.Y TargetScroll.BorderSizePixel = 0
         local TargetListLayout = Instance.new("UIListLayout", TargetScroll) TargetListLayout.Padding = UDim.new(0, 5)
 
         local function CreateTargetToggle(key, text)
@@ -525,7 +552,17 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         CreateCheckbox(TabRageFunctions, "No Smoke", 0, 35, false, function(v) NoSmokeEnabled = v end) 
         
-        CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 70, false, function(v) HitboxEnabled = v end)
+        -- ---------------------------------------------------------
+        -- BALA MÁGICA LOBOTOMIZADA (Apenas Visual)
+        -- ---------------------------------------------------------
+        _G.WallBangAtivado = false
+        CreateCheckbox(TabRageFunctions, "Bala Mágica", 170, 35, false, function(v)
+            _G.WallBangAtivado = v
+        end)
+
+        CreateCheckbox(TabRageFunctions, "No Flashbang", 0, 70, false, function(v) NoFlashEnabled = v end) 
+        CreateCheckbox(TabRageFunctions, "Tp Player", 170, 70, false) 
+        CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 105, false, function(v) HitboxEnabled = v end)
 
         local ColorPickerLabel = Instance.new("TextLabel", TabRageFunctions) ColorPickerLabel.Size = UDim2.new(1, -10, 0, 25) ColorPickerLabel.Position = UDim2.new(0, 0, 0, 145) ColorPickerLabel.BackgroundTransparency = 1 ColorPickerLabel.Text = "Cores Customizáveis" ColorPickerLabel.TextColor3 = C_WHITE ColorPickerLabel.Font = Enum.Font.GothamBold ColorPickerLabel.TextSize = 14 ColorPickerLabel.TextXAlignment = Enum.TextXAlignment.Left
         local ColorButtonsFrame = Instance.new("ScrollingFrame", TabRageFunctions) ColorButtonsFrame.Size = UDim2.new(1, -20, 0, 48) ColorButtonsFrame.Position = UDim2.new(0, 0, 0, 175) ColorButtonsFrame.BackgroundTransparency = 1 ColorButtonsFrame.CanvasSize = UDim2.new(0, 0, 0, 0) ColorButtonsFrame.AutomaticCanvasSize = Enum.AutomaticSize.X ColorButtonsFrame.ScrollBarThickness = 3 ColorButtonsFrame.ScrollingDirection = Enum.ScrollingDirection.X ColorButtonsFrame.ClipsDescendants = true
@@ -604,126 +641,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 SalvarNoDiario("Otimização Suspensa (Texturas apagadas não voltam)", "INFO")
                 if AntiLagConns["Spawns"] then AntiLagConns["Spawns"]:Disconnect() end
             end
-        end)
-
-        -- ---------------------------------------------------------
-        -- CÂMERA E FREE CAM (ADICIONADO)
-        -- ---------------------------------------------------------
-        local CameraHeader = Instance.new("TextLabel", TabRageFunctions)
-        CameraHeader.Size = UDim2.new(1, -10, 0, 25)
-        CameraHeader.Position = UDim2.new(0, 0, 0, 290)
-        CameraHeader.BackgroundTransparency = 1
-        CameraHeader.Text = "Câmera"
-        CameraHeader.TextColor3 = C_WHITE
-        CameraHeader.Font = Enum.Font.GothamBold
-        CameraHeader.TextSize = 14
-        CameraHeader.TextXAlignment = Enum.TextXAlignment.Left
-
-        local FreeCamPart = nil
-        local FC_Conn = nil
-        local FreeCamAtivo = false
-        local ThirdPersonAtivo = false
-        local Checkbox3Pessoa, CheckboxFreeCam
-
-        local function SetCheckboxVisual(btn, state)
-            if not btn then return end
-            local box = nil
-            for _, v in pairs(btn:GetChildren()) do if v:IsA("Frame") then box = v break end end
-            if box then
-                local check = box:FindFirstChildWhichIsA("TextLabel")
-                if check then
-                    check.Visible = state
-                    box.BackgroundColor3 = state and CurrentTheme or C_DARK_GREY
-                end
-            end
-        end
-
-        local function ToggleFreeCam(state)
-            FreeCamAtivo = state
-            local char = LocalPlayer.Character
-            if state then
-                if char and char:FindFirstChild("HumanoidRootPart") then
-                    FreeCamPart = Instance.new("Part")
-                    FreeCamPart.Size = Vector3.new(1, 1, 1)
-                    FreeCamPart.Transparency = 1
-                    FreeCamPart.CanCollide = false
-                    FreeCamPart.Anchored = false
-                    FreeCamPart.Position = char.HumanoidRootPart.Position + Vector3.new(0, 5, 0)
-                    
-                    local bg = Instance.new("BodyGyro")
-                    bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-                    bg.P = 100000
-                    bg.Parent = FreeCamPart
-                    
-                    local bv = Instance.new("BodyVelocity")
-                    bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-                    bv.Velocity = Vector3.new(0,0,0)
-                    bv.Parent = FreeCamPart
-                    
-                    FreeCamPart.Parent = Workspace
-                    Camera.CameraSubject = FreeCamPart
-                    
-                    -- Lógica de voo otimizada para uso em Mobile com o joystick padrão
-                    FC_Conn = RunService.RenderStepped:Connect(function()
-                        if FreeCamPart and char:FindFirstChild("Humanoid") then
-                            local moveDir = char.Humanoid.MoveDirection
-                            bg.CFrame = Camera.CFrame
-                            bv.Velocity = Camera.CFrame:VectorToWorldSpace(moveDir * 60)
-                        end
-                    end)
-                    if char:FindFirstChild("HumanoidRootPart") then char.HumanoidRootPart.Anchored = true end
-                end
-            else
-                if FC_Conn then FC_Conn:Disconnect() FC_Conn = nil end
-                if FreeCamPart then FreeCamPart:Destroy() FreeCamPart = nil end
-                if char then
-                    if char:FindFirstChild("Humanoid") then Camera.CameraSubject = char.Humanoid end
-                    if char:FindFirstChild("HumanoidRootPart") then char.HumanoidRootPart.Anchored = false end
-                end
-            end
-        end
-
-        local function ToggleThirdPerson(state)
-            ThirdPersonAtivo = state
-            if state then
-                LocalPlayer.CameraMode = Enum.CameraMode.Classic
-                LocalPlayer.CameraMinZoomDistance = 12
-                LocalPlayer.CameraMaxZoomDistance = 12
-            else
-                LocalPlayer.CameraMinZoomDistance = 0.5
-                LocalPlayer.CameraMaxZoomDistance = 400
-            end
-        end
-
-        Checkbox3Pessoa = CreateCheckbox(TabRageFunctions, "3ª Pessoa", 0, 315, false, function(v)
-            if v then
-                if FreeCamAtivo then
-                    ToggleFreeCam(false)
-                    GlobalSettings.Toggles["Free Cam"] = false
-                    SetCheckboxVisual(CheckboxFreeCam, false)
-                end
-                ToggleThirdPerson(true)
-            else
-                ToggleThirdPerson(false)
-            end
-        end)
-
-        CheckboxFreeCam = CreateCheckbox(TabRageFunctions, "Free Cam", 0, 350, false, function(v)
-            if v then
-                if ThirdPersonAtivo then
-                    ToggleThirdPerson(false)
-                    GlobalSettings.Toggles["3ª Pessoa"] = false
-                    SetCheckboxVisual(Checkbox3Pessoa, false)
-                end
-                ToggleFreeCam(true)
-            else
-                ToggleFreeCam(false)
-            end
-        end)
-
-        LocalPlayer.CharacterAdded:Connect(function()
-            if FreeCamAtivo then ToggleFreeCam(false) GlobalSettings.Toggles["Free Cam"] = false SetCheckboxVisual(CheckboxFreeCam, false) end
-            if ThirdPersonAtivo then ToggleThirdPerson(false) GlobalSettings.Toggles["3ª Pessoa"] = false SetCheckboxVisual(Checkbox3Pessoa, false) end
         end)
 
         local OnlineLabel_Chat = Instance.new("TextLabel", TabChat)
@@ -1047,7 +964,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             RunService:BindToRenderStep("NIGHT_Aimbot_Priority", Enum.RenderPriority.Camera.Value - 1, function()
                 local ok, err = pcall(function() 
                     if FunctionsEnabled and Aimbot_Settings.Mode ~= "Nenhum" and IsAlive(LocalPlayer) then
-                        local canAim = (Aimbot_Settings.Type == "Ao Olhar") or (Aimbot_Settings.Type == "Ao Atirar" and IsTouchingScreen)
+                        local canAim = (Aimbot_Settings.Type == "Ao Olhar") or (Aimbot_Settings.Type == "Ao Atirar" and _G.StatusAtirando)
                         if canAim then
                             if LockedTarget and (not LockedTarget.Parent or not IsAlive(Players:GetPlayerFromCharacter(LockedTarget.Parent.Parent or LockedTarget.Parent))) then LockedTarget = nil end
                             if not LockedTarget then LockedTarget = GetClosestEnemyTarget() end
@@ -1068,7 +985,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                                 
                                 -- SNAP INSTANTÂNEO NO CLIQUE OU NO MODO RAGE
                                 -- Desativa qualquer atraso de interpolação no primeiro disparo para travar direto no Predict
-                                if IsTouchingScreen or Aimbot_Settings.Mode == "Rage" then
+                                if _G.StatusAtirando or Aimbot_Settings.Mode == "Rage" then
                                     smoothFinal = 1.0
                                 end
                                 
