@@ -1,4 +1,4 @@
-local HttpService = game:GetService("HttpService")
+Local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -533,11 +533,51 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         end
         -- =============================================================================
 
+        -- =============================================================================
+        -- DECLARAÇÃO DO NOVO SISTEMA SPINBOT MOBILE VIA CFRAME
+        -- =============================================================================
+        local SpinBot_Velocidade = 35
+        local SpinBot_Ativo = false
+        local SpinBot_Angulo = 0
+        local SpinBot_Conexao = nil
+
+        local function AtualizarSpinBot()
+            if SpinBot_Conexao then 
+                SpinBot_Conexao:Disconnect() 
+                SpinBot_Conexao = nil 
+            end
+
+            if FunctionsEnabled and SpinBot_Ativo then
+                SalvarNoDiario("SpinBot Mobile Ativado.", "INFO")
+                SpinBot_Conexao = RunService.RenderStepped:Connect(function()
+                    pcall(function()
+                        if not (FunctionsEnabled and SpinBot_Ativo) then return end
+                        
+                        local char = LocalPlayer.Character
+                        local root = char and char:FindFirstChild("HumanoidRootPart")
+                        local hum = char and char:FindFirstChild("Humanoid")
+                        
+                        if root and hum and hum.Health > 0 then
+                            SpinBot_Angulo = (SpinBot_Angulo + SpinBot_Velocidade) % 360
+                            local posicaoAtual = root.Position
+                            root.CFrame = CFrame.new(posicaoAtual) * CFrame.Angles(0, math.rad(SpinBot_Angulo), 0)
+                        end
+                    end)
+                end)
+            else
+                if SpinBot_Ativo then -- Evita spam no log quando o Master é desligado
+                    SalvarNoDiario("SpinBot Mobile Desativado.", "INFO")
+                end
+            end
+        end
+        -- =============================================================================
+
         CreateCheckbox(TabAimbot, "Ativar Funções", 0, 0, false, function(s) 
             FunctionsEnabled = s 
             UpdateFOVVisibility() 
             if not s then LockedTarget = nil end 
             AtualizarPlataformasEstaticas() -- Sincroniza o flutuar com o Master Toggle
+            AtualizarSpinBot() -- Sincroniza o spinbot com o Master Toggle
         end)
         
         CreateCheckbox(TabAimbot, "Exibir FOV", 0, 35, false, function(s) FovEnabled = s UpdateFOVVisibility() end)
@@ -609,9 +649,9 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         CreateCheckbox(TabRageFunctions, "No Smoke", 0, 35, false, function(v) NoSmokeEnabled = v end) 
         
-        local SpinBotAtivo = false
         CreateCheckbox(TabRageFunctions, "SpinBot", 170, 35, false, function(v)
-            SpinBotAtivo = v
+            SpinBot_Ativo = v
+            AtualizarSpinBot()
         end)
 
         CreateCheckbox(TabRageFunctions, "Flutuar", 0, 70, false, function(v) 
@@ -621,16 +661,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         
         CreateCheckbox(TabRageFunctions, "Tp Player", 170, 70, false) 
         CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 105, false, function(v) HitboxEnabled = v end)
-
-        -- LÓGICA INDEPENDENTE: SpinBot
-        RunService.RenderStepped:Connect(function(deltaTime)
-            if FunctionsEnabled and SpinBotAtivo then
-                local char = LocalPlayer.Character
-                if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 then
-                    char.HumanoidRootPart.CFrame = char.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(500 * deltaTime), 0)
-                end
-            end
-        end)
 
         -- =========================================================
         -- SISTEMA DE CÂMERA: 3ª PESSOA E FREE CAM
