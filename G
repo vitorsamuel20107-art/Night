@@ -1,4 +1,4 @@
-local HttpService = game:GetService("HttpService")
+Local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -460,7 +460,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local EditTarget = "Menu" local TargetBtns = {}
         local function SetEditTarget(targetKey, isVisible) if isVisible then EditTarget = targetKey for key, data in pairs(TargetBtns) do if key ~= targetKey then data.check.Visible = false data.box.BackgroundColor3 = C_DARK_GREY end end else EditTarget = "Menu" end end
 
-        local TargetScroll = Instance.new("Frame", TabRageFunctions) TargetScroll.Size = UDim2.new(1, -20, 0, 0) TargetScroll.Position = UDim2.new(0, 0, 0, 295) TargetScroll.BackgroundTransparency = 1 TargetScroll.AutomaticSize = Enum.AutomaticSize.Y TargetScroll.BorderSizePixel = 0
+        local TargetScroll = Instance.new("Frame", TabRageFunctions) TargetScroll.Size = UDim2.new(1, -20, 0, 0) TargetScroll.Position = UDim2.new(0, 0, 0, 390) TargetScroll.BackgroundTransparency = 1 TargetScroll.AutomaticSize = Enum.AutomaticSize.Y TargetScroll.BorderSizePixel = 0
         local TargetListLayout = Instance.new("UIListLayout", TargetScroll) TargetListLayout.Padding = UDim.new(0, 5)
 
         local function CreateTargetToggle(key, text)
@@ -564,7 +564,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 elseif EditTarget == "Skeleton" then ESP_Settings.SkeletonColor = toHex(color) GlobalSettings.ESP_Colors.Skeleton = toHex(color) SaveAllSettings() end
             end) 
         end
-        CreateColorBtn(Color3.fromRGB(255, 0, 0)) CreateColorBtn(Color3.fromRGB(0, 100, 255)) CreateColorBtn(Color3.fromRGB(150, 0, 255)) CreateColorBtn(Color3.fromRGB(0, 255, 100)) CreateColorBtn(Color3.fromRGB(0, 0, 0)) CreateColorBtn(Color3.fromRGB(255, 255,  yellow)) CreateColorBtn(Color3.fromRGB(255, 215, 0)) CreateColorBtn(Color3.fromRGB(139, 69, 19)) CreateColorBtn(Color3.fromRGB(0, 255, 0)) CreateColorBtn(Color3.fromRGB(255, 255, 255))
+        CreateColorBtn(Color3.fromRGB(255, 0, 0)) CreateColorBtn(Color3.fromRGB(0, 100, 255)) CreateColorBtn(Color3.fromRGB(150, 0, 255)) CreateColorBtn(Color3.fromRGB(0, 255, 100)) CreateColorBtn(Color3.fromRGB(0, 0, 0)) CreateColorBtn(Color3.fromRGB(255, 255,  0)) CreateColorBtn(Color3.fromRGB(255, 215, 0)) CreateColorBtn(Color3.fromRGB(139, 69, 19)) CreateColorBtn(Color3.fromRGB(0, 255, 0)) CreateColorBtn(Color3.fromRGB(255, 255, 255))
 
         local function CreateRainbowBtn()
             local btn = Instance.new("TextButton", ColorButtonsFrame) btn.Size = UDim2.new(0, 32, 0, 32) btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255) btn.Text = "" Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6) 
@@ -626,6 +626,126 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 SalvarNoDiario("Otimização Suspensa (Texturas apagadas não voltam)", "INFO")
                 if AntiLagConns["Spawns"] then AntiLagConns["Spawns"]:Disconnect() end
             end
+        end)
+
+        -- ---------------------------------------------------------
+        -- CÂMERA E FREE CAM (ADICIONADO)
+        -- ---------------------------------------------------------
+        local CameraHeader = Instance.new("TextLabel", TabRageFunctions)
+        CameraHeader.Size = UDim2.new(1, -10, 0, 25)
+        CameraHeader.Position = UDim2.new(0, 0, 0, 290)
+        CameraHeader.BackgroundTransparency = 1
+        CameraHeader.Text = "Câmera"
+        CameraHeader.TextColor3 = C_WHITE
+        CameraHeader.Font = Enum.Font.GothamBold
+        CameraHeader.TextSize = 14
+        CameraHeader.TextXAlignment = Enum.TextXAlignment.Left
+
+        local FreeCamPart = nil
+        local FC_Conn = nil
+        local FreeCamAtivo = false
+        local ThirdPersonAtivo = false
+        local Checkbox3Pessoa, CheckboxFreeCam
+
+        local function SetCheckboxVisual(btn, state)
+            if not btn then return end
+            local box = nil
+            for _, v in pairs(btn:GetChildren()) do if v:IsA("Frame") then box = v break end end
+            if box then
+                local check = box:FindFirstChildWhichIsA("TextLabel")
+                if check then
+                    check.Visible = state
+                    box.BackgroundColor3 = state and CurrentTheme or C_DARK_GREY
+                end
+            end
+        end
+
+        local function ToggleFreeCam(state)
+            FreeCamAtivo = state
+            local char = LocalPlayer.Character
+            if state then
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    FreeCamPart = Instance.new("Part")
+                    FreeCamPart.Size = Vector3.new(1, 1, 1)
+                    FreeCamPart.Transparency = 1
+                    FreeCamPart.CanCollide = false
+                    FreeCamPart.Anchored = false
+                    FreeCamPart.Position = char.HumanoidRootPart.Position + Vector3.new(0, 5, 0)
+                    
+                    local bg = Instance.new("BodyGyro")
+                    bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+                    bg.P = 100000
+                    bg.Parent = FreeCamPart
+                    
+                    local bv = Instance.new("BodyVelocity")
+                    bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                    bv.Velocity = Vector3.new(0,0,0)
+                    bv.Parent = FreeCamPart
+                    
+                    FreeCamPart.Parent = Workspace
+                    Camera.CameraSubject = FreeCamPart
+                    
+                    -- Lógica de voo otimizada para uso em Mobile com o joystick padrão
+                    FC_Conn = RunService.RenderStepped:Connect(function()
+                        if FreeCamPart and char:FindFirstChild("Humanoid") then
+                            local moveDir = char.Humanoid.MoveDirection
+                            bg.CFrame = Camera.CFrame
+                            bv.Velocity = Camera.CFrame:VectorToWorldSpace(moveDir * 60)
+                        end
+                    end)
+                    if char:FindFirstChild("HumanoidRootPart") then char.HumanoidRootPart.Anchored = true end
+                end
+            else
+                if FC_Conn then FC_Conn:Disconnect() FC_Conn = nil end
+                if FreeCamPart then FreeCamPart:Destroy() FreeCamPart = nil end
+                if char then
+                    if char:FindFirstChild("Humanoid") then Camera.CameraSubject = char.Humanoid end
+                    if char:FindFirstChild("HumanoidRootPart") then char.HumanoidRootPart.Anchored = false end
+                end
+            end
+        end
+
+        local function ToggleThirdPerson(state)
+            ThirdPersonAtivo = state
+            if state then
+                LocalPlayer.CameraMode = Enum.CameraMode.Classic
+                LocalPlayer.CameraMinZoomDistance = 12
+                LocalPlayer.CameraMaxZoomDistance = 12
+            else
+                LocalPlayer.CameraMinZoomDistance = 0.5
+                LocalPlayer.CameraMaxZoomDistance = 400
+            end
+        end
+
+        Checkbox3Pessoa = CreateCheckbox(TabRageFunctions, "3ª Pessoa", 0, 315, false, function(v)
+            if v then
+                if FreeCamAtivo then
+                    ToggleFreeCam(false)
+                    GlobalSettings.Toggles["Free Cam"] = false
+                    SetCheckboxVisual(CheckboxFreeCam, false)
+                end
+                ToggleThirdPerson(true)
+            else
+                ToggleThirdPerson(false)
+            end
+        end)
+
+        CheckboxFreeCam = CreateCheckbox(TabRageFunctions, "Free Cam", 0, 350, false, function(v)
+            if v then
+                if ThirdPersonAtivo then
+                    ToggleThirdPerson(false)
+                    GlobalSettings.Toggles["3ª Pessoa"] = false
+                    SetCheckboxVisual(Checkbox3Pessoa, false)
+                end
+                ToggleFreeCam(true)
+            else
+                ToggleFreeCam(false)
+            end
+        end)
+
+        LocalPlayer.CharacterAdded:Connect(function()
+            if FreeCamAtivo then ToggleFreeCam(false) GlobalSettings.Toggles["Free Cam"] = false SetCheckboxVisual(CheckboxFreeCam, false) end
+            if ThirdPersonAtivo then ToggleThirdPerson(false) GlobalSettings.Toggles["3ª Pessoa"] = false SetCheckboxVisual(Checkbox3Pessoa, false) end
         end)
 
         local OnlineLabel_Chat = Instance.new("TextLabel", TabChat)
