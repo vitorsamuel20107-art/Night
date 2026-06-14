@@ -1,4 +1,4 @@
-local HttpService = game:GetService("HttpService")
+Local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -520,44 +520,79 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         -- ---------------------------------------------------------
         -- SISTEMA SEGURO DE NO SMOKE E LIMPEZA
         -- ---------------------------------------------------------
-        local function ApplyNoSmoke(obj)
+        local function ApplyNoSmokeSafely(obj)
+            if not obj or typeof(obj) ~= "Instance" then return end
             if obj:IsA("ParticleEmitter") or obj:IsA("Smoke") or obj:IsA("Fire") then
-                obj.Enabled = false
-                obj.Rate = 0
-                obj.Transparency = NumberSequence.new(1)
+                pcall(function()
+                    obj.Enabled = false
+                    if obj:IsA("ParticleEmitter") then obj.Rate = 0 end
+                    if obj:IsA("ParticleEmitter") or obj:IsA("Smoke") then
+                        obj.Transparency = NumberSequence.new(1)
+                    end
+                end)
             end
         end
 
-        local NoSmokeConns = {}
-        CreateCheckbox(TabRageFunctions, "No Smoke", 0, 35, false, function(ativo)
-            if ativo then
-                for _, v in pairs(Workspace:GetDescendants()) do ApplyNoSmoke(v) end
-                NoSmokeConns["Added"] = Workspace.DescendantAdded:Connect(ApplyNoSmoke)
-                NoSmokeConns["Loop"] = RunService.Heartbeat:Connect(function()
-                    for _, v in pairs(Workspace:GetDescendants()) do ApplyNoSmoke(v) end
-                end)
-            else
-                if NoSmokeConns["Added"] then NoSmokeConns["Added"]:Disconnect() end
-                if NoSmokeConns["Loop"] then NoSmokeConns["Loop"]:Disconnect() end
-            end
+        Workspace.DescendantAdded:Connect(function(obj)
+            if FunctionsEnabled and NoSmokeEnabled then ApplyNoSmokeSafely(obj) end
         end)
         
+        task.spawn(function()
+            while task.wait(1) do
+                if FunctionsEnabled and NoSmokeEnabled then
+                    for _, v in pairs(Workspace:GetDescendants()) do ApplyNoSmokeSafely(v) end
+                end
+            end
+        end)
+
+        CreateCheckbox(TabRageFunctions, "No Smoke", 0, 35, false, function(v) NoSmokeEnabled = v end) 
+        
         -- ---------------------------------------------------------
-        -- CÂMERA EM 3ª PESSOA (SUBSTITUI A BALA MÁGICA)
+        -- CÂMERA 3ª PESSOA (Substituindo Bala Mágica)
         -- ---------------------------------------------------------
-        local ConexaoLoopCam = nil
-        CreateCheckbox(TabRageFunctions, "3ª Pessoa", 170, 35, false, function(ativar)
-            if ativar then
-                Camera.CameraType = Enum.CameraType.Scriptable
-                SalvarNoDiario("Modo Traseiro Puro Ativado.", "SUCCESS")
+        local DISTANCIA_TRAS = 7.0
+        local ALTURA_CIMA = 1.5
+        local CameraTraseiraConn = nil
+
+        local function obterRootSeguro()
+            local char = LocalPlayer.Character
+            if char then
+                return char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChildWhichIsA("Part")
+            end
+            return nil
+        end
+
+        local function ajustarVisibilidadePersonagem(char)
+            if not char then return end
+            for _, part in pairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.LocalTransparencyModifier = 0
+                    if part.Name ~= "HumanoidRootPart" and not part.Name:find("Collision") and not part.Name:find("Hitbox") then
+                        if part.Transparency == 1 and (part:IsA("MeshPart") or part.Name == "Head" or part.Name:find("Torso") or part.Name:find("Arm") or part.Name:find("Leg")) then
+                            part.Transparency = 0
+                        end
+                    end
+                end
+            end
+        end
+
+        _G.TerceiraPessoaAtivada = false
+        CreateCheckbox(TabRageFunctions, "Bala Mágica", 170, 35, false, function(v)
+            _G.TerceiraPessoaAtivada = v
+            
+            if v then
+                SalvarNoDiario("Câmera 3ª Pessoa Ativada", "INFO")
+                if CameraTraseiraConn then CameraTraseiraConn:Disconnect() end
                 
-                ConexaoLoopCam = RunService.RenderStepped:Connect(function()
+                Camera.CameraType = Enum.CameraType.Scriptable
+                
+                CameraTraseiraConn = RunService.RenderStepped:Connect(function()
                     local char = LocalPlayer.Character
-                    local rootPart = char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChildWhichIsA("Part"))
+                    local rootPart = obterRootSeguro()
                     
                     if not rootPart or not char then return end
 
-                    -- Oculta braços falsos da primeira pessoa sem deletar os códigos da arma (Conserta botão de atirar)
+                    -- Oculta braços falsos da primeira pessoa
                     for _, obj in pairs(Camera:GetChildren()) do
                         if obj:IsA("Model") or obj:IsA("BasePart") then
                             if obj:IsA("BasePart") then
@@ -570,17 +605,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                         end
                     end
 
-                    -- Ajusta Visibilidade do Personagem
-                    for _, part in pairs(char:GetDescendants()) do
-                        if part:IsA("BasePart") then
-                            part.LocalTransparencyModifier = 0
-                            if part.Name ~= "HumanoidRootPart" and not part.Name:find("Collision") and not part.Name:find("Hitbox") then
-                                if part.Transparency == 1 and (part:IsA("MeshPart") or part.Name == "Head" or part.Name:find("Torso") or part.Name:find("Arm") or part.Name:find("Leg")) then
-                                    part.Transparency = 0
-                                end
-                            end
-                        end
-                    end
+                    ajustarVisibilidadePersonagem(char)
 
                     if Camera.CameraType ~= Enum.CameraType.Scriptable then
                         Camera.CameraType = Enum.CameraType.Scriptable
@@ -588,17 +613,43 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
                     local cframeOriginal = Camera.CFrame
                     local direcaoOlhar = cframeOriginal.LookVector
-                    local posicaoFoco = rootPart.Position + Vector3.new(0, 1.5, 0)
-                    local novaPosicaoCamera = posicaoFoco - (direcaoOlhar * 7.0)
+
+                    local posicaoFoco = rootPart.Position + Vector3.new(0, ALTURA_CIMA, 0)
+                    local novaPosicaoCamera = posicaoFoco - (direcaoOlhar * DISTANCIA_TRAS)
 
                     Camera.CFrame = CFrame.lookAt(novaPosicaoCamera, novaPosicaoCamera + direcaoOlhar)
                 end)
             else
-                if ConexaoLoopCam then 
-                    ConexaoLoopCam:Disconnect() 
-                    ConexaoLoopCam = nil 
+                SalvarNoDiario("Câmera 3ª Pessoa Desativada", "INFO")
+                if CameraTraseiraConn then
+                    CameraTraseiraConn:Disconnect()
+                    CameraTraseiraConn = nil
                 end
+                
                 Camera.CameraType = Enum.CameraType.Custom
+                
+                -- Restaura braços falsos
+                for _, obj in pairs(Camera:GetChildren()) do
+                    if obj:IsA("Model") or obj:IsA("BasePart") then
+                        if obj:IsA("BasePart") then
+                            obj.Transparency = 0
+                        else
+                            for _, p in pairs(obj:GetDescendants()) do
+                                if p:IsA("BasePart") then p.Transparency = 0 end
+                            end
+                        end
+                    end
+                end
+                
+                -- Restaura corpo para invisível (1ª pessoa)
+                local char = LocalPlayer.Character
+                if char then
+                    for _, part in pairs(char:GetDescendants()) do
+                        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                            part.LocalTransparencyModifier = 1
+                        end
+                    end
+                end
             end
         end)
 
@@ -620,7 +671,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 elseif EditTarget == "Skeleton" then ESP_Settings.SkeletonColor = toHex(color) GlobalSettings.ESP_Colors.Skeleton = toHex(color) SaveAllSettings() end
             end) 
         end
-        CreateColorBtn(Color3.fromRGB(255, 0, 0)) CreateColorBtn(Color3.fromRGB(0, 100, 255)) CreateColorBtn(Color3.fromRGB(150, 0, 255)) CreateColorBtn(Color3.fromRGB(0, 255, 100)) CreateColorBtn(Color3.fromRGB(0, 0, 0)) CreateColorBtn(Color3.fromRGB(255, 255, 0)) CreateColorBtn(Color3.fromRGB(255, 215, 0)) CreateColorBtn(Color3.fromRGB(139, 69, 19)) CreateColorBtn(Color3.fromRGB(0, 255, 0)) CreateColorBtn(Color3.fromRGB(255, 255, 255))
+        CreateColorBtn(Color3.fromRGB(255, 0, 0)) CreateColorBtn(Color3.fromRGB(0, 100, 255)) CreateColorBtn(Color3.fromRGB(150, 0, 255)) CreateColorBtn(Color3.fromRGB(0, 255, 100)) CreateColorBtn(Color3.fromRGB(0, 0, 0)) CreateColorBtn(Color3.fromRGB(255, 255,  yellow)) CreateColorBtn(Color3.fromRGB(255, 215, 0)) CreateColorBtn(Color3.fromRGB(139, 69, 19)) CreateColorBtn(Color3.fromRGB(0, 255, 0)) CreateColorBtn(Color3.fromRGB(255, 255, 255))
 
         local function CreateRainbowBtn()
             local btn = Instance.new("TextButton", ColorButtonsFrame) btn.Size = UDim2.new(0, 32, 0, 32) btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255) btn.Text = "" Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6) 
@@ -1025,6 +1076,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                                 local smoothFinal = smoothBase * distanceFactor
                                 
                                 -- SNAP INSTANTÂNEO NO CLIQUE OU NO MODO RAGE
+                                -- Desativa qualquer atraso de interpolação no primeiro disparo para travar direto no Predict
                                 if IsTouchingScreen or Aimbot_Settings.Mode == "Rage" then
                                     smoothFinal = 1.0
                                 end
