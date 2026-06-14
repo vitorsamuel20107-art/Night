@@ -1,4 +1,4 @@
-local HttpService = game:GetService("HttpService")
+Local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -163,7 +163,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local targetParent = gethui and gethui() or (syn and syn.protect_gui and CoreGui or CoreGui)
         if targetParent:FindFirstChild("NIGHT_UI_PixelPerfect") then targetParent.NIGHT_UI_PixelPerfect:Destroy() end
 
-        local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false local NoFlashEnabled = false
+        local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false
         local ESP_Settings = { Lines = false, LineOrigin = "Cima", LineColor = GlobalSettings.ESP_Colors.Lines, Boxes = false, BoxType = "Quadrado", BoxColor = GlobalSettings.ESP_Colors.Boxes, Skeleton = false, SkeletonColor = GlobalSettings.ESP_Colors.Skeleton, Health = false, ChamsColor = Color3.fromRGB(0, 255, 0), RainbowChams = false, MaxDistance = 500, MarcarTodos = false }
         
         local Aimbot_Settings = { Mode = "Nenhum", FovSize = 0, PullPart = "Head", Type = "Ao Olhar", VisibleCheck = false, AimbotNoTime = false, NomeBotaoTiro = "Shoot" }
@@ -544,12 +544,87 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         CreateCheckbox(TabRageFunctions, "No Smoke", 0, 35, false, function(v) NoSmokeEnabled = v end) 
         
-        _G.WallBangAtivado = false
-        CreateCheckbox(TabRageFunctions, "Bala Mágica", 170, 35, false, function(v)
-            _G.WallBangAtivado = v
+        -- =========================================================
+        -- SPIN BOT MOBILE VIA CFRAME
+        -- =========================================================
+        local VelocidadeGiro = 35
+        local anguloAtual = 0
+        local SpinBotConnection = nil
+
+        CreateCheckbox(TabRageFunctions, "Spin Bot", 170, 35, false, function(v)
+            if v then
+                SalvarNoDiario("SpinBot Mobile Ativado.", "INFO")
+                SpinBotConnection = RunService.RenderStepped:Connect(function()
+                    local char = LocalPlayer.Character
+                    local root = char and char:FindFirstChild("HumanoidRootPart")
+                    local hum = char and char:FindFirstChild("Humanoid")
+                    
+                    if root and hum then
+                        anguloAtual = (anguloAtual + VelocidadeGiro) % 360
+                        local posicaoAtual = root.Position
+                        root.CFrame = CFrame.new(posicaoAtual) * CFrame.Angles(0, math.rad(anguloAtual), 0)
+                    end
+                end)
+            else
+                SalvarNoDiario("SpinBot Mobile Desativado.", "INFO")
+                if SpinBotConnection then 
+                    SpinBotConnection:Disconnect() 
+                    SpinBotConnection = nil 
+                end
+            end
         end)
 
-        CreateCheckbox(TabRageFunctions, "No Flashbang", 0, 70, false, function(v) NoFlashEnabled = v end) 
+        -- =========================================================
+        -- FLUTUAR (SISTEMA DE APOIO ESTÁTICO)
+        -- =========================================================
+        local plataformas = {}
+        local FlutuarConnection = nil
+        local ultimaPosicao = Vector3.new(0, 0, 0)
+
+        CreateCheckbox(TabRageFunctions, "Flutuar", 0, 70, false, function(v)
+            if v then
+                SalvarNoDiario("Sistema ativado (Flutuar).", "INFO")
+                for i = 1, 2 do
+                    local p = Instance.new("Part")
+                    p.Size = Vector3.new(4, 0.5, 4)
+                    p.Transparency = 1 
+                    p.Anchored = true
+                    p.CanCollide = true
+                    p.Parent = Workspace
+                    table.insert(plataformas, p)
+                end
+
+                FlutuarConnection = RunService.RenderStepped:Connect(function()
+                    local char = LocalPlayer.Character
+                    local hum = char and char:FindFirstChild("Humanoid")
+                    local root = char and char:FindFirstChild("HumanoidRootPart")
+                    
+                    if root and hum then
+                        local estaSeMovendo = hum.MoveDirection.Magnitude > 0
+                        local estaNoAr = (hum:GetState() == Enum.HumanoidStateType.Freefall or hum:GetState() == Enum.HumanoidStateType.Jumping)
+                        
+                        if estaSeMovendo or estaNoAr then
+                            local posBase = root.Position - Vector3.new(0, 3.5, 0)
+                            plataformas[1].CFrame = CFrame.new(posBase)
+                            plataformas[2].CFrame = CFrame.new(posBase + (root.CFrame.LookVector * 2))
+                            ultimaPosicao = posBase
+                        else
+                            plataformas[1].CFrame = CFrame.new(ultimaPosicao)
+                            plataformas[2].CFrame = CFrame.new(ultimaPosicao + (root.CFrame.LookVector * 2))
+                        end
+                    end
+                end)
+            else
+                SalvarNoDiario("Sistema desativado (Flutuar).", "INFO")
+                if FlutuarConnection then 
+                    FlutuarConnection:Disconnect() 
+                    FlutuarConnection = nil 
+                end
+                for _, p in pairs(plataformas) do p:Destroy() end
+                plataformas = {}
+            end
+        end)
+
         CreateCheckbox(TabRageFunctions, "Tp Player", 170, 70, false) 
         CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 105, false, function(v) HitboxEnabled = v end)
 
