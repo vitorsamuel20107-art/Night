@@ -1,4 +1,4 @@
-Local HttpService = game:GetService("HttpService")
+local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -163,7 +163,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local targetParent = gethui and gethui() or (syn and syn.protect_gui and CoreGui or CoreGui)
         if targetParent:FindFirstChild("NIGHT_UI_PixelPerfect") then targetParent.NIGHT_UI_PixelPerfect:Destroy() end
 
-        local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false local NoFlashEnabled = false
+        local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false
         local ESP_Settings = { Lines = false, LineOrigin = "Cima", LineColor = GlobalSettings.ESP_Colors.Lines, Boxes = false, BoxType = "Quadrado", BoxColor = GlobalSettings.ESP_Colors.Boxes, Skeleton = false, SkeletonColor = GlobalSettings.ESP_Colors.Skeleton, Health = false, ChamsColor = Color3.fromRGB(0, 255, 0), RainbowChams = false, MaxDistance = 500, MarcarTodos = false }
         
         local Aimbot_Settings = { Mode = "Nenhum", FovSize = 0, PullPart = "Head", Type = "Ao Olhar", VisibleCheck = false, AimbotNoTime = false, NomeBotaoTiro = "Shoot" }
@@ -547,114 +547,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         CreateCheckbox(TabRageFunctions, "No Smoke", 0, 35, false, function(v) NoSmokeEnabled = v end) 
         
-        -- ---------------------------------------------------------
-        -- CÂMERA 3ª PESSOA (Substituindo Bala Mágica)
-        -- ---------------------------------------------------------
-        local DISTANCIA_TRAS = 7.0
-        local ALTURA_CIMA = 1.5
-        local CameraTraseiraConn = nil
-
-        local function obterRootSeguro()
-            local char = LocalPlayer.Character
-            if char then
-                return char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChildWhichIsA("Part")
-            end
-            return nil
-        end
-
-        local function ajustarVisibilidadePersonagem(char)
-            if not char then return end
-            for _, part in pairs(char:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.LocalTransparencyModifier = 0
-                    if part.Name ~= "HumanoidRootPart" and not part.Name:find("Collision") and not part.Name:find("Hitbox") then
-                        if part.Transparency == 1 and (part:IsA("MeshPart") or part.Name == "Head" or part.Name:find("Torso") or part.Name:find("Arm") or part.Name:find("Leg")) then
-                            part.Transparency = 0
-                        end
-                    end
-                end
-            end
-        end
-
-        _G.TerceiraPessoaAtivada = false
-        CreateCheckbox(TabRageFunctions, "Bala Mágica", 170, 35, false, function(v)
-            _G.TerceiraPessoaAtivada = v
-            
-            if v then
-                SalvarNoDiario("Câmera 3ª Pessoa Ativada", "INFO")
-                if CameraTraseiraConn then CameraTraseiraConn:Disconnect() end
-                
-                Camera.CameraType = Enum.CameraType.Scriptable
-                
-                CameraTraseiraConn = RunService.RenderStepped:Connect(function()
-                    local char = LocalPlayer.Character
-                    local rootPart = obterRootSeguro()
-                    
-                    if not rootPart or not char then return end
-
-                    -- Oculta braços falsos da primeira pessoa
-                    for _, obj in pairs(Camera:GetChildren()) do
-                        if obj:IsA("Model") or obj:IsA("BasePart") then
-                            if obj:IsA("BasePart") then
-                                obj.Transparency = 1
-                            else
-                                for _, p in pairs(obj:GetDescendants()) do
-                                    if p:IsA("BasePart") then p.Transparency = 1 end
-                                end
-                            end
-                        end
-                    end
-
-                    ajustarVisibilidadePersonagem(char)
-
-                    if Camera.CameraType ~= Enum.CameraType.Scriptable then
-                        Camera.CameraType = Enum.CameraType.Scriptable
-                    end
-
-                    local cframeOriginal = Camera.CFrame
-                    local direcaoOlhar = cframeOriginal.LookVector
-
-                    local posicaoFoco = rootPart.Position + Vector3.new(0, ALTURA_CIMA, 0)
-                    local novaPosicaoCamera = posicaoFoco - (direcaoOlhar * DISTANCIA_TRAS)
-
-                    Camera.CFrame = CFrame.lookAt(novaPosicaoCamera, novaPosicaoCamera + direcaoOlhar)
-                end)
-            else
-                SalvarNoDiario("Câmera 3ª Pessoa Desativada", "INFO")
-                if CameraTraseiraConn then
-                    CameraTraseiraConn:Disconnect()
-                    CameraTraseiraConn = nil
-                end
-                
-                Camera.CameraType = Enum.CameraType.Custom
-                
-                -- Restaura braços falsos
-                for _, obj in pairs(Camera:GetChildren()) do
-                    if obj:IsA("Model") or obj:IsA("BasePart") then
-                        if obj:IsA("BasePart") then
-                            obj.Transparency = 0
-                        else
-                            for _, p in pairs(obj:GetDescendants()) do
-                                if p:IsA("BasePart") then p.Transparency = 0 end
-                            end
-                        end
-                    end
-                end
-                
-                -- Restaura corpo para invisível (1ª pessoa)
-                local char = LocalPlayer.Character
-                if char then
-                    for _, part in pairs(char:GetDescendants()) do
-                        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                            part.LocalTransparencyModifier = 1
-                        end
-                    end
-                end
-            end
-        end)
-
-        CreateCheckbox(TabRageFunctions, "No Flashbang", 0, 70, false, function(v) NoFlashEnabled = v end) 
-        CreateCheckbox(TabRageFunctions, "Tp Player", 170, 70, false) CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 105, false, function(v) HitboxEnabled = v end)
+        CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 70, false, function(v) HitboxEnabled = v end)
 
         local ColorPickerLabel = Instance.new("TextLabel", TabRageFunctions) ColorPickerLabel.Size = UDim2.new(1, -10, 0, 25) ColorPickerLabel.Position = UDim2.new(0, 0, 0, 145) ColorPickerLabel.BackgroundTransparency = 1 ColorPickerLabel.Text = "Cores Customizáveis" ColorPickerLabel.TextColor3 = C_WHITE ColorPickerLabel.Font = Enum.Font.GothamBold ColorPickerLabel.TextSize = 14 ColorPickerLabel.TextXAlignment = Enum.TextXAlignment.Left
         local ColorButtonsFrame = Instance.new("ScrollingFrame", TabRageFunctions) ColorButtonsFrame.Size = UDim2.new(1, -20, 0, 48) ColorButtonsFrame.Position = UDim2.new(0, 0, 0, 175) ColorButtonsFrame.BackgroundTransparency = 1 ColorButtonsFrame.CanvasSize = UDim2.new(0, 0, 0, 0) ColorButtonsFrame.AutomaticCanvasSize = Enum.AutomaticSize.X ColorButtonsFrame.ScrollBarThickness = 3 ColorButtonsFrame.ScrollingDirection = Enum.ScrollingDirection.X ColorButtonsFrame.ClipsDescendants = true
