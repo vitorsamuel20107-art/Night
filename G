@@ -1,4 +1,4 @@
-Local HttpService = game:GetService("HttpService")
+local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -42,13 +42,18 @@ local function SalvarNoDiario(msg, status)
             local textoFinal = string.format("[%s] [%s] :: %s", t, status, tostring(msg))
             local invertido = string.reverse(textoFinal)
             local logOfuscado = toBase64(invertido) .. "\n"
+            
+            -- Verifica se a função existe antes de chamar
             if type(appendfile) == "function" then
                 appendfile(log_file, logOfuscado)
-            elseif type(writefile) == "function" and type(readfile) == "function" and type(isfile) == "function" and isfile(log_file) then
-                local antigo = readfile(log_file)
-                writefile(log_file, antigo .. logOfuscado)
             elseif type(writefile) == "function" then
-                writefile(log_file, logOfuscado)
+                local conteudo = ""
+                if type(isfile) == "function" and isfile(log_file) and type(readfile) == "function" then
+                    conteudo = readfile(log_file)
+                end
+                writefile(log_file, conteudo .. logOfuscado)
+            else
+                RobloxWarn("Erro: Sistema de arquivos não suportado pelo executor.")
             end
         end)
     end)
