@@ -625,7 +625,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         -- LÓGICA INDEPENDENTE: SpinBot
         local VelocidadeGiro = 35
         local anguloAtual = 0
-        RunService.RenderStepped:Connect(function(deltaTime)
+        -- Alterado de RenderStepped para Heartbeat para permitir que a física do movimento processe antes
+        RunService.Heartbeat:Connect(function(deltaTime)
             local char = LocalPlayer.Character
             local root = char and char:FindFirstChild("HumanoidRootPart")
             local hum = char and char:FindFirstChild("Humanoid")
@@ -635,9 +636,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                     anguloAtual = (anguloAtual + VelocidadeGiro) % 360
                     hum.AutoRotate = false
                     
-                    local velocidadeMovimento = root.AssemblyLinearVelocity
+                    -- Aplica o CFrame mesclando com a posição atual, preservando o deslocamento físico gerado pelo WASD/Joystick no frame
                     root.CFrame = CFrame.new(root.Position) * CFrame.Angles(0, math.rad(anguloAtual), 0)
-                    root.AssemblyLinearVelocity = velocidadeMovimento
                 end
             else
                 if hum then
