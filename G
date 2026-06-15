@@ -172,14 +172,11 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         
         local LockedTarget = nil local IsTouchingScreen = false
 
-        -- Filtro inteligente aplicado ao botão real capturado:
-        UserInputService.InputBegan:Connect(function(input, gpe)
-            if gpe and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1) then
+        UserInputService.InputBegan:Connect(function(input, processed)
+            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local guis = LocalPlayer.PlayerGui:GetGuiObjectsAtPosition(input.Position.X, input.Position.Y)
-                
-                -- Varre todas as camadas tocadas para garantir a ativação pelo botão correto
                 for _, obj in ipairs(guis) do
-                    if obj.Name == Aimbot_Settings.NomeBotaoTiro then
+                    if obj.Name == Aimbot_Settings.NomeBotaoTiro and (obj:IsA("GuiButton") or obj:IsA("PluginDragEvent") or obj:IsA("ImageButton") or obj:IsA("TextButton")) then
                         IsTouchingScreen = true
                         break
                     end
@@ -615,11 +612,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local SpinBotAtivo = false
         CreateCheckbox(TabRageFunctions, "SpinBot", 170, 35, false, function(v)
             SpinBotAtivo = v
-            if v then
-                SalvarNoDiario("SpinBot ativado com sucesso.", "INFO")
-            else
-                SalvarNoDiario("SpinBot desativado.", "INFO")
-            end
         end)
 
         CreateCheckbox(TabRageFunctions, "Flutuar", 0, 70, false, function(v) 
@@ -631,15 +623,18 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 105, false, function(v) HitboxEnabled = v end)
 
         -- LÓGICA INDEPENDENTE: SpinBot
+        local VelocidadeGiro = 35
         local anguloAtual = 0
         RunService.RenderStepped:Connect(function(deltaTime)
             if FunctionsEnabled and SpinBotAtivo then
                 local char = LocalPlayer.Character
-                if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 then
-                    anguloAtual = anguloAtual + math.rad(500 * deltaTime)
-                    if anguloAtual >= (math.pi * 2) then anguloAtual = anguloAtual - (math.pi * 2) end
-                    -- Mantém a posição intacta e gira apenas o CFrame no eixo Y perfeitamente:
-                    char.HumanoidRootPart.CFrame = CFrame.new(char.HumanoidRootPart.Position) * CFrame.Angles(0, anguloAtual, 0)
+                local root = char and char:FindFirstChild("HumanoidRootPart")
+                local hum = char and char:FindFirstChild("Humanoid")
+                
+                if root and hum and hum.Health > 0 then
+                    anguloAtual = (anguloAtual + VelocidadeGiro) % 360
+                    local posicaoAtual = root.Position
+                    root.CFrame = CFrame.new(posicaoAtual) * CFrame.Angles(0, math.rad(anguloAtual), 0)
                 end
             end
         end)
