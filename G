@@ -1,4 +1,4 @@
-local HttpService = game:GetService("HttpService")
+Local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -42,18 +42,13 @@ local function SalvarNoDiario(msg, status)
             local textoFinal = string.format("[%s] [%s] :: %s", t, status, tostring(msg))
             local invertido = string.reverse(textoFinal)
             local logOfuscado = toBase64(invertido) .. "\n"
-            
-            -- Verifica se a função existe antes de chamar
             if type(appendfile) == "function" then
                 appendfile(log_file, logOfuscado)
+            elseif type(writefile) == "function" and type(readfile) == "function" and type(isfile) == "function" and isfile(log_file) then
+                local antigo = readfile(log_file)
+                writefile(log_file, antigo .. logOfuscado)
             elseif type(writefile) == "function" then
-                local conteudo = ""
-                if type(isfile) == "function" and isfile(log_file) and type(readfile) == "function" then
-                    conteudo = readfile(log_file)
-                end
-                writefile(log_file, conteudo .. logOfuscado)
-            else
-                RobloxWarn("Erro: Sistema de arquivos não suportado pelo executor.")
+                writefile(log_file, logOfuscado)
             end
         end)
     end)
@@ -177,11 +172,14 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         
         local LockedTarget = nil local IsTouchingScreen = false
 
-        UserInputService.InputBegan:Connect(function(input, processed)
-            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        -- Filtro inteligente aplicado ao botão real capturado:
+        UserInputService.InputBegan:Connect(function(input, gpe)
+            if gpe and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1) then
                 local guis = LocalPlayer.PlayerGui:GetGuiObjectsAtPosition(input.Position.X, input.Position.Y)
+                
+                -- Varre todas as camadas tocadas para garantir a ativação pelo botão correto
                 for _, obj in ipairs(guis) do
-                    if obj.Name == Aimbot_Settings.NomeBotaoTiro and (obj:IsA("GuiButton") or obj:IsA("PluginDragEvent") or obj:IsA("ImageButton") or obj:IsA("TextButton")) then
+                    if obj.Name == Aimbot_Settings.NomeBotaoTiro then
                         IsTouchingScreen = true
                         break
                     end
@@ -614,17 +612,13 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         CreateCheckbox(TabRageFunctions, "No Smoke", 0, 35, false, function(v) NoSmokeEnabled = v end) 
         
-        -- VARIÁVEIS LOCAIS DO SPINBOT
         local SpinBotAtivo = false
-        local VelocidadeGiroSpin = 35
-        local AnguloAtualSpin = 0
-
-        CreateCheckbox(TabRageFunctions, "Spin bot (teste)", 170, 35, false, function(v)
+        CreateCheckbox(TabRageFunctions, "SpinBot", 170, 35, false, function(v)
             SpinBotAtivo = v
             if v then
-                SalvarNoDiario("SpinBot (Teste) Ativado.", "INFO")
+                SalvarNoDiario("SpinBot ativado com sucesso.", "INFO")
             else
-                SalvarNoDiario("SpinBot (Teste) Desativado.", "INFO")
+                SalvarNoDiario("SpinBot desativado.", "INFO")
             end
         end)
 
@@ -636,28 +630,18 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CreateCheckbox(TabRageFunctions, "Tp Player", 170, 70, false) 
         CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 105, false, function(v) HitboxEnabled = v end)
 
-        -- LÓGICA INDEPENDENTE: SpinBot (ATUALIZADA)
-        RunService.RenderStepped:Connect(function()
-            pcall(function()
-                if FunctionsEnabled and SpinBotAtivo then
-                    local char = LocalPlayer.Character
-                    if char then
-                        local root = char:FindFirstChild("HumanoidRootPart")
-                        local hum = char:FindFirstChild("Humanoid")
-                        
-                        if root and hum and hum.Health > 0 then
-                            -- 1. Incrementa o ângulo constantemente para criar o giro
-                            AnguloAtualSpin = (AnguloAtualSpin + VelocidadeGiroSpin) % 360
-                            
-                            -- 2. Mantém a posição X, Y, Z original do boneco
-                            local posicaoAtual = root.Position
-                            
-                            -- 3. Aplica o giro pelo CFrame de forma suave
-                            root.CFrame = CFrame.new(posicaoAtual) * CFrame.Angles(0, math.rad(AnguloAtualSpin), 0)
-                        end
-                    end
+        -- LÓGICA INDEPENDENTE: SpinBot
+        local anguloAtual = 0
+        RunService.RenderStepped:Connect(function(deltaTime)
+            if FunctionsEnabled and SpinBotAtivo then
+                local char = LocalPlayer.Character
+                if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 then
+                    anguloAtual = anguloAtual + math.rad(500 * deltaTime)
+                    if anguloAtual >= (math.pi * 2) then anguloAtual = anguloAtual - (math.pi * 2) end
+                    -- Mantém a posição intacta e gira apenas o CFrame no eixo Y perfeitamente:
+                    char.HumanoidRootPart.CFrame = CFrame.new(char.HumanoidRootPart.Position) * CFrame.Angles(0, anguloAtual, 0)
                 end
-            end)
+            end
         end)
 
         -- =========================================================
