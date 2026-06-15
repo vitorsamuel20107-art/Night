@@ -1,4 +1,4 @@
-local HttpService = game:GetService("HttpService")
+Local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -626,15 +626,22 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local VelocidadeGiro = 35
         local anguloAtual = 0
         RunService.RenderStepped:Connect(function(deltaTime)
+            local char = LocalPlayer.Character
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            local hum = char and char:FindFirstChild("Humanoid")
+            
             if FunctionsEnabled and SpinBotAtivo then
-                local char = LocalPlayer.Character
-                local root = char and char:FindFirstChild("HumanoidRootPart")
-                local hum = char and char:FindFirstChild("Humanoid")
-                
                 if root and hum and hum.Health > 0 then
                     anguloAtual = (anguloAtual + VelocidadeGiro) % 360
-                    local posicaoAtual = root.Position
-                    root.CFrame = CFrame.new(posicaoAtual) * CFrame.Angles(0, math.rad(anguloAtual), 0)
+                    hum.AutoRotate = false
+                    
+                    local velocidadeMovimento = root.AssemblyLinearVelocity
+                    root.CFrame = CFrame.new(root.Position) * CFrame.Angles(0, math.rad(anguloAtual), 0)
+                    root.AssemblyLinearVelocity = velocidadeMovimento
+                end
+            else
+                if hum then
+                    hum.AutoRotate = true
                 end
             end
         end)
