@@ -74,6 +74,18 @@ end)
 SalvarNoDiario("DIÁRIO PRIVADO NIGHT ATIVADO", "INFO")
 
 local ExecucaoSegura, ErroFatal = pcall(function()
+    -- Caching de Variáveis Globais Matemáticas e Construtores (Otimização de Memória)
+    local Vector3_new = Vector3.new
+    local Vector2_new = Vector2.new
+    local CFrame_new = CFrame.new
+    local CFrame_Angles = CFrame.Angles
+    local Color3_fromRGB = Color3.fromRGB
+    local math_clamp = math.clamp
+    local math_tan = math.tan
+    local math_rad = math.rad
+    local math_huge = math.huge
+    local math_floor = math.floor
+
     local CoreGui = game:GetService("CoreGui")
     local UserInputService = game:GetService("UserInputService")
     local RunService = game:GetService("RunService")
@@ -85,7 +97,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
     local Workspace = game:GetService("Workspace")
     
     local LocalPlayer = Players.LocalPlayer
-    local Camera = workspace.CurrentCamera
+    local Camera = Workspace.CurrentCamera
 
     local IsAdmin = false
     local AdminList = {"mayra", "william"}
@@ -121,10 +133,10 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
     local function toHex(color) return string.format("#%02X%02X%02X", color.R*255, color.G*255, color.B*255) end
     local function fromHex(hex)
-        if hex == "RAINBOW" then return Color3.fromRGB(255, 0, 0) end
+        if hex == "RAINBOW" then return Color3_fromRGB(255, 0, 0) end
         local r, g, b = hex:match("#(%x%x)(%x%x)(%x%x)")
-        if r and g and b then return Color3.fromRGB(tonumber(r, 16), tonumber(g, 16), tonumber(b, 16)) end
-        return Color3.fromRGB(255, 0, 0)
+        if r and g and b then return Color3_fromRGB(tonumber(r, 16), tonumber(g, 16), tonumber(b, 16)) end
+        return Color3_fromRGB(255, 0, 0)
     end
 
     local function SaveAllSettings() 
@@ -166,7 +178,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false
         local FlutuarAtivo = false
         
-        local ESP_Settings = { Lines = false, LineOrigin = "Cima", LineColor = GlobalSettings.ESP_Colors.Lines, Boxes = false, BoxType = "Quadrado", BoxColor = GlobalSettings.ESP_Colors.Boxes, Skeleton = false, SkeletonColor = GlobalSettings.ESP_Colors.Skeleton, Health = false, ChamsColor = Color3.fromRGB(0, 255, 0), RainbowChams = false, MaxDistance = 500, MarcarTodos = false }
+        local ESP_Settings = { Lines = false, LineOrigin = "Cima", LineColor = GlobalSettings.ESP_Colors.Lines, Boxes = false, BoxType = "Quadrado", BoxColor = GlobalSettings.ESP_Colors.Boxes, Skeleton = false, SkeletonColor = GlobalSettings.ESP_Colors.Skeleton, Health = false, ChamsColor = Color3_fromRGB(0, 255, 0), RainbowChams = false, MaxDistance = 500, MarcarTodos = false }
         
         local Aimbot_Settings = { Mode = "Nenhum", FovSize = 0, PullPart = "Head", Type = "Ao Olhar", VisibleCheck = false, AimbotNoTime = false, NomeBotaoTiro = "Shoot" }
         
@@ -196,7 +208,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         if syn and syn.protect_gui then syn.protect_gui(ScreenGui) end
         ScreenGui.Parent = targetParent
 
-        local C_BLACK = Color3.fromRGB(0, 0, 0) local C_DARK_GREY = Color3.fromRGB(42, 42, 42) local C_WHITE = Color3.fromRGB(255, 255, 255)
+        local C_BLACK = Color3_fromRGB(0, 0, 0) local C_DARK_GREY = Color3_fromRGB(42, 42, 42) local C_WHITE = Color3_fromRGB(255, 255, 255)
         local CurrentTheme = fromHex(GlobalSettings.ThemeHex)
         local ThemeElements = { Backgrounds = {}, Strokes = {}, Texts = {} }
         local ThemeCallbacks = {}
@@ -213,15 +225,15 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         local TopRightOverlay = Instance.new("Frame", ScreenGui) TopRightOverlay.Size = UDim2.new(0, 120, 0, 50) TopRightOverlay.Position = UDim2.new(1, -130, 0, 40) TopRightOverlay.BackgroundTransparency = 1
         local FPSGui = Instance.new("Frame", TopRightOverlay) FPSGui.Size = UDim2.new(1, 0, 0, 20) FPSGui.BackgroundTransparency = 1 
-        local FPSText = Instance.new("TextLabel", FPSGui) FPSText.Size = UDim2.new(1, 0, 1, 0) FPSText.BackgroundTransparency = 1 FPSText.TextColor3 = Color3.fromRGB(0, 255, 100) FPSText.Text = "FPS: 60" FPSText.Font = Enum.Font.GothamBold FPSText.TextSize = 14 FPSText.TextXAlignment = Enum.TextXAlignment.Right
+        local FPSText = Instance.new("TextLabel", FPSGui) FPSText.Size = UDim2.new(1, 0, 1, 0) FPSText.BackgroundTransparency = 1 FPSText.TextColor3 = Color3_fromRGB(0, 255, 100) FPSText.Text = "FPS: 60" FPSText.Font = Enum.Font.GothamBold FPSText.TextSize = 14 FPSText.TextXAlignment = Enum.TextXAlignment.Right
         local PingGui = Instance.new("Frame", TopRightOverlay) PingGui.Size = UDim2.new(1, 0, 0, 20) PingGui.Position = UDim2.new(0, 0, 0, 20) PingGui.BackgroundTransparency = 1
-        local PingText = Instance.new("TextLabel", PingGui) PingText.Size = UDim2.new(1, 0, 1, 0) PingText.BackgroundTransparency = 1 PingText.TextColor3 = Color3.fromRGB(0, 255, 100) PingText.Text = "Ping: 52 ms" PingText.Font = Enum.Font.GothamBold PingText.TextSize = 14 PingText.TextXAlignment = Enum.TextXAlignment.Right
+        local PingText = Instance.new("TextLabel", PingGui) PingText.Size = UDim2.new(1, 0, 1, 0) PingText.BackgroundTransparency = 1 PingText.TextColor3 = Color3_fromRGB(0, 255, 100) PingText.Text = "Ping: 52 ms" PingText.Font = Enum.Font.GothamBold PingText.TextSize = 14 PingText.TextXAlignment = Enum.TextXAlignment.Right
 
-        local FOVCircle = Instance.new("Frame", ScreenGui) FOVCircle.Size = UDim2.new(0, 0, 0, 0) FOVCircle.Position = UDim2.new(0.5, 0, 0.5, 0) FOVCircle.AnchorPoint = Vector2.new(0.5, 0.5) FOVCircle.BackgroundTransparency = 1 FOVCircle.Visible = false Instance.new("UICorner", FOVCircle).CornerRadius = UDim.new(1, 0)
+        local FOVCircle = Instance.new("Frame", ScreenGui) FOVCircle.Size = UDim2.new(0, 0, 0, 0) FOVCircle.Position = UDim2.new(0.5, 0, 0.5, 0) FOVCircle.AnchorPoint = Vector2_new(0.5, 0.5) FOVCircle.BackgroundTransparency = 1 FOVCircle.Visible = false Instance.new("UICorner", FOVCircle).CornerRadius = UDim.new(1, 0)
         local FOVStroke = Instance.new("UIStroke", FOVCircle) FOVStroke.Color = CurrentTheme FOVStroke.Thickness = 1.5 table.insert(ThemeElements.Strokes, FOVStroke) 
         local function UpdateFOVVisibility() FOVCircle.Visible = (FunctionsEnabled and FovEnabled) end
 
-        local MainFrame = Instance.new("Frame", ScreenGui) MainFrame.Size = UDim2.new(0, 490, 0, 310) MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0) MainFrame.AnchorPoint = Vector2.new(0.5, 0.5) MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12) MainFrame.BorderSizePixel = 0 MainFrame.Active = true MainFrame.ClipsDescendants = true MainFrame.Visible = false Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
+        local MainFrame = Instance.new("Frame", ScreenGui) MainFrame.Size = UDim2.new(0, 490, 0, 310) MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0) MainFrame.AnchorPoint = Vector2_new(0.5, 0.5) MainFrame.BackgroundColor3 = Color3_fromRGB(12, 12, 12) MainFrame.BorderSizePixel = 0 MainFrame.Active = true MainFrame.ClipsDescendants = true MainFrame.Visible = false Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
         local MainScale = Instance.new("UIScale", MainFrame) MainScale.Scale = 0 
 
         local TopBar = Instance.new("Frame", MainFrame) TopBar.Size = UDim2.new(1, 0, 0, 30) TopBar.BackgroundColor3 = CurrentTheme TopBar.BorderSizePixel = 0 table.insert(ThemeElements.Backgrounds, TopBar) Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 8)
@@ -339,7 +351,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         UserInputService.InputChanged:Connect(function(input) if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + (input.Position - dragStart).X, startPos.Y.Scale, startPos.Y.Offset + (input.Position - dragStart).Y) end end)
         UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end end)
 
-        local SideBar = Instance.new("Frame", MainFrame) SideBar.Size = UDim2.new(0, 70, 1, -30) SideBar.Position = UDim2.new(0, 0, 0, 30) SideBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20) SideBar.BorderSizePixel = 0
+        local SideBar = Instance.new("Frame", MainFrame) SideBar.Size = UDim2.new(0, 70, 1, -30) SideBar.Position = UDim2.new(0, 0, 0, 30) SideBar.BackgroundColor3 = Color3_fromRGB(20, 20, 20) SideBar.BorderSizePixel = 0
         local TabContainer = Instance.new("Frame", MainFrame) TabContainer.Size = UDim2.new(1, -85, 1, -50) TabContainer.Position = UDim2.new(0, 80, 0, 45) TabContainer.BackgroundTransparency = 1 TabContainer.ClipsDescendants = true 
 
         local Tabs = {}
@@ -392,12 +404,12 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local function CreateSlider(parent, label, defaultVal, x, y, action)
             local currentVal = GlobalSettings.Sliders[label] if currentVal == nil then currentVal = defaultVal end GlobalSettings.Sliders[label] = currentVal
             local container = Instance.new("Frame", parent) container.Size = UDim2.new(0, 230, 0, 25) container.Position = UDim2.new(0, x, 0, y) container.BackgroundColor3 = C_DARK_GREY Instance.new("UICorner", container).CornerRadius = UDim.new(0, 6)
-            local fill = Instance.new("Frame", container) fill.Size = UDim2.new(math.clamp(currentVal / 1000, 0, 1), 0, 1, 0) fill.BackgroundColor3 = CurrentTheme Instance.new("UICorner", fill).CornerRadius = UDim.new(0, 6) table.insert(ThemeCallbacks, function(color) fill.BackgroundColor3 = color end)
+            local fill = Instance.new("Frame", container) fill.Size = UDim2.new(math_clamp(currentVal / 1000, 0, 1), 0, 1, 0) fill.BackgroundColor3 = CurrentTheme Instance.new("UICorner", fill).CornerRadius = UDim.new(0, 6) table.insert(ThemeCallbacks, function(color) fill.BackgroundColor3 = color end)
             local valText = Instance.new("TextLabel", container) valText.Size = UDim2.new(1, 0, 1, 0) valText.BackgroundTransparency = 1 valText.Text = string.format("%.1f", currentVal) valText.TextColor3 = C_WHITE  
             local draggingSlider = false 
             
             local function UpdateSlider(input) 
-                local pos = math.clamp((input.Position.X - container.AbsolutePosition.X) / container.AbsoluteSize.X, 0, 1) 
+                local pos = math_clamp((input.Position.X - container.AbsolutePosition.X) / container.AbsoluteSize.X, 0, 1) 
                 fill.Size = UDim2.new(pos, 0, 1, 0) 
                 local finalVal = pos * 1000 
                 valText.Text = string.format("%.1f", finalVal) 
@@ -452,7 +464,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             for i, option in ipairs(options) do
                 local btnGroup = Instance.new("TextButton", parent) btnGroup.Size = UDim2.new(0, 95, 0, 25) btnGroup.Position = UDim2.new(0, x + offsetX, 0, y + 25) btnGroup.BackgroundTransparency = 1 btnGroup.Text = ""  
                 local outerGroup = Instance.new("Frame", btnGroup) outerGroup.Size = UDim2.new(0, 20, 0, 20) outerGroup.Position = UDim2.new(0, 0, 0, 2) outerGroup.BackgroundColor3 = C_DARK_GREY Instance.new("UICorner", outerGroup).CornerRadius = UDim.new(1, 0)  
-                local innerGroup = Instance.new("Frame", outerGroup) innerGroup.Size = UDim2.new(0, 12, 0, 12) innerGroup.Position = UDim2.new(0.5, 0, 0.5, 0) innerGroup.AnchorPoint = Vector2.new(0.5, 0.5) innerGroup.BackgroundColor3 = CurrentTheme innerGroup.Visible = (option == currentOpt) Instance.new("UICorner", innerGroup).CornerRadius = UDim.new(1, 0) table.insert(ThemeCallbacks, function(color) if innerGroup.Visible then innerGroup.BackgroundColor3 = color end end)
+                local innerGroup = Instance.new("Frame", outerGroup) innerGroup.Size = UDim2.new(0, 12, 0, 12) innerGroup.Position = UDim2.new(0.5, 0, 0.5, 0) innerGroup.AnchorPoint = Vector2_new(0.5, 0.5) innerGroup.BackgroundColor3 = CurrentTheme innerGroup.Visible = (option == currentOpt) Instance.new("UICorner", innerGroup).CornerRadius = UDim.new(1, 0) table.insert(ThemeCallbacks, function(color) if innerGroup.Visible then innerGroup.BackgroundColor3 = color end end)
                 local lblGroupInner = Instance.new("TextLabel", btnGroup) lblGroupInner.Size = UDim2.new(1, -25, 1, 0) lblGroupInner.Position = UDim2.new(0, 25, 0, 0) lblGroupInner.BackgroundTransparency = 1 lblGroupInner.Text = option lblGroupInner.TextColor3 = C_WHITE lblGroupInner.Font = Enum.Font.GothamBold lblGroupInner.TextSize = 14 lblGroupInner.TextXAlignment = Enum.TextXAlignment.Left table.insert(radioGroupData, innerGroup)
                 btnGroup.MouseButton1Click:Connect(function() for _, inner in ipairs(radioGroupData) do inner.Visible = false end innerGroup.Visible = true innerGroup.BackgroundColor3 = CurrentTheme GlobalSettings.Dropdowns[textGroup] = option SaveAllSettings() if action then action(option) end end) offsetX = offsetX + 100
             end
@@ -481,7 +493,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         -- =============================================================================
         local PlataformasFlutuar = {}
         local ConexaoFlutuar = nil
-        local UltimaPosicaoFlutuar = Vector3.new(0, 0, 0)
+        local UltimaPosicaoFlutuar = Vector3_new(0, 0, 0)
 
         local function AtualizarPlataformasEstaticas()
             if ConexaoFlutuar then ConexaoFlutuar:Disconnect() ConexaoFlutuar = nil end
@@ -495,8 +507,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 for i = 1, 2 do
                     local p = Instance.new("Part")
                     p.Name = "NIGHT_PlataformaEstatica_" .. i
-                    p.Size = Vector3.new(4, 0.5, 4)
-                    p.Transparency = 1 -- Totalmente invisível
+                    p.Size = Vector3_new(4, 0.5, 4)
+                    p.Transparency = 1
                     p.Anchored = true
                     p.CanCollide = true
                     p.Parent = Workspace
@@ -504,28 +516,27 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 end
 
                 ConexaoFlutuar = RunService.RenderStepped:Connect(function()
-                    pcall(function()
-                        if not (FunctionsEnabled and FlutuarAtivo) then return end
+                    -- REMOVIDO PCALL AQUI: Operação segura e otimizada
+                    if not (FunctionsEnabled and FlutuarAtivo) then return end
 
-                        local char = LocalPlayer.Character
-                        local hum = char and char:FindFirstChild("Humanoid")
-                        local root = char and char:FindFirstChild("HumanoidRootPart")
+                    local char = LocalPlayer.Character
+                    local hum = char and char:FindFirstChild("Humanoid")
+                    local root = char and char:FindFirstChild("HumanoidRootPart")
+                    
+                    if root and hum and hum.Health > 0 and #PlataformasFlutuar == 2 then
+                        local estaSeMovendo = hum.MoveDirection.Magnitude > 0
+                        local estaNoAr = (hum:GetState() == Enum.HumanoidStateType.Freefall or hum:GetState() == Enum.HumanoidStateType.Jumping)
                         
-                        if root and hum and hum.Health > 0 and #PlataformasFlutuar == 2 then
-                            local estaSeMovendo = hum.MoveDirection.Magnitude > 0
-                            local estaNoAr = (hum:GetState() == Enum.HumanoidStateType.Freefall or hum:GetState() == Enum.HumanoidStateType.Jumping)
-                            
-                            if estaSeMovendo or estaNoAr then
-                                local posBase = root.Position - Vector3.new(0, 3.5, 0)
-                                PlataformasFlutuar[1].CFrame = CFrame.new(posBase)
-                                PlataformasFlutuar[2].CFrame = CFrame.new(posBase + (root.CFrame.LookVector * 2))
-                                UltimaPosicaoFlutuar = posBase
-                            else
-                                PlataformasFlutuar[1].CFrame = CFrame.new(UltimaPosicaoFlutuar)
-                                PlataformasFlutuar[2].CFrame = CFrame.new(UltimaPosicaoFlutuar + (root.CFrame.LookVector * 2))
-                            end
+                        if estaSeMovendo or estaNoAr then
+                            local posBase = root.Position - Vector3_new(0, 3.5, 0)
+                            PlataformasFlutuar[1].CFrame = CFrame_new(posBase)
+                            PlataformasFlutuar[2].CFrame = CFrame_new(posBase + (root.CFrame.LookVector * 2))
+                            UltimaPosicaoFlutuar = posBase
+                        else
+                            PlataformasFlutuar[1].CFrame = CFrame_new(UltimaPosicaoFlutuar)
+                            PlataformasFlutuar[2].CFrame = CFrame_new(UltimaPosicaoFlutuar + (root.CFrame.LookVector * 2))
                         end
-                    end)
+                    end
                 end)
             else
                 SalvarNoDiario("Sistema Flutuar desativado.", "INFO")
@@ -537,7 +548,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             FunctionsEnabled = s 
             UpdateFOVVisibility() 
             if not s then LockedTarget = nil end 
-            AtualizarPlataformasEstaticas() -- Sincroniza o flutuar com o Master Toggle
+            AtualizarPlataformasEstaticas()
         end)
         
         CreateCheckbox(TabAimbot, "Exibir FOV", 0, 35, false, function(s) FovEnabled = s UpdateFOVVisibility() end)
@@ -567,7 +578,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         local ESP_X = 15 local DROPDOWN_X = 160 
         local function CreateComboDropdownParent(parent, text, options, defaultOption, x, y, cbAction, dropAction) local container = Instance.new("Frame", parent) container.Size = UDim2.new(0, 320, 0, 25) container.Position = UDim2.new(0, x, 0, y) container.BackgroundTransparency = 1 CreateCheckbox(container, text, 0, 0, false, cbAction) CreateDropdown(container, text.."_Opt", options, DROPDOWN_X, 0, defaultOption, dropAction, false) return container end
-        local Chams_Colors_Map = { ["Verde"] = Color3.fromRGB(0, 255, 0), ["Vermelho"] = Color3.fromRGB(255, 0, 0), ["Roxo"] = Color3.fromRGB(150, 0, 255), ["Azul"] = Color3.fromRGB(0, 100, 255), ["Preto"] = Color3.fromRGB(0, 0, 0), ["Branco"] = Color3.fromRGB(255, 255, 255), ["Cinza"] = Color3.fromRGB(128, 128, 128), ["rainbow"] = "rainbow" }
+        local Chams_Colors_Map = { ["Verde"] = Color3_fromRGB(0, 255, 0), ["Vermelho"] = Color3_fromRGB(255, 0, 0), ["Roxo"] = Color3_fromRGB(150, 0, 255), ["Azul"] = Color3_fromRGB(0, 100, 255), ["Preto"] = Color3_fromRGB(0, 0, 0), ["Branco"] = Color3_fromRGB(255, 255, 255), ["Cinza"] = Color3_fromRGB(128, 128, 128), ["rainbow"] = "rainbow" }
         local CoresContainer = Instance.new("Frame", TabESP) CoresContainer.Size = UDim2.new(0, 150, 0, 25) CoresContainer.Position = UDim2.new(0, ESP_X + DROPDOWN_X, 0, 80) CoresContainer.BackgroundTransparency = 1 CoresContainer.Visible = false 
         CreateDropdown(CoresContainer, "ChamsColor", {"Verde", "Vermelho", "Roxo", "Azul", "Preto", "Branco", "Cinza", "rainbow"}, 0, 0, "Verde", function(option) if option == "rainbow" then ESP_Settings.RainbowChams = true else ESP_Settings.RainbowChams = false ESP_Settings.ChamsColor = Chams_Colors_Map[option] end end, false)
 
@@ -625,7 +636,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         -- LÓGICA INDEPENDENTE: SpinBot
         local VelocidadeGiro = 35
         local anguloAtual = 0
-        -- Alterado de RenderStepped para Heartbeat para permitir que a física do movimento processe antes
         RunService.Heartbeat:Connect(function(deltaTime)
             local char = LocalPlayer.Character
             local root = char and char:FindFirstChild("HumanoidRootPart")
@@ -635,14 +645,10 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 if root and hum and hum.Health > 0 then
                     anguloAtual = (anguloAtual + VelocidadeGiro) % 360
                     hum.AutoRotate = false
-                    
-                    -- Aplica o CFrame mesclando com a posição atual, preservando o deslocamento físico gerado pelo WASD/Joystick no frame
-                    root.CFrame = CFrame.new(root.Position) * CFrame.Angles(0, math.rad(anguloAtual), 0)
+                    root.CFrame = CFrame_new(root.Position) * CFrame_Angles(0, math_rad(anguloAtual), 0)
                 end
             else
-                if hum then
-                    hum.AutoRotate = true
-                end
+                if hum then hum.AutoRotate = true end
             end
         end)
 
@@ -658,9 +664,24 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         _G.FreeCamAtiva = false
 
         local conexaoLoopCam = nil
-        local posicaoFreeCam = Vector3.new(0,0,0)
+        local posicaoFreeCam = Vector3_new(0,0,0)
         local direcoesVoo = {frente = 0, tras = 0, esquerda = 0, direita = 0, cima = 0, baixo = 0}
         local backupCameraViewmodel = {}
+        
+        -- Cache local do personagem para otimização em vez de :GetDescendants a cada frame
+        local cachedCharParts = {}
+        
+        local function atualizarCachePersonagem()
+            table.clear(cachedCharParts)
+            local char = LocalPlayer.Character
+            if char then
+                for _, part in ipairs(char:GetDescendants()) do
+                    if part:IsA("BasePart") and not part.Name:find("Collision") and not part.Name:find("Hitbox") and part.Name ~= "HumanoidRootPart" then
+                        table.insert(cachedCharParts, part)
+                    end
+                end
+            end
+        end
 
         local function obterHumanoidSeguro()
             local char = LocalPlayer.Character
@@ -694,10 +715,9 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 if part and part.Parent then part.Transparency = trans end 
             end
             table.clear(backupCameraViewmodel)
-            local char = LocalPlayer.Character
-            if char then
-                for _, part in pairs(char:GetDescendants()) do
-                    if part:IsA("BasePart") then part.LocalTransparencyModifier = 1 end
+            for i = 1, #cachedCharParts do
+                if cachedCharParts[i] and cachedCharParts[i].Parent then
+                    cachedCharParts[i].LocalTransparencyModifier = 1
                 end
             end
         end
@@ -709,14 +729,14 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 return
             end
             
+            atualizarCachePersonagem()
             Camera.CameraType = Enum.CameraType.Scriptable
             local root = obterRootSeguro()
             if root and _G.FreeCamAtiva then
-                posicaoFreeCam = root.Position + Vector3.new(0, ALTURA_CIMA, 0)
+                posicaoFreeCam = root.Position + Vector3_new(0, ALTURA_CIMA, 0)
             end
 
             conexaoLoopCam = RunService.RenderStepped:Connect(function()
-                local char = LocalPlayer.Character
                 local rootPart = obterRootSeguro()
                 local hum = obterHumanoidSeguro()
                 
@@ -733,11 +753,9 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                     end
                 end
 
-                if char then
-                    for _, part in pairs(char:GetDescendants()) do
-                        if part:IsA("BasePart") and not part.Name:find("Collision") and not part.Name:find("Hitbox") and part.Name ~= "HumanoidRootPart" then
-                            part.LocalTransparencyModifier = 0 
-                        end
+                for i = 1, #cachedCharParts do
+                    if cachedCharParts[i] and cachedCharParts[i].Parent then
+                        cachedCharParts[i].LocalTransparencyModifier = 0
                     end
                 end
 
@@ -746,19 +764,19 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
                 if _G.FreeCamAtiva then
                     if hum then hum.PlatformStand = true end 
-                    local movimento = Vector3.new(0,0,0)
+                    local movimento = Vector3_new(0,0,0)
                     movimento = movimento + (direcaoOlhar * (direcoesVoo.frente - direcoesVoo.tras))
                     movimento = movimento + (direcaoLado * (direcoesVoo.direita - direcoesVoo.esquerda))
-                    movimento = movimento + (Vector3.new(0, 1, 0) * (direcoesVoo.cima - direcoesVoo.baixo))
+                    movimento = movimento + (Vector3_new(0, 1, 0) * (direcoesVoo.cima - direcoesVoo.baixo))
                     
                     if movimento.Magnitude > 0 then
                         posicaoFreeCam = posicaoFreeCam + (movimento.Unit * VELOCIDADE_FREECAM)
                     end
                     Camera.CFrame = CFrame.lookAt(posicaoFreeCam, posicaoFreeCam + direcaoOlhar)
                     
-                elseif _G.TerceiraPessoaAtiva and rootPart and char then
+                elseif _G.TerceiraPessoaAtiva and rootPart then
                     if hum then hum.PlatformStand = false end
-                    local posicaoFoco = rootPart.Position + Vector3.new(0, ALTURA_CIMA, 0)
+                    local posicaoFoco = rootPart.Position + Vector3_new(0, ALTURA_CIMA, 0)
                     local novaPosicaoCamera = posicaoFoco - (direcaoOlhar * DISTANCIA_TRAS)
                     Camera.CFrame = CFrame.lookAt(novaPosicaoCamera, novaPosicaoCamera + direcaoOlhar)
                 else
@@ -767,7 +785,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end)
         end
 
-        -- OVERLAY DO D-PAD (FREECAM)
         local FakeAnalogPad = Instance.new("Frame", ScreenGui)
         FakeAnalogPad.Size = UDim2.new(0, 150, 0, 150)
         FakeAnalogPad.Position = UDim2.new(0.06, 0, 0.58, 0) 
@@ -779,14 +796,14 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             local b = Instance.new("TextButton", FakeAnalogPad)
             b.Size = UDim2.new(0, sx, 0, sy)
             b.Position = UDim2.new(0, x, 0, y)
-            b.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            b.BackgroundColor3 = Color3_fromRGB(25, 25, 25)
             b.BackgroundTransparency = 0.4
-            b.Text = texto; b.TextColor3 = Color3.fromRGB(255, 255, 255)
+            b.Text = texto; b.TextColor3 = Color3_fromRGB(255, 255, 255)
             b.Font = Enum.Font.GothamBold; b.TextSize = 18
             b.Active = true 
             Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
-            b.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then press() b.BackgroundColor3 = Color3.fromRGB(0, 200, 100) end end)
-            b.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then release() b.BackgroundColor3 = Color3.fromRGB(25, 25, 25) end end)
+            b.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then press() b.BackgroundColor3 = Color3_fromRGB(0, 200, 100) end end)
+            b.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then release() b.BackgroundColor3 = Color3_fromRGB(25, 25, 25) end end)
         end
 
         CriarSetaVoo("▲", 53, 2, 44, 44, function() direcoesVoo.frente = 1 end, function() direcoesVoo.frente = 0 end)
@@ -805,9 +822,9 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             local b = Instance.new("TextButton", VerticalPad)
             b.Size = UDim2.new(1, 0, 0, 45)
             b.Position = UDim2.new(0, 0, 0, y)
-            b.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            b.BackgroundColor3 = Color3_fromRGB(30, 30, 30)
             b.BackgroundTransparency = 0.3
-            b.Text = nome; b.TextColor3 = Color3.fromRGB(255,255,255)
+            b.Text = nome; b.TextColor3 = Color3_fromRGB(255,255,255)
             b.Font = Enum.Font.GothamBold; b.TextSize = 10
             b.Active = true
             Instance.new("UICorner", b)
@@ -818,7 +835,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CriarBtnAltura("SUBIR", 5, function() direcoesVoo.cima = 1 end, function() direcoesVoo.cima = 0 end)
         CriarBtnAltura("DESCER", 60, function() direcoesVoo.baixo = 1 end, function() direcoesVoo.baixo = 0 end)
 
-        -- Toggles Integrados no TabRageFunctions
         CreateCheckbox(TabRageFunctions, "3ª Pessoa", 170, 105, false, function(v)
             _G.TerceiraPessoaAtiva = v
             gerenciarCamera()
@@ -832,15 +848,16 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             gerenciarCamera()
         end)
 
-        -- Slider de Zoom (Mapeado de 0-1000 para MIN-MAX Zoom)
         CreateSlider(TabRageFunctions, "Zoom 3ª Pessoa", 277, 170, 140, function(v)
             DISTANCIA_TRAS = 2.0 + ((v / 1000) * 18.0)
         end)
 
-        -- Respawn Handler para as câmeras
         LocalPlayer.CharacterAdded:Connect(function()
             task.wait(1.0)
-            if _G.TerceiraPessoaAtiva or _G.FreeCamAtiva then gerenciarCamera() end
+            if _G.TerceiraPessoaAtiva or _G.FreeCamAtiva then 
+                atualizarCachePersonagem()
+                gerenciarCamera() 
+            end
         end)
         -- =========================================================
 
@@ -851,7 +868,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         local function CreateColorBtn(color) 
             local btn = Instance.new("TextButton", ColorButtonsFrame) btn.Size = UDim2.new(0, 32, 0, 32) btn.BackgroundColor3 = color btn.Text = "" Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6) 
-            Instance.new("UIStroke", btn).Color = Color3.fromRGB(255, 255, 255)
+            Instance.new("UIStroke", btn).Color = Color3_fromRGB(255, 255, 255)
             btn.MouseButton1Click:Connect(function() 
                 if EditTarget == "Menu" then SetTheme(color)
                 elseif EditTarget == "Lines" then ESP_Settings.LineColor = toHex(color) GlobalSettings.ESP_Colors.Lines = toHex(color) SaveAllSettings()
@@ -859,11 +876,11 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 elseif EditTarget == "Skeleton" then ESP_Settings.SkeletonColor = toHex(color) GlobalSettings.ESP_Colors.Skeleton = toHex(color) SaveAllSettings() end
             end) 
         end
-        CreateColorBtn(Color3.fromRGB(255, 0, 0)) CreateColorBtn(Color3.fromRGB(0, 100, 255)) CreateColorBtn(Color3.fromRGB(150, 0, 255)) CreateColorBtn(Color3.fromRGB(0, 255, 100)) CreateColorBtn(Color3.fromRGB(0, 0, 0)) CreateColorBtn(Color3.fromRGB(255, 255, 0)) CreateColorBtn(Color3.fromRGB(255, 215, 0)) CreateColorBtn(Color3.fromRGB(139, 69, 19)) CreateColorBtn(Color3.fromRGB(0, 255, 0)) CreateColorBtn(Color3.fromRGB(255, 255, 255))
+        CreateColorBtn(Color3_fromRGB(255, 0, 0)) CreateColorBtn(Color3_fromRGB(0, 100, 255)) CreateColorBtn(Color3_fromRGB(150, 0, 255)) CreateColorBtn(Color3_fromRGB(0, 255, 100)) CreateColorBtn(Color3_fromRGB(0, 0, 0)) CreateColorBtn(Color3_fromRGB(255, 255, 0)) CreateColorBtn(Color3_fromRGB(255, 215, 0)) CreateColorBtn(Color3_fromRGB(139, 69, 19)) CreateColorBtn(Color3_fromRGB(0, 255, 0)) CreateColorBtn(Color3_fromRGB(255, 255, 255))
 
         local function CreateRainbowBtn()
-            local btn = Instance.new("TextButton", ColorButtonsFrame) btn.Size = UDim2.new(0, 32, 0, 32) btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255) btn.Text = "" Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6) 
-            local gradient = Instance.new("UIGradient", btn) gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)), ColorSequenceKeypoint.new(0.16, Color3.fromRGB(255, 255, 0)), ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)), ColorSequenceKeypoint.new(0.66, Color3.fromRGB(0, 0, 255)), ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))})
+            local btn = Instance.new("TextButton", ColorButtonsFrame) btn.Size = UDim2.new(0, 32, 0, 32) btn.BackgroundColor3 = Color3_fromRGB(255, 255, 255) btn.Text = "" Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6) 
+            local gradient = Instance.new("UIGradient", btn) gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3_fromRGB(255, 0, 0)), ColorSequenceKeypoint.new(0.16, Color3_fromRGB(255, 255, 0)), ColorSequenceKeypoint.new(0.33, Color3_fromRGB(0, 255, 0)), ColorSequenceKeypoint.new(0.5, Color3_fromRGB(0, 255, 255)), ColorSequenceKeypoint.new(0.66, Color3_fromRGB(0, 0, 255)), ColorSequenceKeypoint.new(0.83, Color3_fromRGB(255, 0, 255)), ColorSequenceKeypoint.new(1, Color3_fromRGB(255, 0, 0))})
             btn.MouseButton1Click:Connect(function() 
                 if EditTarget == "Menu" then GlobalSettings.ThemeHex = "RAINBOW" SaveAllSettings()
                 elseif EditTarget == "Lines" then ESP_Settings.LineColor = "RAINBOW" GlobalSettings.ESP_Colors.Lines = "RAINBOW" SaveAllSettings()
@@ -949,7 +966,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local InputField = Instance.new("TextBox", TabChat)
         InputField.Size = UDim2.new(1, -85, 0, 30)
         InputField.Position = UDim2.new(0, 5, 1, -38)
-        InputField.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+        InputField.BackgroundColor3 = Color3_fromRGB(22, 22, 22)
         InputField.PlaceholderText = "Escrever mensagem..."
         InputField.TextColor3 = C_WHITE
         InputField.Text = ""
@@ -973,7 +990,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         local function AdicionarMensagemNaUI(autor, msg, jobId)
             local LinhaMensagem = Instance.new("Frame", ChatBox) LinhaMensagem.Size = UDim2.new(1, -5, 0, 35) LinhaMensagem.AutomaticSize = Enum.AutomaticSize.Y LinhaMensagem.BackgroundTransparency = 1
-            local AvatarImg = Instance.new("ImageLabel", LinhaMensagem) AvatarImg.Size = UDim2.new(0, 28, 0, 28) AvatarImg.Position = UDim2.new(0, 0, 0, 2) AvatarImg.BackgroundColor3 = Color3.fromRGB(30, 30, 30) AvatarImg.Image = "rbxassetid://0" Instance.new("UICorner", AvatarImg).CornerRadius = UDim.new(1, 0)
+            local AvatarImg = Instance.new("ImageLabel", LinhaMensagem) AvatarImg.Size = UDim2.new(0, 28, 0, 28) AvatarImg.Position = UDim2.new(0, 0, 0, 2) AvatarImg.BackgroundColor3 = Color3_fromRGB(30, 30, 30) AvatarImg.Image = "rbxassetid://0" Instance.new("UICorner", AvatarImg).CornerRadius = UDim.new(1, 0)
             local MsgLabel = Instance.new("TextLabel", LinhaMensagem) MsgLabel.Size = UDim2.new(1, -90, 0, 0) MsgLabel.Position = UDim2.new(0, 35, 0, 0) MsgLabel.AutomaticSize = Enum.AutomaticSize.Y MsgLabel.BackgroundTransparency = 1 MsgLabel.RichText = true MsgLabel.Font = Enum.Font.Gotham MsgLabel.TextSize = 12 MsgLabel.TextXAlignment = Enum.TextXAlignment.Left MsgLabel.TextWrapped = true 
             
             local CorNome = (autor == LocalPlayer.Name or autor == "Sistema") and "rgb(0, 255, 120)" or "rgb(255, 0, 0)"
@@ -981,11 +998,11 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             MsgLabel.Text = string.format('<font color="%s"><b>%s</b></font> <font color="rgb(150, 150, 150)" size="10"><i>• %s</i></font>\n<font color="rgb(240, 240, 240)">%s</font>', CorNome, autor, NomeDoJogoAtual, msg)
             
             if autor ~= LocalPlayer.Name and autor ~= "Sistema" and not string.find(autor, "Sussurro") then
-                local JoinBtn = Instance.new("TextButton", LinhaMensagem) JoinBtn.Size = UDim2.new(0, 45, 0, 18) JoinBtn.Position = UDim2.new(1, -45, 0, 4) JoinBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30) JoinBtn.Text = "Entrar" JoinBtn.TextColor3 = C_WHITE JoinBtn.TextSize = 10 JoinBtn.Font = Enum.Font.GothamBold Instance.new("UICorner", JoinBtn).CornerRadius = UDim.new(0, 4)
+                local JoinBtn = Instance.new("TextButton", LinhaMensagem) JoinBtn.Size = UDim2.new(0, 45, 0, 18) JoinBtn.Position = UDim2.new(1, -45, 0, 4) JoinBtn.BackgroundColor3 = Color3_fromRGB(200, 30, 30) JoinBtn.Text = "Entrar" JoinBtn.TextColor3 = C_WHITE JoinBtn.TextSize = 10 JoinBtn.Font = Enum.Font.GothamBold Instance.new("UICorner", JoinBtn).CornerRadius = UDim.new(0, 4)
                 JoinBtn.MouseButton1Click:Connect(function()
                     local targetJobId = jobId 
                     if not targetJobId then local tp = Players:FindFirstChild(autor) if tp then pcall(function() targetJobId = tp:GetJoinData().JobId end) end end
-                    if targetJobId and targetJobId ~= "" then JoinBtn.Text = "Indo..." JoinBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0) SalvarNoDiario("Teleporte: " .. targetJobId, "SUCCESS") pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, targetJobId, LocalPlayer) end) else JoinBtn.Text = "Sem ID" JoinBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80) end
+                    if targetJobId and targetJobId ~= "" then JoinBtn.Text = "Indo..." JoinBtn.BackgroundColor3 = Color3_fromRGB(0, 150, 0) SalvarNoDiario("Teleporte: " .. targetJobId, "SUCCESS") pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, targetJobId, LocalPlayer) end) else JoinBtn.Text = "Sem ID" JoinBtn.BackgroundColor3 = Color3_fromRGB(80, 80, 80) end
                 end)
             end
 
@@ -999,7 +1016,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end SalvarNoDiario("Chat - " .. autor .. ": " .. msg, "INFO")
         end
 
-        ChatLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() ChatBox.CanvasSize = UDim2.new(0, 0, 0, ChatLayout.AbsoluteContentSize.Y) ChatBox.CanvasPosition = Vector2.new(0, ChatLayout.AbsoluteContentSize.Y) end)
+        ChatLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() ChatBox.CanvasSize = UDim2.new(0, 0, 0, ChatLayout.AbsoluteContentSize.Y) ChatBox.CanvasPosition = Vector2_new(0, ChatLayout.AbsoluteContentSize.Y) end)
 
         local function EnviarMensagemFrequencia(texto, destino)
             local autorDisplay = LocalPlayer.Name .. (destino and " [Sussurrando]" or "")
@@ -1125,7 +1142,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CreateHiddenRow("Usuário: ", LocalPlayer.Name, 15, "HideName")
         CreateHiddenRow("ID: ", tostring(LocalPlayer.UserId), 45, "HideID")
 
-        local CorTextoSecundario = Color3.fromRGB(180, 180, 180)
+        local CorTextoSecundario = Color3_fromRGB(180, 180, 180)
         CreateProfileText("Criador", 85, 12, false, CorTextoSecundario)
         CreateProfileText("YouTube: eoNight_ofc", 105, 13, false, CorTextoSecundario)
         CreateProfileText("TikTok: night_pushhard", 125, 13, false, CorTextoSecundario)
@@ -1186,93 +1203,89 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             local lastTimeStats = os.clock() local frames = 0
             
             RunService.RenderStepped:Connect(function()
-                local ok, err = pcall(function() 
-                    frames = frames + 1 local currentTime = os.clock()
-                    if currentTime - lastTimeStats >= 1 then FPSText.Text = "FPS: " .. math.floor(frames) frames = 0 lastTimeStats = currentTime end
-                    PingText.Text = string.format("Ping: %d ms", LocalPlayer:GetNetworkPing() * 1000)
-                    
-                    Current_Rainbow_H = (Current_Rainbow_H + (task.wait() * Rainbow_Speed)) % 1
-                    Current_Rainbow_Color = Color3.fromHSV(Current_Rainbow_H, 1, 1)
+                -- REMOVIDO PCALL AQUI: Loop crítico otimizado
+                frames = frames + 1 local currentTime = os.clock()
+                if currentTime - lastTimeStats >= 1 then FPSText.Text = "FPS: " .. math_floor(frames) frames = 0 lastTimeStats = currentTime end
+                PingText.Text = string.format("Ping: %d ms", LocalPlayer:GetNetworkPing() * 1000)
+                
+                Current_Rainbow_H = (Current_Rainbow_H + (task.wait() * Rainbow_Speed)) % 1
+                Current_Rainbow_Color = Color3.fromHSV(Current_Rainbow_H, 1, 1)
 
-                    if GlobalSettings.ThemeHex == "RAINBOW" then
-                        for _, obj in ipairs(ThemeElements.Backgrounds) do if obj then obj.BackgroundColor3 = Current_Rainbow_Color end end
-                        for _, obj in ipairs(ThemeElements.Strokes) do if obj then obj.Color = Current_Rainbow_Color end end
-                        for _, obj in ipairs(ThemeElements.Texts) do if obj then obj.TextColor3 = Current_Rainbow_Color end end
-                    end
+                if GlobalSettings.ThemeHex == "RAINBOW" then
+                    for _, obj in ipairs(ThemeElements.Backgrounds) do if obj then obj.BackgroundColor3 = Current_Rainbow_Color end end
+                    for _, obj in ipairs(ThemeElements.Strokes) do if obj then obj.Color = Current_Rainbow_Color end end
+                    for _, obj in ipairs(ThemeElements.Texts) do if obj then obj.TextColor3 = Current_Rainbow_Color end end
+                end
 
-                    local localIsAlive = IsAlive(LocalPlayer) local isChamsActive = ESP_Settings.Boxes and ESP_Settings.BoxType == "Chams Glow" local shouldDrawSkeleton = ESP_Settings.Skeleton and not isChamsActive
-                    
-                    for player, drawings in pairs(PlayerDrawings) do
-                        local isTargetAlive = IsAlive(player)
-                        if FunctionsEnabled and localIsAlive and isTargetAlive and ValidarAlvoESP(player) then
-                            local char = player.Character local hrp = char:FindFirstChild("HumanoidRootPart")
-                            if hrp then
-                                local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-                                local distance = (hrp.Position - Camera.CFrame.Position).Magnitude
-                                local highlight = char:FindFirstChild("NIGHT_Chams")
+                local localIsAlive = IsAlive(LocalPlayer) local isChamsActive = ESP_Settings.Boxes and ESP_Settings.BoxType == "Chams Glow" local shouldDrawSkeleton = ESP_Settings.Skeleton and not isChamsActive
+                
+                for player, drawings in pairs(PlayerDrawings) do
+                    local isTargetAlive = IsAlive(player)
+                    if FunctionsEnabled and localIsAlive and isTargetAlive and ValidarAlvoESP(player) then
+                        local char = player.Character local hrp = char:FindFirstChild("HumanoidRootPart")
+                        if hrp then
+                            local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+                            local distance = (hrp.Position - Camera.CFrame.Position).Magnitude
+                            local highlight = char:FindFirstChild("NIGHT_Chams")
 
-                                if onScreen and distance <= ESP_Settings.MaxDistance then
-                                    local cLine = ESP_Settings.LineColor == "RAINBOW" and Current_Rainbow_Color or fromHex(ESP_Settings.LineColor)
-                                    local cBox = ESP_Settings.BoxColor == "RAINBOW" and Current_Rainbow_Color or fromHex(ESP_Settings.BoxColor)
-                                    local cSkel = ESP_Settings.SkeletonColor == "RAINBOW" and Current_Rainbow_Color or fromHex(ESP_Settings.SkeletonColor)
+                            if onScreen and distance <= ESP_Settings.MaxDistance then
+                                local cLine = ESP_Settings.LineColor == "RAINBOW" and Current_Rainbow_Color or fromHex(ESP_Settings.LineColor)
+                                local cBox = ESP_Settings.BoxColor == "RAINBOW" and Current_Rainbow_Color or fromHex(ESP_Settings.BoxColor)
+                                local cSkel = ESP_Settings.SkeletonColor == "RAINBOW" and Current_Rainbow_Color or fromHex(ESP_Settings.SkeletonColor)
 
-                                    drawings.Line.Visible = ESP_Settings.Lines drawings.Line.From = Vector2.new(Camera.ViewportSize.X / 2, (ESP_Settings.LineOrigin == "Cima") and 0 or Camera.ViewportSize.Y) drawings.Line.To = Vector2.new(pos.X, pos.Y) drawings.Line.Color = cLine drawings.Line.Thickness = 1
-                                    if ESP_Settings.Boxes then if ESP_Settings.BoxType == "Quadrado" then drawings.Box.Visible = true local sizeX, sizeY = 2000 / pos.Z, 2500 / pos.Z drawings.Box.Size = Vector2.new(sizeX, sizeY) drawings.Box.Position = Vector2.new(pos.X - sizeX / 2, pos.Y - sizeY / 2) drawings.Box.Color = cBox drawings.Box.Thickness = 1 drawings.Box.Filled = false if highlight then highlight:Destroy() end elseif ESP_Settings.BoxType == "Chams Glow" then drawings.Box.Visible = false ApplyChams(char) end else drawings.Box.Visible = false if highlight then highlight:Destroy() end end
-                                    
-                                    local hum = char:FindFirstChildOfClass("Humanoid")
-                                    if hum and ESP_Settings.Health then drawings.Health.Visible = true local hpPercent = math.clamp(hum.Health / hum.MaxHealth, 0, 1) local sizeY, sizeX = 2500 / pos.Z, 2000 / pos.Z local barHeight = sizeY * hpPercent local offset = (sizeX / 2) + 4 drawings.Health.From = Vector2.new(pos.X - offset, pos.Y + (sizeY / 2)) drawings.Health.To = Vector2.new(pos.X - offset, pos.Y + (sizeY / 2) - barHeight) drawings.Health.Color = hpPercent >= 0.7 and Color3.fromRGB(0, 255, 0) or (hpPercent >= 0.4 and Color3.fromRGB(255, 255, 0) or Color3.fromRGB(255, 0, 0)) drawings.Health.Thickness = 2 else drawings.Health.Visible = false end
+                                drawings.Line.Visible = ESP_Settings.Lines drawings.Line.From = Vector2_new(Camera.ViewportSize.X / 2, (ESP_Settings.LineOrigin == "Cima") and 0 or Camera.ViewportSize.Y) drawings.Line.To = Vector2_new(pos.X, pos.Y) drawings.Line.Color = cLine drawings.Line.Thickness = 1
+                                if ESP_Settings.Boxes then if ESP_Settings.BoxType == "Quadrado" then drawings.Box.Visible = true local sizeX, sizeY = 2000 / pos.Z, 2500 / pos.Z drawings.Box.Size = Vector2_new(sizeX, sizeY) drawings.Box.Position = Vector2_new(pos.X - sizeX / 2, pos.Y - sizeY / 2) drawings.Box.Color = cBox drawings.Box.Thickness = 1 drawings.Box.Filled = false if highlight then highlight:Destroy() end elseif ESP_Settings.BoxType == "Chams Glow" then drawings.Box.Visible = false ApplyChams(char) end else drawings.Box.Visible = false if highlight then highlight:Destroy() end end
+                                
+                                local hum = char:FindFirstChildOfClass("Humanoid")
+                                if hum and ESP_Settings.Health then drawings.Health.Visible = true local hpPercent = math_clamp(hum.Health / hum.MaxHealth, 0, 1) local sizeY, sizeX = 2500 / pos.Z, 2000 / pos.Z local barHeight = sizeY * hpPercent local offset = (sizeX / 2) + 4 drawings.Health.From = Vector2_new(pos.X - offset, pos.Y + (sizeY / 2)) drawings.Health.To = Vector2_new(pos.X - offset, pos.Y + (sizeY / 2) - barHeight) drawings.Health.Color = hpPercent >= 0.7 and Color3_fromRGB(0, 255, 0) or (hpPercent >= 0.4 and Color3_fromRGB(255, 255, 0) or Color3_fromRGB(255, 0, 0)) drawings.Health.Thickness = 2 else drawings.Health.Visible = false end
 
-                                    if shouldDrawSkeleton then
-                                        for i, bone in ipairs(Bones) do local p1, p2 = char:FindFirstChild(bone[1]), char:FindFirstChild(bone[2]) if p1 and p2 then local pos1, on1 = Camera:WorldToViewportPoint(p1.Position) local pos2, on2 = Camera:WorldToViewportPoint(p2.Position) if on1 and on2 then drawings.SkelLines[i].Visible = true drawings.SkelLines[i].From = Vector2.new(pos1.X, pos1.Y) drawings.SkelLines[i].To = Vector2.new(pos2.X, pos2.Y) drawings.SkelLines[i].Color = cSkel else drawings.SkelLines[i].Visible = false end else drawings.SkelLines[i].Visible = false end end
-                                        local head = char:FindFirstChild("Head")
-                                        if head then local hPos, hOn = Camera:WorldToViewportPoint(head.Position) if hOn then drawings.SkelCircle.Visible = true drawings.SkelCircle.Position = Vector2.new(hPos.X, hPos.Y) local fovFactor = math.tan(math.rad(Camera.FieldOfView) / 2) local virtualHeadSize = 0.8 local calculatedRadius = (Camera.ViewportSize.Y / (2 * hPos.Z * fovFactor)) * virtualHeadSize drawings.SkelCircle.Radius = math.clamp(calculatedRadius, 1, 200) drawings.SkelCircle.Color = cSkel else drawings.SkelCircle.Visible = false end else drawings.SkelCircle.Visible = false end
-                                    else for _, l in pairs(drawings.SkelLines) do l.Visible = false end drawings.SkelCircle.Visible = false end
-                                else drawings.Line.Visible = false drawings.Box.Visible = false drawings.Health.Visible = false for _, l in pairs(drawings.SkelLines) do l.Visible = false end drawings.SkelCircle.Visible = false if highlight then highlight:Destroy() end end
-                            end
-                        else drawings.Line.Visible = false drawings.Box.Visible = false drawings.Health.Visible = false for _, l in pairs(drawings.SkelLines) do l.Visible = false end drawings.SkelCircle.Visible = false if player.Character then local hl = player.Character:FindFirstChild("NIGHT_Chams") if hl then hl:Destroy() end end end
-                    end
-                end)
-                if not ok then SalvarNoDiario("Erro Loop RenderStepped ESP: " .. tostring(err), "ERROR") end
+                                if shouldDrawSkeleton then
+                                    for i, bone in ipairs(Bones) do local p1, p2 = char:FindFirstChild(bone[1]), char:FindFirstChild(bone[2]) if p1 and p2 then local pos1, on1 = Camera:WorldToViewportPoint(p1.Position) local pos2, on2 = Camera:WorldToViewportPoint(p2.Position) if on1 and on2 then drawings.SkelLines[i].Visible = true drawings.SkelLines[i].From = Vector2_new(pos1.X, pos1.Y) drawings.SkelLines[i].To = Vector2_new(pos2.X, pos2.Y) drawings.SkelLines[i].Color = cSkel else drawings.SkelLines[i].Visible = false end else drawings.SkelLines[i].Visible = false end end
+                                    local head = char:FindFirstChild("Head")
+                                    if head then local hPos, hOn = Camera:WorldToViewportPoint(head.Position) if hOn then drawings.SkelCircle.Visible = true drawings.SkelCircle.Position = Vector2_new(hPos.X, hPos.Y) local fovFactor = math_tan(math_rad(Camera.FieldOfView) / 2) local virtualHeadSize = 0.8 local calculatedRadius = (Camera.ViewportSize.Y / (2 * hPos.Z * fovFactor)) * virtualHeadSize drawings.SkelCircle.Radius = math_clamp(calculatedRadius, 1, 200) drawings.SkelCircle.Color = cSkel else drawings.SkelCircle.Visible = false end else drawings.SkelCircle.Visible = false end
+                                else for _, l in pairs(drawings.SkelLines) do l.Visible = false end drawings.SkelCircle.Visible = false end
+                            else drawings.Line.Visible = false drawings.Box.Visible = false drawings.Health.Visible = false for _, l in pairs(drawings.SkelLines) do l.Visible = false end drawings.SkelCircle.Visible = false if highlight then highlight:Destroy() end end
+                        end
+                    else drawings.Line.Visible = false drawings.Box.Visible = false drawings.Health.Visible = false for _, l in pairs(drawings.SkelLines) do l.Visible = false end drawings.SkelCircle.Visible = false if player.Character then local hl = player.Character:FindFirstChild("NIGHT_Chams") if hl then hl:Destroy() end end end
+                end
             end)
 
             local function GetClosestEnemyTarget()
-                local closestDist = math.huge local closestPart = nil local center = Camera.ViewportSize / 2 local fovRadius = (tonumber(Aimbot_Settings.FovSize) or 0) / 2
-                for _, player in ipairs(Players:GetPlayers()) do if ValidarAlvoAimbot(player) and IsAlive(player) then local targetPart = GetDynamicTargetPart(player.Character) if targetPart then local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position) if onScreen then local dist = (Vector2.new(pos.X, pos.Y) - center).Magnitude if dist <= fovRadius and dist < closestDist then if IsPartVisible(targetPart) then closestDist = dist closestPart = targetPart end end end end end end
+                local closestDist = math_huge local closestPart = nil local center = Camera.ViewportSize / 2 local fovRadius = (tonumber(Aimbot_Settings.FovSize) or 0) / 2
+                for _, player in ipairs(Players:GetPlayers()) do if ValidarAlvoAimbot(player) and IsAlive(player) then local targetPart = GetDynamicTargetPart(player.Character) if targetPart then local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position) if onScreen then local dist = (Vector2_new(pos.X, pos.Y) - center).Magnitude if dist <= fovRadius and dist < closestDist then if IsPartVisible(targetPart) then closestDist = dist closestPart = targetPart end end end end end end
                 return closestPart
             end
 
             RunService:BindToRenderStep("NIGHT_Aimbot_Priority", Enum.RenderPriority.Camera.Value - 1, function()
-                local ok, err = pcall(function() 
-                    if FunctionsEnabled and Aimbot_Settings.Mode ~= "Nenhum" and IsAlive(LocalPlayer) then
-                        local canAim = (Aimbot_Settings.Type == "Ao Olhar") or (Aimbot_Settings.Type == "Ao Atirar" and IsTouchingScreen)
-                        if canAim then
-                            if LockedTarget and (not LockedTarget.Parent or not IsAlive(Players:GetPlayerFromCharacter(LockedTarget.Parent.Parent or LockedTarget.Parent))) then LockedTarget = nil end
-                            if not LockedTarget then LockedTarget = GetClosestEnemyTarget() end
-                            if LockedTarget then
-                                if not IsPartVisible(LockedTarget) then LockedTarget = nil return end
-                                local targetPos = LockedTarget.Position
-                                local dist = (targetPos - Camera.CFrame.Position).Magnitude
-                                if dist < 0.5 then LockedTarget = nil return end
-                                local velocity = LockedTarget.AssemblyLinearVelocity or Vector3.new(0, 0, 0)
-                                if Aimbot_Settings.PullPart == "Head" and dist > 80 then targetPos = targetPos - Vector3.new(0, 0.4, 0) end
-                                local predictedPos = targetPos + (velocity * (dist / 1000))
-                                local pos, onS = Camera:WorldToViewportPoint(predictedPos)
-                                if (Vector2.new(pos.X, pos.Y) - Camera.ViewportSize/2).Magnitude > ((tonumber(Aimbot_Settings.FovSize) or 0) / 2) then LockedTarget = nil return end
-                                
-                                local smoothBase = Aimbot_Settings.Mode == "Rage" and 1.0 or 0.15
-                                local distanceFactor = math.clamp(1 - (dist / 1000), 0.5, 1) 
-                                local smoothFinal = smoothBase * distanceFactor
-                                
-                                if IsTouchingScreen or Aimbot_Settings.Mode == "Rage" then
-                                    smoothFinal = 1.0
-                                end
-                                
-                                Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, predictedPos), smoothFinal)
+                -- REMOVIDO PCALL AQUI
+                if FunctionsEnabled and Aimbot_Settings.Mode ~= "Nenhum" and IsAlive(LocalPlayer) then
+                    local canAim = (Aimbot_Settings.Type == "Ao Olhar") or (Aimbot_Settings.Type == "Ao Atirar" and IsTouchingScreen)
+                    if canAim then
+                        if LockedTarget and (not LockedTarget.Parent or not IsAlive(Players:GetPlayerFromCharacter(LockedTarget.Parent.Parent or LockedTarget.Parent))) then LockedTarget = nil end
+                        if not LockedTarget then LockedTarget = GetClosestEnemyTarget() end
+                        if LockedTarget then
+                            if not IsPartVisible(LockedTarget) then LockedTarget = nil return end
+                            local targetPos = LockedTarget.Position
+                            local dist = (targetPos - Camera.CFrame.Position).Magnitude
+                            if dist < 0.5 then LockedTarget = nil return end
+                            local velocity = LockedTarget.AssemblyLinearVelocity or Vector3_new(0, 0, 0)
+                            if Aimbot_Settings.PullPart == "Head" and dist > 80 then targetPos = targetPos - Vector3_new(0, 0.4, 0) end
+                            local predictedPos = targetPos + (velocity * (dist / 1000))
+                            local pos, onS = Camera:WorldToViewportPoint(predictedPos)
+                            if (Vector2_new(pos.X, pos.Y) - Camera.ViewportSize/2).Magnitude > ((tonumber(Aimbot_Settings.FovSize) or 0) / 2) then LockedTarget = nil return end
+                            
+                            local smoothBase = Aimbot_Settings.Mode == "Rage" and 1.0 or 0.15
+                            local distanceFactor = math_clamp(1 - (dist / 1000), 0.5, 1) 
+                            local smoothFinal = smoothBase * distanceFactor
+                            
+                            if IsTouchingScreen or Aimbot_Settings.Mode == "Rage" then
+                                smoothFinal = 1.0
                             end
-                        else LockedTarget = nil end
+                            
+                            Camera.CFrame = Camera.CFrame:Lerp(CFrame_new(Camera.CFrame.Position, predictedPos), smoothFinal)
+                        end
                     else LockedTarget = nil end
-                end)
-                if not ok then SalvarNoDiario("Erro Loop RenderStep Aimbot: " .. tostring(err), "ERROR") end
+                else LockedTarget = nil end
             end)
         end)
 
@@ -1280,42 +1293,47 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             local HitboxCache = {} 
             local function IsEnemy(p) if p == LocalPlayer then return false end if p.Team ~= nil and LocalPlayer.Team ~= nil then return p.Team ~= LocalPlayer.Team end local m = LocalPlayer:GetAttribute("Team") local e = p:GetAttribute("Team") if m ~= nil and e ~= nil then return m ~= e end return true end
             RunService.Heartbeat:Connect(function()
-                local ok, err = pcall(function() 
-                    if FunctionsEnabled and HitboxEnabled then
-                        for _, p in pairs(Players:GetPlayers()) do 
-                            if p ~= LocalPlayer and IsEnemy(p) and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-                                local head = p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
-                                if head and head:IsA("BasePart") then
-                                    if not HitboxCache[p] then HitboxCache[p] = head.Size end 
-                                    head.Size = Vector3.new(2.1, 2.1, 2.1) 
+                -- REMOVIDO PCALL AQUI: Loop físico otimizado
+                if FunctionsEnabled and HitboxEnabled then
+                    for _, p in ipairs(Players:GetPlayers()) do 
+                        if p ~= LocalPlayer and IsEnemy(p) and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+                            local head = p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
+                            if head and head:IsA("BasePart") then
+                                if not HitboxCache[p] then HitboxCache[p] = head.Size end 
+                                -- Atualização condicional (Otimização Extrema da Física)
+                                if head.Size.X ~= 2.1 then
+                                    head.Size = Vector3_new(2.1, 2.1, 2.1) 
                                     head.Transparency = 0.7 
                                     head.CanCollide = true 
                                 end
-                            else 
-                                if HitboxCache[p] and p.Character then 
-                                    local head = p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
-                                    if head and head:IsA("BasePart") then
+                            end
+                        else 
+                            if HitboxCache[p] and p.Character then 
+                                local head = p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
+                                if head and head:IsA("BasePart") then
+                                    if head.Size.X ~= HitboxCache[p].X then
                                         head.Size = HitboxCache[p] 
                                         head.Transparency = 0 
                                     end
-                                    HitboxCache[p] = nil 
-                                end 
+                                end
+                                HitboxCache[p] = nil 
                             end 
-                        end
-                    else 
-                        for p, os in pairs(HitboxCache) do 
-                            if p and p.Character then
-                                local head = p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
-                                if head and head:IsA("BasePart") then
+                        end 
+                    end
+                else 
+                    for p, os in pairs(HitboxCache) do 
+                        if p and p.Character then
+                            local head = p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
+                            if head and head:IsA("BasePart") then
+                                if head.Size.X ~= os.X then
                                     head.Size = os 
                                     head.Transparency = 0 
                                 end
-                            end 
+                            end
                         end 
-                        table.clear(HitboxCache) 
-                    end
-                end)
-                if not ok then SalvarNoDiario("Erro Loop Heartbeat Hitbox: " .. tostring(err), "ERROR") end
+                    end 
+                    table.clear(HitboxCache) 
+                end
             end)
         end)
     end
