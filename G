@@ -175,7 +175,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local targetParent = gethui and gethui() or (syn and syn.protect_gui and CoreGui or CoreGui)
         if targetParent:FindFirstChild("NIGHT_UI_PixelPerfect") then targetParent.NIGHT_UI_PixelPerfect:Destroy() end
 
-        local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false
+        local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false
         local FlutuarAtivo = false
         
         local ESP_Settings = { Lines = false, LineOrigin = "Cima", LineColor = GlobalSettings.ESP_Colors.Lines, Boxes = false, BoxType = "Quadrado", BoxColor = GlobalSettings.ESP_Colors.Boxes, Skeleton = false, SkeletonColor = GlobalSettings.ESP_Colors.Skeleton, Health = false, ChamsColor = Color3_fromRGB(0, 255, 0), RainbowChams = false, MaxDistance = 500, MarcarTodos = false }
@@ -516,7 +516,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 end
 
                 ConexaoFlutuar = RunService.RenderStepped:Connect(function()
-                    -- REMOVIDO PCALL AQUI: Operação segura e otimizada
                     if not (FunctionsEnabled and FlutuarAtivo) then return end
 
                     local char = LocalPlayer.Character
@@ -593,35 +592,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local RangerHeaderFrame = Instance.new("Frame", TabRageFunctions) RangerHeaderFrame.Size = UDim2.new(1, 0, 0, 30) RangerHeaderFrame.BackgroundTransparency = 1
         local RageHeaderText = Instance.new("TextLabel", RangerHeaderFrame) RageHeaderText.Size = UDim2.new(1, 0, 1, 0) RageHeaderText.BackgroundTransparency = 1 RageHeaderText.Text = "⚠️ Funções Rage (Seguras)" RageHeaderText.TextColor3 = C_WHITE RageHeaderText.Font = Enum.Font.GothamBold RageHeaderText.TextSize = 16 RageHeaderText.TextXAlignment = Enum.TextXAlignment.Left
 
-        local function ApplyNoSmokeSafely(obj)
-            if not obj or typeof(obj) ~= "Instance" then return end
-            if obj:IsA("ParticleEmitter") or obj:IsA("Smoke") or obj:IsA("Fire") then
-                pcall(function()
-                    obj.Enabled = false
-                    if obj:IsA("ParticleEmitter") then obj.Rate = 0 end
-                    if obj:IsA("ParticleEmitter") or obj:IsA("Smoke") then
-                        obj.Transparency = NumberSequence.new(1)
-                    end
-                end)
-            end
-        end
-
-        Workspace.DescendantAdded:Connect(function(obj)
-            if FunctionsEnabled and NoSmokeEnabled then ApplyNoSmokeSafely(obj) end
-        end)
-        
-        task.spawn(function()
-            while task.wait(1) do
-                if FunctionsEnabled and NoSmokeEnabled then
-                    for _, v in pairs(Workspace:GetDescendants()) do ApplyNoSmokeSafely(v) end
-                end
-            end
-        end)
-
-        CreateCheckbox(TabRageFunctions, "No Smoke", 0, 35, false, function(v) NoSmokeEnabled = v end) 
-        
         local SpinBotAtivo = false
-        CreateCheckbox(TabRageFunctions, "SpinBot", 170, 35, false, function(v)
+        CreateCheckbox(TabRageFunctions, "SpinBot", 0, 35, false, function(v)
             SpinBotAtivo = v
         end)
 
@@ -710,7 +682,10 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             Camera.CameraType = Enum.CameraType.Custom
             alternarControlesNativos(true)
             local hum = obterHumanoidSeguro()
-            if hum then hum.PlatformStand = false end
+            if hum then 
+                hum.PlatformStand = false 
+                Camera.CameraSubject = hum
+            end
             for part, trans in pairs(backupCameraViewmodel) do 
                 if part and part.Parent then part.Transparency = trans end 
             end
@@ -731,6 +706,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             
             atualizarCachePersonagem()
             Camera.CameraType = Enum.CameraType.Scriptable
+            
             local root = obterRootSeguro()
             if root and _G.FreeCamAtiva then
                 posicaoFreeCam = root.Position + Vector3_new(0, ALTURA_CIMA, 0)
@@ -740,6 +716,10 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 local rootPart = obterRootSeguro()
                 local hum = obterHumanoidSeguro()
                 
+                if hum and Camera.CameraSubject ~= hum then
+                    Camera.CameraSubject = hum
+                end
+
                 for _, obj in pairs(Camera:GetChildren()) do
                     if obj:IsA("Model") or obj:IsA("BasePart") then
                         local parts = obj:IsA("BasePart") and {obj} or obj:GetDescendants()
@@ -852,7 +832,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             DISTANCIA_TRAS = 2.0 + ((v / 1000) * 18.0)
         end)
 
-        LocalPlayer.CharacterAdded:Connect(function()
+        LocalPlayer.CharacterAdded:Connect(function(newChar)
             task.wait(1.0)
             if _G.TerceiraPessoaAtiva or _G.FreeCamAtiva then 
                 atualizarCachePersonagem()
@@ -1203,7 +1183,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             local lastTimeStats = os.clock() local frames = 0
             
             RunService.RenderStepped:Connect(function()
-                -- REMOVIDO PCALL AQUI: Loop crítico otimizado
                 frames = frames + 1 local currentTime = os.clock()
                 if currentTime - lastTimeStats >= 1 then FPSText.Text = "FPS: " .. math_floor(frames) frames = 0 lastTimeStats = currentTime end
                 PingText.Text = string.format("Ping: %d ms", LocalPlayer:GetNetworkPing() * 1000)
@@ -1256,13 +1235,20 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 return closestPart
             end
 
-            RunService:BindToRenderStep("NIGHT_Aimbot_Priority", Enum.RenderPriority.Camera.Value - 1, function()
-                -- REMOVIDO PCALL AQUI
+            RunService:BindToRenderStep("NIGHT_Aimbot_Priority", Enum.RenderPriority.Camera.Value + 1, function()
                 if FunctionsEnabled and Aimbot_Settings.Mode ~= "Nenhum" and IsAlive(LocalPlayer) then
                     local canAim = (Aimbot_Settings.Type == "Ao Olhar") or (Aimbot_Settings.Type == "Ao Atirar" and IsTouchingScreen)
                     if canAim then
-                        if LockedTarget and (not LockedTarget.Parent or not IsAlive(Players:GetPlayerFromCharacter(LockedTarget.Parent.Parent or LockedTarget.Parent))) then LockedTarget = nil end
+                        -- Check if target died or despawned
+                        if LockedTarget then
+                            local targetPlayer = Players:GetPlayerFromCharacter(LockedTarget.Parent)
+                            if not targetPlayer or not IsAlive(targetPlayer) then
+                                LockedTarget = nil
+                            end
+                        end
+
                         if not LockedTarget then LockedTarget = GetClosestEnemyTarget() end
+                        
                         if LockedTarget then
                             if not IsPartVisible(LockedTarget) then LockedTarget = nil return end
                             local targetPos = LockedTarget.Position
@@ -1290,45 +1276,34 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         end)
 
         task.spawn(function()
-            local HitboxCache = {} 
+            local HitboxCache = setmetatable({}, {__mode = "k"}) 
             local function IsEnemy(p) if p == LocalPlayer then return false end if p.Team ~= nil and LocalPlayer.Team ~= nil then return p.Team ~= LocalPlayer.Team end local m = LocalPlayer:GetAttribute("Team") local e = p:GetAttribute("Team") if m ~= nil and e ~= nil then return m ~= e end return true end
+            
             RunService.Heartbeat:Connect(function()
-                -- REMOVIDO PCALL AQUI: Loop físico otimizado
                 if FunctionsEnabled and HitboxEnabled then
                     for _, p in ipairs(Players:GetPlayers()) do 
-                        if p ~= LocalPlayer and IsEnemy(p) and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-                            local head = p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
-                            if head and head:IsA("BasePart") then
-                                if not HitboxCache[p] then HitboxCache[p] = head.Size end 
-                                -- Atualização condicional (Otimização Extrema da Física)
-                                if head.Size.X ~= 2.1 then
-                                    head.Size = Vector3_new(2.1, 2.1, 2.1) 
-                                    head.Transparency = 0.7 
-                                    head.CanCollide = true 
-                                end
-                            end
-                        else 
-                            if HitboxCache[p] and p.Character then 
+                        if p ~= LocalPlayer and IsEnemy(p) and p.Character then
+                            local hum = p.Character:FindFirstChild("Humanoid")
+                            if hum and hum.Health > 0 then
                                 local head = p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
                                 if head and head:IsA("BasePart") then
-                                    if head.Size.X ~= HitboxCache[p].X then
-                                        head.Size = HitboxCache[p] 
-                                        head.Transparency = 0 
+                                    if not HitboxCache[p.Character] then HitboxCache[p.Character] = head.Size end 
+                                    if head.Size.X ~= 2.1 then
+                                        head.Size = Vector3_new(2.1, 2.1, 2.1) 
+                                        head.Transparency = 0.7 
+                                        head.CanCollide = true 
                                     end
                                 end
-                                HitboxCache[p] = nil 
-                            end 
+                            end
                         end 
                     end
                 else 
-                    for p, os in pairs(HitboxCache) do 
-                        if p and p.Character then
-                            local head = p.Character:FindFirstChild("Head") or p.Character:FindFirstChild("HumanoidRootPart")
-                            if head and head:IsA("BasePart") then
-                                if head.Size.X ~= os.X then
-                                    head.Size = os 
-                                    head.Transparency = 0 
-                                end
+                    for char, os in pairs(HitboxCache) do 
+                        if char and char.Parent then
+                            local head = char:FindFirstChild("Head") or char:FindFirstChild("HumanoidRootPart")
+                            if head and head:IsA("BasePart") and head.Size.X ~= os.X then
+                                head.Size = os 
+                                head.Transparency = 0 
                             end
                         end 
                     end 
