@@ -1,4 +1,4 @@
-local HttpService = game:GetService("HttpService")
+Local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -596,8 +596,12 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local AtivaAimbotBtn local MarcarTodosBtn = CreateCheckbox(TabESP, "marcar todos", ESP_X, 160, false, function(v) ESP_Settings.MarcarTodos = v if AtivaAimbotBtn then AtivaAimbotBtn.Visible = v end end)
         AtivaAimbotBtn = CreateCheckbox(TabESP, "ativa aimbot (Ignorar Time)", ESP_X, 200, false, function(v) Aimbot_Settings.AimbotNoTime = v end) AtivaAimbotBtn.Visible = false
 
-        local RangerHeaderFrame = Instance.new("Frame", TabRageFunctions) RangerHeaderFrame.Size = UDim2.new(1, 0, 0, 30) RangerHeaderFrame.BackgroundTransparency = 1
-        local RageHeaderText = Instance.new("TextLabel", RangerHeaderFrame) RageHeaderText.Size = UDim2.new(1, 0, 1, 0) RangerHeaderFrame.BackgroundTransparency = 1 RageHeaderText.Text = "⚠️ Funções Rage (Seguras)" RageHeaderText.TextColor3 = C_WHITE RageHeaderText.Font = Enum.Font.GothamBold RageHeaderText.TextSize = 16 RageHeaderText.TextXAlignment = Enum.TextXAlignment.Left
+        -- =============================================================================
+        -- FIX UI RAGE: Nome limpo sem emoji/tags para evitar bugs de renderização no mobile
+        -- =============================================================================
+        local RageHeaderFrame = Instance.new("Frame", TabRageFunctions) RageHeaderFrame.Size = UDim2.new(1, 0, 0, 30) RageHeaderFrame.BackgroundTransparency = 1
+        local RageHeaderText = Instance.new("TextLabel", RageHeaderFrame) RageHeaderText.Size = UDim2.new(1, 0, 1, 0) RageHeaderFrame.BackgroundTransparency = 1 RageHeaderText.Text = "Funções Rage" RageHeaderText.TextColor3 = C_WHITE RageHeaderText.Font = Enum.Font.GothamBold RageHeaderText.TextSize = 16 RageHeaderText.TextXAlignment = Enum.TextXAlignment.Left
+        -- =============================================================================
 
         local SpinBotAtivo = false
         CreateCheckbox(TabRageFunctions, "SpinBot", 0, 35, false, function(v)
@@ -1241,7 +1245,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 return closestPart
             end
 
-            RunService:BindToRenderStep("NIGHT_Aimbot_Priority", Enum.RenderPriority.Camera.Value + 1, function()
+            -- FIX DE SINCRONIZAÇÃO: Prioridade exata da Câmera (200) para evitar o descolamento da arma (Viewmodel desync)
+            RunService:BindToRenderStep("NIGHT_Aimbot_Priority", Enum.RenderPriority.Camera.Value, function()
                 if FunctionsEnabled and Aimbot_Settings.Mode ~= "Nenhum" and IsAlive(LocalPlayer) then
                     -- Usa o status global _G.StatusAtirando caso o tipo configurado seja "Ao Atirar"
                     local canAim = (Aimbot_Settings.Type == "Ao Olhar") or (Aimbot_Settings.Type == "Ao Atirar" and _G.StatusAtirando)
@@ -1266,16 +1271,20 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                             local pos, onS = Camera:WorldToViewportPoint(predictedPos)
                             if (Vector2_new(pos.X, pos.Y) - Camera.ViewportSize/2).Magnitude > ((tonumber(Aimbot_Settings.FovSize) or 0) / 2) then LockedTarget = nil return end
                             
-                            local smoothBase = Aimbot_Settings.Mode == "Rage" and 1.0 or 0.15
-                            local distanceFactor = math_clamp(1 - (dist / 1000), 0.5, 1) 
-                            local smoothFinal = smoothBase * distanceFactor
-                            
-                            -- Se estiver atirando ativamente ou em modo Rage, força a trava de mira instantânea
-                            if _G.StatusAtirando or Aimbot_Settings.Mode == "Rage" then
-                                smoothFinal = 1.0
+                            if Aimbot_Settings.Mode == "Rage" then
+                                -- FIX: CFrame Direto para grudar 100% sem o Viewmodel tremer
+                                Camera.CFrame = CFrame_new(Camera.CFrame.Position, predictedPos)
+                            else
+                                local smoothBase = 0.15
+                                local distanceFactor = math_clamp(1 - (dist / 1000), 0.5, 1) 
+                                local smoothFinal = smoothBase * distanceFactor
+                                
+                                if _G.StatusAtirando then
+                                    smoothFinal = 1.0
+                                end
+                                
+                                Camera.CFrame = Camera.CFrame:Lerp(CFrame_new(Camera.CFrame.Position, predictedPos), smoothFinal)
                             end
-                            
-                            Camera.CFrame = Camera.CFrame:Lerp(CFrame_new(Camera.CFrame.Position, predictedPos), smoothFinal)
                         end
                     else LockedTarget = nil end
                 else LockedTarget = nil end
