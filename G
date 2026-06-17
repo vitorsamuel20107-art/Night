@@ -180,17 +180,24 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         
         local ESP_Settings = { Lines = false, LineOrigin = "Cima", LineColor = GlobalSettings.ESP_Colors.Lines, Boxes = false, BoxType = "Quadrado", BoxColor = GlobalSettings.ESP_Colors.Boxes, Skeleton = false, SkeletonColor = GlobalSettings.ESP_Colors.Skeleton, Health = false, ChamsColor = Color3_fromRGB(0, 255, 0), RainbowChams = false, MaxDistance = 500, MarcarTodos = false }
         
-        local Aimbot_Settings = { Mode = "Nenhum", FovSize = 0, PullPart = "Head", Type = "Ao Olhar", VisibleCheck = false, AimbotNoTime = false, NomeBotaoTiro = "Shoot" }
+        local Aimbot_Settings = { Mode = "Nenhum", FovSize = 0, PullPart = "Head", Type = "Ao Olhar", VisibleCheck = false, AimbotNoTime = false, NomeBotaoTiro = "mobile_shoot" }
         
-        local LockedTarget = nil local IsTouchingScreen = false
+        local LockedTarget = nil 
+        _G.StatusAtirando = false
 
-        UserInputService.InputBegan:Connect(function(input, processed)
-            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                local guis = LocalPlayer.PlayerGui:GetGuiObjectsAtPosition(input.Position.X, input.Position.Y)
-                for _, obj in ipairs(guis) do
-                    if obj.Name == Aimbot_Settings.NomeBotaoTiro and (obj:IsA("GuiButton") or obj:IsA("PluginDragEvent") or obj:IsA("ImageButton") or obj:IsA("TextButton")) then
-                        IsTouchingScreen = true
-                        break
+        -- Filtro inteligente aplicado ao botão real capturado através do UserInputService
+        UserInputService.InputBegan:Connect(function(input, gpe)
+            if gpe and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1) then
+                local playerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui")
+                if playerGui then
+                    local guis = playerGui:GetGuiObjectsAtPosition(input.Position.X, input.Position.Y)
+                    
+                    -- Varre todas as camadas tocadas para garantir a ativação pelo botão correto
+                    for _, obj in ipairs(guis) do
+                        if obj.Name == Aimbot_Settings.NomeBotaoTiro then
+                            _G.StatusAtirando = true
+                            break
+                        end
                     end
                 end
             end
@@ -198,7 +205,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         UserInputService.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                IsTouchingScreen = false
+                _G.StatusAtirando = false
             end
         end)
 
@@ -489,7 +496,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CreateTargetToggle("Lines", "Selecionado: Cor ESP Linha") CreateTargetToggle("Boxes", "Selecionado: Cor ESP Caixa") CreateTargetToggle("Skeleton", "Selecionado: Cor Esqueleto")
 
         -- =============================================================================
-        -- DECLARAÇÃO DO NOVO SISTEMA FLUTUAR (ESTÁTICO/INVISÍVEL)
+        -- DECLARAÇÃO DO SISTEMA FLUTUAR (ESTÁTICO/INVISÍVEL)
         -- =============================================================================
         local PlataformasFlutuar = {}
         local ConexaoFlutuar = nil
@@ -590,7 +597,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         AtivaAimbotBtn = CreateCheckbox(TabESP, "ativa aimbot (Ignorar Time)", ESP_X, 200, false, function(v) Aimbot_Settings.AimbotNoTime = v end) AtivaAimbotBtn.Visible = false
 
         local RangerHeaderFrame = Instance.new("Frame", TabRageFunctions) RangerHeaderFrame.Size = UDim2.new(1, 0, 0, 30) RangerHeaderFrame.BackgroundTransparency = 1
-        local RageHeaderText = Instance.new("TextLabel", RangerHeaderFrame) RageHeaderText.Size = UDim2.new(1, 0, 1, 0) RageHeaderText.BackgroundTransparency = 1 RageHeaderText.Text = "⚠️ Funções Rage (Seguras)" RageHeaderText.TextColor3 = C_WHITE RageHeaderText.Font = Enum.Font.GothamBold RageHeaderText.TextSize = 16 RageHeaderText.TextXAlignment = Enum.TextXAlignment.Left
+        local RageHeaderText = Instance.new("TextLabel", RangerHeaderFrame) RageHeaderText.Size = UDim2.new(1, 0, 1, 0) RangerHeaderFrame.BackgroundTransparency = 1 RageHeaderText.Text = "⚠️ Funções Rage (Seguras)" RageHeaderText.TextColor3 = C_WHITE RageHeaderText.Font = Enum.Font.GothamBold RageHeaderText.TextSize = 16 RageHeaderText.TextXAlignment = Enum.TextXAlignment.Left
 
         local SpinBotAtivo = false
         CreateCheckbox(TabRageFunctions, "SpinBot", 0, 35, false, function(v)
@@ -640,7 +647,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local direcoesVoo = {frente = 0, tras = 0, esquerda = 0, direita = 0, cima = 0, baixo = 0}
         local backupCameraViewmodel = {}
         
-        -- Cache local do personagem para otimização em vez de :GetDescendants a cada frame
         local cachedCharParts = {}
         
         local function atualizarCachePersonagem()
@@ -674,7 +680,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             local playerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui")
             if playerGui then
                 local touchGui = playerGui:FindFirstChild("TouchGui")
-                if touchGui then touchGui.Enabled = ativar end
+                if touchGui then touchGui.Enabled = activar end
             end
         end
 
@@ -1237,9 +1243,9 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
             RunService:BindToRenderStep("NIGHT_Aimbot_Priority", Enum.RenderPriority.Camera.Value + 1, function()
                 if FunctionsEnabled and Aimbot_Settings.Mode ~= "Nenhum" and IsAlive(LocalPlayer) then
-                    local canAim = (Aimbot_Settings.Type == "Ao Olhar") or (Aimbot_Settings.Type == "Ao Atirar" and IsTouchingScreen)
+                    -- Usa o status global _G.StatusAtirando caso o tipo configurado seja "Ao Atirar"
+                    local canAim = (Aimbot_Settings.Type == "Ao Olhar") or (Aimbot_Settings.Type == "Ao Atirar" and _G.StatusAtirando)
                     if canAim then
-                        -- Check if target died or despawned
                         if LockedTarget then
                             local targetPlayer = Players:GetPlayerFromCharacter(LockedTarget.Parent)
                             if not targetPlayer or not IsAlive(targetPlayer) then
@@ -1264,7 +1270,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                             local distanceFactor = math_clamp(1 - (dist / 1000), 0.5, 1) 
                             local smoothFinal = smoothBase * distanceFactor
                             
-                            if IsTouchingScreen or Aimbot_Settings.Mode == "Rage" then
+                            -- Se estiver atirando ativamente ou em modo Rage, força a trava de mira instantânea
+                            if _G.StatusAtirando or Aimbot_Settings.Mode == "Rage" then
                                 smoothFinal = 1.0
                             end
                             
