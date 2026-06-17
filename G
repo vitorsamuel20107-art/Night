@@ -192,7 +192,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
                 if playerGui then
                     local guis = playerGui:GetGuiObjectsAtPosition(input.Position.X, input.Position.Y)
                     
-                    -- Varre todas as camadas tocadas para garantir a ativação pelo botão correto
                     for _, obj in ipairs(guis) do
                         if obj.Name == Aimbot_Settings.NomeBotaoTiro then
                             _G.StatusAtirando = true
