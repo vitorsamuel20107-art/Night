@@ -6,10 +6,7 @@
     - Botão flutuante (com FOTO PERSONALIZADA) só aparece no estado MINIMIZADO.
     - Sem toques acidentais para jogadores de HUD avançado.
     - [FIX] Botão da aba ativa atualiza a cor em tempo real ao mudar o tema.
-    - [NOVO] Sistema de verificação de MÚLTIPLOS IDs para título personalizado.
-    - [NOVO] FPS e Ping automáticos e fixos na tela (reposicionados).
-    - [FIX] Informações do Criador e StreamProof realinhados e ordenados corretamente no Perfil.
-    - [NOVO] Módulo Anti-Lag Extremo (Max FPS) integrado na aba Profile.
+    - [NOVO] Sistema de verificação de ID para título personalizado.
 ]]
 
 local CoreGui = game:GetService("CoreGui")
@@ -121,26 +118,14 @@ UserInputService.TouchEnded:Connect(function(touch, gpe) if Aimbot_Settings.Type
 UserInputService.InputBegan:Connect(function(i, gpe) if not gpe and i.UserInputType == Enum.UserInputType.MouseButton1 then if Aimbot_Settings.Type == "Ao Atirar" and IsInTriggerCircle(i.Position) then IsTouchingScreen = true TriggerCircle.BackgroundColor3 = Color3.fromRGB(0, 255, 100) end end end)
 UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 and Aimbot_Settings.Type == "Ao Atirar" then IsTouchingScreen = false TriggerCircle.BackgroundColor3 = Trigger_Settings.Locked and Color3.fromRGB(100, 100, 100) or Color3.fromRGB(255, 0, 0) end end)
 
--- ==========================================
--- UI OVERLAY (FPS & PING AUTOMÁTICOS)
--- ==========================================
-local TopRightOverlay = Instance.new("Frame", ScreenGui) 
-TopRightOverlay.Size = UDim2.new(0, 120, 0, 50) 
-TopRightOverlay.Position = UDim2.new(1, -130, 0, 40)
-TopRightOverlay.BackgroundTransparency = 1
 
-local FPSGui = Instance.new("Frame", TopRightOverlay) 
-FPSGui.Size = UDim2.new(1, 0, 0, 20) 
-FPSGui.Position = UDim2.new(0, 0, 0, 0) 
-FPSGui.BackgroundTransparency = 1 
-FPSGui.Visible = true 
+-- ==========================================
+-- UI OVERLAY & ESTRUTURA PRINCIPAL
+-- ==========================================
+local TopRightOverlay = Instance.new("Frame", ScreenGui) TopRightOverlay.Size = UDim2.new(0, 120, 0, 50) TopRightOverlay.Position = UDim2.new(1, -130, 0, 10) TopRightOverlay.BackgroundTransparency = 1
+local FPSGui = Instance.new("Frame", TopRightOverlay) FPSGui.Size = UDim2.new(1, 0, 0, 20) FPSGui.Position = UDim2.new(0, 0, 0, 0) FPSGui.BackgroundTransparency = 1 FPSGui.Visible = false 
 local FPSText = Instance.new("TextLabel", FPSGui) FPSText.Size = UDim2.new(1, 0, 1, 0) FPSText.BackgroundTransparency = 1 FPSText.TextColor3 = Color3.fromRGB(0, 255, 100) FPSText.Text = "FPS: 60" FPSText.Font = Enum.Font.GothamBold FPSText.TextSize = 14 FPSText.TextXAlignment = Enum.TextXAlignment.Right
-
-local PingGui = Instance.new("Frame", TopRightOverlay) 
-PingGui.Size = UDim2.new(1, 0, 0, 20) 
-PingGui.Position = UDim2.new(0, 0, 0, 20) 
-PingGui.BackgroundTransparency = 1 
-PingGui.Visible = true 
+local PingGui = Instance.new("Frame", TopRightOverlay) PingGui.Size = UDim2.new(1, 0, 0, 20) PingGui.Position = UDim2.new(0, 0, 0, 20) PingGui.BackgroundTransparency = 1 PingGui.Visible = false 
 local PingText = Instance.new("TextLabel", PingGui) PingText.Size = UDim2.new(1, 0, 1, 0) PingText.BackgroundTransparency = 1 PingText.TextColor3 = Color3.fromRGB(0, 255, 100) PingText.Text = "Ping: 52 ms" PingText.Font = Enum.Font.GothamBold PingText.TextSize = 14 PingText.TextXAlignment = Enum.TextXAlignment.Right
 
 local FOVCircle = Instance.new("Frame", ScreenGui) FOVCircle.Size = UDim2.new(0, 0, 0, 0) FOVCircle.Position = UDim2.new(0.5, 0, 0.5, 0) FOVCircle.AnchorPoint = Vector2.new(0.5, 0.5) FOVCircle.BackgroundTransparency = 1 FOVCircle.Visible = false
@@ -156,15 +141,10 @@ local TopBar = Instance.new("Frame", MainFrame) TopBar.Size = UDim2.new(1, 0, 0,
 local BottomFlat = Instance.new("Frame", TopBar) BottomFlat.Size = UDim2.new(1, 0, 0, 5) BottomFlat.Position = UDim2.new(0, 0, 1, -5) BottomFlat.BackgroundColor3 = CurrentTheme BottomFlat.BorderSizePixel = 0 table.insert(ThemeElements.Backgrounds, BottomFlat)
 
 -- ==========================================
--- LISTA DE IDS & VERIFICAÇÃO (WHITELIST)
+-- VERIFICAÇÃO DE ID PARA TÍTULO
 -- ==========================================
-local IDS_ESPECIAIS = {
-    [10773292247] = true,
-    [1576699087]  = true
-}
-
 local PanelName = "NIGHT - FFH4X"
-if IDS_ESPECIAIS[LocalPlayer.UserId] then
+if LocalPlayer.UserId == 1576699087 then
     PanelName = "ZZ_VENCEU"
 end
 
@@ -274,7 +254,7 @@ end
 local TabAimbot = CreateTab("Aimbot") local TabESP = CreateTab("ESP") local TabRageFunctions = CreateTab("RageFunctions") local TabProfile = CreateTab("Profile") TabAimbot.Visible = true
 
 local SideButtons = {}
-local ActiveSideButton = nil 
+local ActiveSideButton = nil -- Variável que rastreia a aba ativa
 
 local function CreateSideButton(icon, yPos, targetTab)
     local btn = Instance.new("TextButton", SideBar) btn.Size = UDim2.new(0, 50, 0, 50) btn.Position = UDim2.new(0, 10, 0, yPos) btn.BackgroundColor3 = C_DARK_GREY btn.Text = icon btn.TextColor3 = C_WHITE btn.TextSize = 24 btn.Font = Enum.Font.GothamBold Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10) table.insert(SideButtons, btn)  
@@ -283,18 +263,19 @@ local function CreateSideButton(icon, yPos, targetTab)
         targetTab.Visible = true 
         for _, sBtn in pairs(SideButtons) do sBtn.BackgroundColor3 = C_DARK_GREY end 
         btn.BackgroundColor3 = CurrentTheme 
-        ActiveSideButton = btn 
+        ActiveSideButton = btn -- Atualiza o botão ativo no clique
     end)
 end
 
 CreateSideButton("🎯", 10, TabAimbot) 
 SideButtons[1].BackgroundColor3 = CurrentTheme
-ActiveSideButton = SideButtons[1] 
+ActiveSideButton = SideButtons[1] -- Define o botão Aimbot como ativo inicial
 
 CreateSideButton("👁️", 70, TabESP) 
 CreateSideButton("⚙️", 130, TabRageFunctions) 
 CreateSideButton("👤", 190, TabProfile) 
 
+-- Atualiza a cor da aba ativa imediatamente quando o tema muda
 table.insert(ThemeCallbacks, function(color)
     if ActiveSideButton then
         ActiveSideButton.BackgroundColor3 = color
@@ -438,148 +419,22 @@ local function CreateColorBtn(color, xPos)
 end
 CreateColorBtn(Themes.Red, 0) CreateColorBtn(Themes.Blue, 45) CreateColorBtn(Themes.Purple, 90) CreateColorBtn(Themes.Green, 135)
 
-
--- ==========================================
--- ABA PROFILE (REORGANIZADA COM ANTI-LAG)
--- ==========================================
-local ProfileContainer = Instance.new("Frame", TabProfile) 
-ProfileContainer.Size = UDim2.new(1, 0, 1, 0) 
-ProfileContainer.BackgroundTransparency = 1
-
-local function CreateProfileText(text, yPos, size, isBold, color)
-    local lbl = Instance.new("TextLabel", ProfileContainer) 
-    lbl.Size = UDim2.new(1, 0, 0, 25) 
-    lbl.Position = UDim2.new(0, 0, 0, yPos) 
-    lbl.BackgroundTransparency = 1 
-    lbl.Text = text 
-    lbl.TextColor3 = color or C_WHITE 
-    lbl.Font = isBold and Enum.Font.GothamBold or Enum.Font.Gotham 
-    lbl.TextSize = size or 14 
-    lbl.TextXAlignment = Enum.TextXAlignment.Left 
+local ProfileContainer = Instance.new("Frame", TabProfile) ProfileContainer.Size = UDim2.new(1, 0, 1, 0) ProfileContainer.BackgroundTransparency = 1
+local function CreateProfileText(text, yPos)
+    local lbl = Instance.new("TextLabel", ProfileContainer) lbl.Size = UDim2.new(1, 0, 0, 25) lbl.Position = UDim2.new(0, 0, 0, yPos) lbl.BackgroundTransparency = 1 lbl.Text = text lbl.TextColor3 = C_WHITE lbl.Font = Enum.Font.GothamBold lbl.TextSize = 14 lbl.TextXAlignment = Enum.TextXAlignment.Left
 end
+CreateProfileText("Usuário: " .. LocalPlayer.Name, 10) CreateProfileText("ID: " .. LocalPlayer.UserId, 40)
 
--- Informações Base
-CreateProfileText("Usuário: " .. LocalPlayer.Name, 10, 14, true) 
-CreateProfileText("ID: " .. LocalPlayer.UserId, 40, 14, true)
-
--- Créditos do Criador
-local CinzaTexto = Color3.fromRGB(180, 180, 180)
-CreateProfileText("Criador", 75, 12, false, CinzaTexto)
-CreateProfileText("YouTube: eoNight_ofc", 95, 12, false, CinzaTexto)
-CreateProfileText("TikTok: night_pushhard", 115, 12, false, CinzaTexto)
-
--- ==========================================
--- LÓGICA DO MÓDULO ANTI-LAG
--- ==========================================
-local OtimizacaoAtiva = false
-local SkinsRemoverAtivo = false
-local Terrain = workspace:FindFirstChildOfClass("Terrain")
-
-local function DestruirGraficos(obj)
-    pcall(function()
-        if obj:IsA("BasePart") then
-            obj.Material = Enum.Material.SmoothPlastic
-            obj.Reflectance = 0
-            obj.CastShadow = false
-        elseif obj:IsA("Decal") or obj:IsA("Texture") then
-            obj.Transparency = 1
-        elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") or obj:IsA("Explosion") then
-            obj.Enabled = false
-        elseif obj:IsA("MeshPart") then
-            obj.Material = Enum.Material.SmoothPlastic
-            obj.TextureID = ""
-            obj.CastShadow = false
-        end
-    end)
-end
-
-local function LimparPersonagem(character)
-    for _, obj in pairs(character:GetDescendants()) do
-        if obj:IsA("Accessory") or obj:IsA("Shirt") or obj:IsA("Pants") or obj:IsA("ShirtGraphic") then
-            pcall(function() obj:Destroy() end)
-        elseif obj:IsA("BasePart") then
-            pcall(function()
-                obj.Material = Enum.Material.SmoothPlastic
-                obj.Color = Color3.fromRGB(150, 150, 150)
-                obj.CastShadow = false
-            end)
-        end
-    end
-end
-
-workspace.DescendantAdded:Connect(function(obj)
-    if OtimizacaoAtiva then
-        task.wait()
-        DestruirGraficos(obj)
-    end
-end)
-
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function(char)
-        if SkinsRemoverAtivo then
-            task.wait(1)
-            LimparPersonagem(char)
-        end
-    end)
-end)
-
--- ==========================================
--- CHECKBOXES DO PERFIL (CONFIGURADOS CERTINHO)
--- ==========================================
+CreateCheckbox(ProfileContainer, "Exibir FPS", 0, 80, false, function(state) FPSGui.Visible = state end)
+CreateCheckbox(ProfileContainer, "Exibir Ping", 0, 115, false, function(state) PingGui.Visible = state end)
 
 CreateCheckbox(ProfileContainer, "Ocultar Gravações (StreamProof)", 0, 150, false, function(state) 
     if state then if gethui then ScreenGui.Parent = gethui() else ScreenGui.Parent = CoreGui end else ScreenGui.Parent = CoreGui end
 end)
 
-CreateCheckbox(ProfileContainer, "FPS Boost Máximo (Limpar Mapa)", 0, 185, false, function(state)
-    if state then
-        for _, obj in pairs(workspace:GetDescendants()) do DestruirGraficos(obj) end
-        if Terrain then pcall(function() Terrain.WaterWaveSize = 0 Terrain.WaterWaveSpeed = 0 Terrain.WaterReflectance = 0 Terrain.Decoration = false end) end
-    end
-end)
-
-CreateCheckbox(ProfileContainer, "Anti-Lag Dinâmico (Tiros/Poderes)", 0, 220, false, function(state)
-    OtimizacaoAtiva = state
-end)
-
-CreateCheckbox(ProfileContainer, "Remover Skins (Mais FPS)", 0, 255, false, function(state)
-    SkinsRemoverAtivo = state
-    if state then
-        for _, player in pairs(Players:GetPlayers()) do
-            if player.Character then LimparPersonagem(player.Character) end
-        end
-    end
-end)
-
-local Escurecedor = nil
-CreateCheckbox(ProfileContainer, "Óculos Escuro (Bypass Seguro)", 0, 290, false, function(state)
-    if state then
-        if not Escurecedor then
-            local DimmerGui = Instance.new("ScreenGui")
-            DimmerGui.Name = "SafeDimmerGui"
-            DimmerGui.IgnoreGuiInset = true
-            if syn and syn.protect_gui then syn.protect_gui(DimmerGui) end
-            DimmerGui.Parent = ScreenGui.Parent 
-            
-            Escurecedor = Instance.new("Frame")
-            Escurecedor.Size = UDim2.new(1, 0, 1, 0)
-            Escurecedor.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-            Escurecedor.BackgroundTransparency = 0.65
-            Escurecedor.BorderSizePixel = 0
-            Escurecedor.ZIndex = -10
-            Escurecedor.Active = false
-            Escurecedor.Parent = DimmerGui
-        else Escurecedor.Parent.Enabled = true end
-    else if Escurecedor then Escurecedor.Parent.Enabled = false end end
-end)
-
--- AJUSTE PARA NÃO BUGAR: Aumentamos o tamanho de rolagem da aba Profile para acomodar tudo!
-TabProfile.CanvasSize = UDim2.new(0, 0, 0, 420)
-
--- Botões de Controle (Empurrados para o final da lista, para não sobrepor nada)
 local ButtonsFrame = Instance.new("Frame", ProfileContainer)
 ButtonsFrame.Size = UDim2.new(1, 0, 0, 40)
-ButtonsFrame.Position = UDim2.new(0, 0, 0, 340) -- Movido mais para baixo
+ButtonsFrame.Position = UDim2.new(0, 0, 0, 190)
 ButtonsFrame.BackgroundTransparency = 1
 
 local UIListLayoutButtons = Instance.new("UIListLayout", ButtonsFrame)
