@@ -1,13 +1,15 @@
 --[[
-    NIGHT - FFH4X V27 (BYPASS / UNDETECTED) + SKELETON ESP
-    ATUALIZAÇÕES UX/UI & SISTEMAS:
+    NIGHT - FFH4X V26 (BYPASS / UNDETECTED) + SKELETON ESP
+    ATUALIZAÇÕES UX/UI:
     - Máquina de Estados do Painel: Aberto, Minimizado, Escondido.
-    - 3 Dedos funciona ESTRITAMENTE quando o painel está ESCONDIDO.
-    - Skin Changer V3: Sistema de CACHE LOCAL adicionado (Evita bug da arma branca).
-    - Desativar skins agora restaura perfeitamente os modelos originais instantaneamente.
-    - FIX: Sistema de Debounce adicionado para prevenir o bug de "Double Draw" (Animação repetida).
-    - FIX: Correção na Animação de Inspecionar (Lupa) para não travar após equipar rápido.
-    - NEW: Anti-Lag Extreme adicionado na aba de Perfil (Otimização Máxima sem quebrar Skins).
+    - 3 Dedos funciona ESTRITAMENTE quando o painel está ESCONDIDO (0.5s de delay).
+    - Botão flutuante (com FOTO PERSONALIZADA) só aparece no estado MINIMIZADO.
+    - Sem toques acidentais para jogadores de HUD avançado.
+    - [FIX] Botão da aba ativa atualiza a cor em tempo real ao mudar o tema.
+    - [NOVO] Sistema de verificação de MÚLTIPLOS IDs para título personalizado.
+    - [NOVO] FPS e Ping automáticos e fixos na tela (reposicionados).
+    - [FIX] Informações do Criador e StreamProof realinhados e ordenados corretamente no Perfil.
+    - [NOVO] Módulo Anti-Lag Extremo (Max FPS) integrado na aba Profile.
 ]]
 
 local CoreGui = game:GetService("CoreGui")
@@ -16,7 +18,6 @@ local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 local TweenService = game:GetService("TweenService") 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
@@ -147,7 +148,7 @@ Instance.new("UICorner", FOVCircle).CornerRadius = UDim.new(1, 0)
 local FOVStroke = Instance.new("UIStroke", FOVCircle) FOVStroke.Color = CurrentTheme FOVStroke.Thickness = 1.5 FOVStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border table.insert(ThemeElements.Strokes, FOVStroke) 
 local function UpdateFOVVisibility() FOVCircle.Visible = (FunctionsEnabled and FovEnabled) end
 
-local MainFrame = Instance.new("Frame", ScreenGui) MainFrame.Size = UDim2.new(0, 490, 0, 340) MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0) MainFrame.AnchorPoint = Vector2.new(0.5, 0.5) MainFrame.BackgroundColor3 = C_BLACK MainFrame.BorderSizePixel = 0 MainFrame.Active = true MainFrame.Visible = false Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
+local MainFrame = Instance.new("Frame", ScreenGui) MainFrame.Size = UDim2.new(0, 490, 0, 310) MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0) MainFrame.AnchorPoint = Vector2.new(0.5, 0.5) MainFrame.BackgroundColor3 = C_BLACK MainFrame.BorderSizePixel = 0 MainFrame.Active = true MainFrame.Visible = false Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
 local MainScale = Instance.new("UIScale", MainFrame) MainScale.Scale = 1 
 
 local SeparatorLine = Instance.new("Frame", MainFrame) SeparatorLine.Size = UDim2.new(1, -75, 0, 1) SeparatorLine.Position = UDim2.new(0, 75, 0, 40) SeparatorLine.BackgroundColor3 = CurrentTheme SeparatorLine.BorderSizePixel = 0 table.insert(ThemeElements.Backgrounds, SeparatorLine)
@@ -157,8 +158,16 @@ local BottomFlat = Instance.new("Frame", TopBar) BottomFlat.Size = UDim2.new(1, 
 -- ==========================================
 -- LISTA DE IDS & VERIFICAÇÃO (WHITELIST)
 -- ==========================================
-local IDS_ESPECIAIS = { [10773292247] = true, [1576699087] = true }
-local PanelName = IDS_ESPECIAIS[LocalPlayer.UserId] and "ZZ_VENCEU" or "NIGHT - FFH4X"
+local IDS_ESPECIAIS = {
+    [10773292247] = true,
+    [1576699087]  = true
+}
+
+local PanelName = "NIGHT - FFH4X"
+if IDS_ESPECIAIS[LocalPlayer.UserId] then
+    PanelName = "ZZ_VENCEU"
+end
+
 local TitleText = Instance.new("TextLabel", TopBar) TitleText.Size = UDim2.new(1, -60, 1, 0) TitleText.Position = UDim2.new(0, 30, 0, 0) TitleText.BackgroundTransparency = 1 TitleText.Text = PanelName TitleText.TextColor3 = C_WHITE TitleText.Font = Enum.Font.GothamBold TitleText.TextSize = 14
 
 -- ==========================================
@@ -262,13 +271,7 @@ local Tabs = {}
 local function CreateTab(name) 
     local frame = Instance.new("ScrollingFrame", TabContainer) frame.Size = UDim2.new(1, 0, 1, 0) frame.BackgroundTransparency = 1 frame.Visible = false frame.ScrollBarThickness = 2 frame.CanvasSize = UDim2.new(0, 0, 0, 320) frame.BorderSizePixel = 0 Tabs[name] = frame return frame 
 end
-
-local TabAimbot = CreateTab("Aimbot") 
-local TabESP = CreateTab("ESP") 
-local TabRageFunctions = CreateTab("RageFunctions") 
-local TabSkinChanger = CreateTab("SkinChanger") 
-local TabProfile = CreateTab("Profile") 
-TabAimbot.Visible = true
+local TabAimbot = CreateTab("Aimbot") local TabESP = CreateTab("ESP") local TabRageFunctions = CreateTab("RageFunctions") local TabProfile = CreateTab("Profile") TabAimbot.Visible = true
 
 local SideButtons = {}
 local ActiveSideButton = nil 
@@ -290,8 +293,7 @@ ActiveSideButton = SideButtons[1]
 
 CreateSideButton("👁️", 70, TabESP) 
 CreateSideButton("⚙️", 130, TabRageFunctions) 
-CreateSideButton("🔫", 190, TabSkinChanger) 
-CreateSideButton("👤", 250, TabProfile) 
+CreateSideButton("👤", 190, TabProfile) 
 
 table.insert(ThemeCallbacks, function(color)
     if ActiveSideButton then
@@ -320,17 +322,15 @@ local function CreateSlider(parent, label, defaultVal, x, y, action)
 end
 
 local function CreateDropdown(parent, label, options, x, y, defaultOption, action)
-    local container = Instance.new("Frame", parent) container.Size = UDim2.new(0, 180, 0, 25) container.Position = UDim2.new(0, x, 0, y) container.BackgroundTransparency = 1
-    local lblD = Instance.new("TextLabel", container) lblD.Size = UDim2.new(0, 120, 0, 25) lblD.Position = UDim2.new(1, 10, 0, 0) lblD.BackgroundTransparency = 1 lblD.Text = label lblD.TextColor3 = C_WHITE lblD.Font = Enum.Font.GothamBold lblD.TextSize = 13 lblD.TextXAlignment = Enum.TextXAlignment.Left  
+    local container = Instance.new("Frame", parent) container.Size = UDim2.new(0, 200, 0, 25) container.Position = UDim2.new(0, x, 0, y) container.BackgroundTransparency = 1
+    local lblD = Instance.new("TextLabel", container) lblD.Size = UDim2.new(0, 100, 0, 25) lblD.Position = UDim2.new(1, 10, 0, 0) lblD.BackgroundTransparency = 1 lblD.Text = label lblD.TextColor3 = C_WHITE lblD.Font = Enum.Font.GothamBold lblD.TextSize = 14 lblD.TextXAlignment = Enum.TextXAlignment.Left  
     local mainBtn = Instance.new("TextButton", container) mainBtn.Size = UDim2.new(1, 0, 1, 0) mainBtn.BackgroundColor3 = C_DARK_GREY mainBtn.Text = "" Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0, 4)
     local txtD = Instance.new("TextLabel", mainBtn) txtD.Size = UDim2.new(1, -30, 1, 0) txtD.Position = UDim2.new(0, 10, 0, 0) txtD.BackgroundTransparency = 1 txtD.Text = defaultOption txtD.TextColor3 = C_WHITE txtD.Font = Enum.Font.GothamBold txtD.TextSize = 13 txtD.TextXAlignment = Enum.TextXAlignment.Left  
     local arrowBox = Instance.new("Frame", mainBtn) arrowBox.Size = UDim2.new(0, 25, 0, 25) arrowBox.Position = UDim2.new(1, -25, 0, 0) arrowBox.BackgroundColor3 = CurrentTheme Instance.new("UICorner", arrowBox).CornerRadius = UDim.new(0, 4) table.insert(ThemeElements.Backgrounds, arrowBox)  
     local arrD = Instance.new("TextLabel", arrowBox) arrD.Size = UDim2.new(1, 0, 1, 0) arrD.BackgroundTransparency = 1 arrD.Text = "▼" arrD.TextColor3 = C_WHITE arrD.TextSize = 10  
-    local listFrame = Instance.new("Frame", mainBtn) listFrame.Size = UDim2.new(1, 0, 0, math.min(#options, 5) * 25) listFrame.Position = UDim2.new(0, 0, 1, 2) listFrame.BackgroundColor3 = C_DARK_GREY listFrame.ZIndex = 10 listFrame.Visible = false Instance.new("UICorner", listFrame).CornerRadius = UDim.new(0, 4)
-    local scrollList = Instance.new("ScrollingFrame", listFrame) scrollList.Size = UDim2.new(1, 0, 1, 0) scrollList.BackgroundTransparency = 1 scrollList.ScrollBarThickness = 2 scrollList.CanvasSize = UDim2.new(0, 0, 0, #options * 25) scrollList.ZIndex = 11
-    
+    local listFrame = Instance.new("Frame", mainBtn) listFrame.Size = UDim2.new(1, 0, 0, #options * 25) listFrame.Position = UDim2.new(0, 0, 1, 2) listFrame.BackgroundColor3 = C_DARK_GREY listFrame.ZIndex = 10 listFrame.Visible = false Instance.new("UICorner", listFrame).CornerRadius = UDim.new(0, 4)
     for i, option in ipairs(options) do
-        local optBtn = Instance.new("TextButton", scrollList) optBtn.Size = UDim2.new(1, 0, 0, 25) optBtn.Position = UDim2.new(0, 0, 0, (i-1)*25) optBtn.BackgroundTransparency = 1 optBtn.Text = "  " .. option optBtn.TextColor3 = C_WHITE optBtn.Font = Enum.Font.Gotham optBtn.TextSize = 12 optBtn.TextXAlignment = Enum.TextXAlignment.Left optBtn.ZIndex = 12
+        local optBtn = Instance.new("TextButton", listFrame) optBtn.Size = UDim2.new(1, 0, 0, 25) optBtn.Position = UDim2.new(0, 0, 0, (i-1)*25) optBtn.BackgroundTransparency = 1 optBtn.Text = "  " .. option optBtn.TextColor3 = C_WHITE optBtn.Font = Enum.Font.Gotham optBtn.TextSize = 13 optBtn.TextXAlignment = Enum.TextXAlignment.Left optBtn.ZIndex = 11
         optBtn.MouseButton1Click:Connect(function() txtD.Text = option listFrame.Visible = false if action then action(option) end end)
     end
     mainBtn.MouseButton1Click:Connect(function() listFrame.Visible = not listFrame.Visible end)
@@ -391,6 +391,7 @@ CreateSimpleRadioGroup(TabAimbot, "Tipo de Aimbot:", 0, 155, {"Ao Olhar", "Ao At
     else TriggerCircle.Visible = false IsTouchingScreen = false VisibleCheckBtn:TweenPosition(UDim2.new(0, 0, 0, 215), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.25, true) task.delay(0.15, function() if Aimbot_Settings.Type == "Ao Olhar" then TriggerUIFrame.Visible = false end end) end
 end)
 
+
 -- ==========================================
 -- MENU ESP 
 -- ==========================================
@@ -437,418 +438,9 @@ local function CreateColorBtn(color, xPos)
 end
 CreateColorBtn(Themes.Red, 0) CreateColorBtn(Themes.Blue, 45) CreateColorBtn(Themes.Purple, 90) CreateColorBtn(Themes.Green, 135)
 
--- ==========================================
--- ABA SKIN CHANGER (CACHE SYSTEM V3)
--- ==========================================
-local SkinChangerEnabled = false
-local CustomKnifeEnabled = false
-local SelectedSkins = {}
-local WEAR = "Factory New"
-local COOLDOWN = 0.1
-local GLOVES_KEY = "Sports Gloves"
-
--- Controles de Faca
-local scriptRunning = false
-local selectedKnife = "Butterfly Knife"
-local spawned = false
-local inspecting = false
-local swinging = false
-local lastAttackTime = 0
-local lastEquipTime = 0 -- FIX: Variável adicionada para evitar Double Draw
-local ATTACK_COOLDOWN = 0.5
-local EQUIP_COOLDOWN = 0.5 -- FIX: Tempo de debounce para recriar o saque (0.5s)
-local origAnimConn 
-
-local SkinsFolder = ReplicatedStorage:WaitForChild("Assets"):WaitForChild("Skins")
-local CharactersFolder = workspace:WaitForChild("Characters", 10)
-
-local knivesData = {
-    ["Karambit"] = {Offset = CFrame.new(0, -1.5, 1.5)},
-    ["Butterfly Knife"] = {Offset = CFrame.new(0, -1.5, 1.5)},
-    ["M9 Bayonet"] = {Offset = CFrame.new(0, -1.5, 1)},
-    ["Flip Knife"] = {Offset = CFrame.new(0, -1.5, 1.25)},
-    ["Gut Knife"] = {Offset = CFrame.new(0, -1.5, 0.5)},
-}
-
-local vm, animator, equipAnim, idleAnim, inspectAnim, HeavySwingAnim, Swing1Anim, Swing2Anim
-
-local function SC_isAlive()
-    if not CharactersFolder then return false end
-    local t = CharactersFolder:FindFirstChild("Terrorists")
-    local ct = CharactersFolder:FindFirstChild("Counter-Terrorists")
-    return (t and t:FindFirstChild(LocalPlayer.Name)) or (ct and ct:FindFirstChild(LocalPlayer.Name))
-end
-
--- ================== LÓGICA DE APLICAÇÃO E CACHE DE SKINS ==================
-local function CacheAndApplySurface(part, skinName, targetSkinKey, srcSideOrPartName)
-    if not part:FindFirstChild("NIGHT_Cache") then
-        local cacheFolder = Instance.new("Folder")
-        cacheFolder.Name = "NIGHT_Cache"
-        cacheFolder.Parent = part
-        local origSA = part:FindFirstChildOfClass("SurfaceAppearance")
-        if origSA then
-            origSA:Clone().Parent = cacheFolder
-        end
-    end
-
-    for _, child in ipairs(part:GetChildren()) do
-        if child:IsA("SurfaceAppearance") then
-            child:Destroy()
-        end
-    end
-
-    if skinName ~= "Padrão" then
-        local skinFolder = SkinsFolder:FindFirstChild(targetSkinKey)
-        local skinType = skinFolder and skinFolder:FindFirstChild(skinName)
-        local srcFolder = skinType and skinType:FindFirstChild("Camera") and skinType.Camera:FindFirstChild(WEAR)
-        if srcFolder and srcFolder:FindFirstChild(srcSideOrPartName) then
-            local clone = srcFolder[srcSideOrPartName]:Clone()
-            clone.Name = "SurfaceAppearance"
-            clone.Parent = part
-        end
-    else
-        local cacheFolder = part:FindFirstChild("NIGHT_Cache")
-        if cacheFolder then
-            local origSA = cacheFolder:FindFirstChildOfClass("SurfaceAppearance")
-            if origSA then
-                local clone = origSA:Clone()
-                clone.Name = "SurfaceAppearance"
-                clone.Parent = part
-            end
-        end
-    end
-end
-
-local function applyWeaponSkin(model, forceDefault)
-    if not model or not SC_isAlive() then return end
-    
-    local isKnife = (model.Name == "T Knife" or model.Name == "CT Knife" or knivesData[model.Name])
-    local targetSkinKey = isKnife and selectedKnife or model.Name
-    
-    local isEnabled = SkinChangerEnabled and not forceDefault
-    
-    pcall(function()
-        local left, right = model:FindFirstChild("Left Arm"), model:FindFirstChild("Right Arm")
-        if left or right then
-            local gloveSkinName = isEnabled and (SelectedSkins[GLOVES_KEY] or "Padrão") or "Padrão"
-            
-            for _, side in ipairs({"Left Arm", "Right Arm"}) do
-                local arm = model:FindFirstChild(side)
-                if arm then
-                    local gloveMesh = arm:FindFirstChild("Glove")
-                    if gloveMesh then
-                        CacheAndApplySurface(gloveMesh, gloveSkinName, GLOVES_KEY, side)
-                    end
-                end
-            end
-        end
-
-        if model.Name ~= GLOVES_KEY and model:FindFirstChild("Weapon") then
-            local skinName = isEnabled and (SelectedSkins[targetSkinKey] or "Padrão") or "Padrão"
-            local weaponFolder = model:FindFirstChild("Weapon")
-
-            for _, part in ipairs(weaponFolder:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    CacheAndApplySurface(part, skinName, targetSkinKey, part.Name)
-                end
-            end
-            model:SetAttribute("SkinApplied", skinName)
-        end
-    end)
-end
-
-Camera.ChildAdded:Connect(function(obj)
-    if not SkinChangerEnabled or not SC_isAlive() then return end
-    task.wait(COOLDOWN)
-    applyWeaponSkin(obj, false)
-end)
-
-task.spawn(function()
-    while task.wait(0.5) do
-        if SkinChangerEnabled and SC_isAlive() then
-            for _, obj in ipairs(Camera:GetChildren()) do
-                local isKnife = (obj.Name == "T Knife" or obj.Name == "CT Knife" or knivesData[obj.Name])
-                local targetSkinKey = isKnife and selectedKnife or obj.Name
-                
-                if SelectedSkins[targetSkinKey] and obj:GetAttribute("SkinApplied") ~= SelectedSkins[targetSkinKey] then
-                    applyWeaponSkin(obj, false)
-                end
-            end
-        end
-    end
-end)
-
--- ================== LÓGICA DE VIEWMODEL (FACA) ==================
-pcall(function() ReplicatedStorage.Assets.Weapons.Karambit.Camera.ViewmodelLight.Transparency = 1 end)
-
-local function getKnifeInCamera() return Camera:FindFirstChild("T Knife") or Camera:FindFirstChild("CT Knife") end
-local function cleanPart(part) if part:IsA("BasePart") then part.CanCollide, part.Anchored, part.CastShadow, part.CanTouch, part.CanQuery = false, false, false, false, false end end
-local function disableCollisions(model) for _, part in ipairs(model:GetDescendants()) do cleanPart(part) end end
-
-local function hideOriginalKnife(knife)
-    for _, part in ipairs(knife:GetDescendants()) do
-        if part:IsA("BasePart") or part:IsA("MeshPart") or part:IsA("Texture") then part.Transparency = 1 end
-    end
-end
-
-local function playSound(folder, name)
-    local weaponSounds = ReplicatedStorage.Sounds:FindFirstChild(selectedKnife)
-    if not weaponSounds then return end
-    local sound = weaponSounds:WaitForChild(folder):WaitForChild(name):Clone()
-    sound.Parent = Camera sound:Play() sound.Ended:Once(function() sound:Destroy() end) return sound
-end
-
-local function attachAsset(folder, armPartName, assetModelName, finalName, offset)
-    local targetArm = vm:FindFirstChild(armPartName)
-    if not targetArm then return end
-    local assetMesh = folder:WaitForChild(assetModelName):Clone()
-    cleanPart(assetMesh)
-    assetMesh.Name, assetMesh.Parent = finalName, targetArm
-    local motor = Instance.new("Motor6D")
-    motor.Part0, motor.Part1, motor.C0, motor.Parent = targetArm, assetMesh, offset, targetArm
-end
-
-local function removeViewmodel()
-    spawned = false
-    if origAnimConn then origAnimConn:Disconnect() origAnimConn = nil end
-    if vm then vm:Destroy() vm = nil end
-    animator, inspecting, swinging = nil, false, false
-end
-
-local function spawnViewmodel(knife)
-    if spawned or not scriptRunning then return end
-    local myModel = SC_isAlive()
-    if not myModel then return end
-
-    spawned = true
-    local knifeTemplate = ReplicatedStorage.Assets.Weapons:WaitForChild(selectedKnife)
-    local knifeOffset = knivesData[selectedKnife].Offset
-    vm = knifeTemplate:WaitForChild("Camera"):Clone()
-    vm.Name, vm.Parent = selectedKnife, Camera
-    disableCollisions(vm)
-    hideOriginalKnife(knife)
-
-    if myModel.Parent.Name == "Terrorists" then
-        local tGloves = ReplicatedStorage.Assets.Weapons:WaitForChild("T Glove")
-        attachAsset(tGloves, "Left Arm", "Left Arm", "Glove", CFrame.new(0, 0, -1.5))
-        attachAsset(tGloves, "Right Arm", "Right Arm", "Glove", CFrame.new(0, 0, -1.5))
-    else
-        local sleeves = ReplicatedStorage.Assets.Sleeves:WaitForChild("IDF")
-        local ctGloves = ReplicatedStorage.Assets.Weapons:WaitForChild("CT Glove")
-        attachAsset(sleeves, "Left Arm", "Left Arm", "Sleeve", CFrame.new(0, 0, 0.5))
-        attachAsset(ctGloves, "Left Arm", "Left Arm", "Glove", CFrame.new(0, 0, -1.5))
-        attachAsset(sleeves, "Right Arm", "Right Arm", "Sleeve", CFrame.new(0, 0, 0.5))
-        attachAsset(ctGloves, "Right Arm", "Right Arm", "Glove", CFrame.new(0, 0, -1.5))
-    end
-
-    local animController = vm:FindFirstChildOfClass("AnimationController") or vm:FindFirstChildOfClass("Animator")
-    animator = animController:FindFirstChildWhichIsA("Animator") or animController
-    local animFolder = ReplicatedStorage.Assets.WeaponAnimations:WaitForChild(selectedKnife):WaitForChild("CameraAnimations")
-
-    equipAnim = animator:LoadAnimation(animFolder:WaitForChild("Equip"))
-    idleAnim = animator:LoadAnimation(animFolder:WaitForChild("Idle"))
-    inspectAnim = animator:LoadAnimation(animFolder:WaitForChild("Inspect"))
-    HeavySwingAnim = animator:LoadAnimation(animFolder:WaitForChild("Heavy Swing"))
-    Swing1Anim = animator:LoadAnimation(animFolder:WaitForChild("Swing1"))
-    Swing2Anim = animator:LoadAnimation(animFolder:WaitForChild("Swing2"))
-
-    vm:SetPrimaryPartCFrame(Camera.CFrame * CFrame.new(0, -1.5, 5))
-    TweenService:Create(vm.PrimaryPart, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { CFrame = Camera.CFrame * knifeOffset }):Play()
-    
-    -- FIX: Correção do Bug "Double Draw" (Animação reiniciando após 0.2s por dessync do servidor)
-    local currentTime = os.clock()
-    if currentTime - lastEquipTime >= EQUIP_COOLDOWN then
-        equipAnim:Play() 
-        playSound("Equip", "1")
-        lastEquipTime = currentTime
-    else
-        -- Se estiver sofrendo recriação pelo lag do servidor, vai direto pro Idle para não reiniciar o saque
-        if idleAnim then idleAnim:Play() end
-    end
-
-    local origAnimController = knife:FindFirstChildOfClass("AnimationController") or knife:FindFirstChildOfClass("Humanoid")
-    local origAnimator = origAnimController and (origAnimController:FindFirstChildWhichIsA("Animator") or origAnimController)
-
-    if origAnimator then
-        origAnimConn = origAnimator.AnimationPlayed:Connect(function(origTrack)
-            local name = origTrack.Animation.Name:lower()
-            
-            if name:match("inspect") or name:match("lupa") then
-                -- FIX: Agora a lupa interrompe o saque ao invés de ser ignorada se apertada muito rápido
-                if swinging then return end -- Só bloqueia se estiver atacando
-                
-                if equipAnim and equipAnim.IsPlaying then equipAnim:Stop() end
-                if idleAnim and idleAnim.IsPlaying then idleAnim:Stop() end
-                if inspectAnim and inspectAnim.IsPlaying then inspectAnim:Stop() end
-                
-                inspecting = true 
-                inspectAnim:Play() 
-                inspectAnim.Stopped:Once(function() inspecting = false end)
-                
-            elseif name:match("attack") or name:match("swing") or name:match("slash") or name:match("hit") then
-                local currentTimeAttack = os.clock()
-                if (equipAnim and equipAnim.IsPlaying) or (currentTimeAttack - lastAttackTime < ATTACK_COOLDOWN) then return end
-                lastAttackTime = currentTimeAttack
-                if inspecting then inspecting = false; if inspectAnim then inspectAnim:Stop() end end
-                swinging = true if idleAnim then idleAnim:Stop() end
-                local anims = {HeavySwingAnim, Swing1Anim, Swing2Anim}
-                local chosenAnim = anims[math.random(1, #anims)]
-                local soundFolder = (chosenAnim == HeavySwingAnim and "HitOne") or (chosenAnim == Swing1Anim and "HitTwo") or "HitThree"
-                chosenAnim:Play()
-                local s = playSound(soundFolder, "1")
-                if s then s.Volume = 5 end
-                chosenAnim.Stopped:Once(function() swinging = false end)
-            end
-        end)
-    end
-end
-
-RunService.RenderStepped:Connect(function()
-    if not scriptRunning or not vm or not vm.PrimaryPart then return end
-    vm.PrimaryPart.CFrame = Camera.CFrame * knivesData[selectedKnife].Offset
-    if not (equipAnim and equipAnim.IsPlaying) and not inspecting and not swinging then
-        if idleAnim and not idleAnim.IsPlaying then idleAnim:Play() end
-    end
-end)
-
-task.spawn(function()
-    while task.wait(0.1) do
-        local living = SC_isAlive()
-        local currentKnife = getKnifeInCamera()
-        if scriptRunning and living and currentKnife and not spawned then
-            spawnViewmodel(currentKnife)
-        elseif (not scriptRunning or not currentKnife or not living) and spawned then
-            removeViewmodel()
-        end
-    end
-end)
-
--- ================== INTERFACE SKIN CHANGER ==================
-local SC_Y = 10 
-
-CreateCheckbox(TabSkinChanger, "Ativar Skins", 0, SC_Y, false, function(v) 
-    SkinChangerEnabled = v 
-    for _, o in ipairs(Camera:GetChildren()) do 
-        o:SetAttribute("SkinApplied", nil) 
-        applyWeaponSkin(o, not v) 
-    end 
-end)
-
-SC_Y = SC_Y + 35
-CreateCheckbox(TabSkinChanger, "Ativar Faca Custom", 0, SC_Y, false, function(v) 
-    CustomKnifeEnabled = v 
-    scriptRunning = v 
-    if not v then removeViewmodel() end 
-end)
-
-SC_Y = SC_Y + 45
-local ArrModelos = {"Butterfly Knife", "Karambit", "M9 Bayonet", "Flip Knife", "Gut Knife"}
-CreateDropdown(TabSkinChanger, "Tipo de Faca:", ArrModelos, 0, SC_Y, "Butterfly Knife", function(v) 
-    selectedKnife = v 
-    if spawned then removeViewmodel() end 
-end)
-
-local function GetSkinsForWeapon(wepName)
-    local opts = {"Padrão"}
-    pcall(function()
-        local folder = SkinsFolder:FindFirstChild(wepName)
-        if folder then for _, s in ipairs(folder:GetChildren()) do table.insert(opts, s.Name) end end
-    end)
-    return opts
-end
-
-SC_Y = SC_Y + 35
-local SkinDeFacaLista = GetSkinsForWeapon("Butterfly Knife")
-SelectedSkins["Butterfly Knife"] = SkinDeFacaLista[1]
-CreateDropdown(TabSkinChanger, "Skin da Faca:", SkinDeFacaLista, 0, SC_Y, "Padrão", function(val)
-    for _, k in ipairs(ArrModelos) do SelectedSkins[k] = val end
-    for _, o in ipairs(Camera:GetChildren()) do o:SetAttribute("SkinApplied", nil) applyWeaponSkin(o, false) end
-end)
-
-SC_Y = SC_Y + 45
-
-local TodasAsArmas = {
-    {"Sports Gloves", "Luvas:"},
-    {"AK-47", "AK-47:"},
-    {"M4A4", "M4A4:"},
-    {"M4A1-S", "M4A1-S:"},
-    {"AWP", "AWP:"},
-    {"FAMAS", "FAMAS:"},
-    {"AUG", "AUG:"},
-    {"SSG 08", "SSG 08:"},
-    {"Desert Eagle", "Deagle:"},
-    {"Glock-18", "Glock-18:"},
-    {"USP-S", "USP-S:"},
-    {"P250", "P250:"},
-    {"Five-SeveN", "Five-SeveN:"},
-    {"Dual Berettas", "Dualies:"},
-    {"P90", "P90:"},
-    {"MP9", "MP9:"},
-    {"Nova", "Nova:"},
-    {"XM1014", "XM1014:"},
-    {"Negev", "Negev:"}
-}
-
-for _, wp in ipairs(TodasAsArmas) do
-    local sysName = wp[1]
-    local labelName = wp[2]
-    local dropdownOptions = GetSkinsForWeapon(sysName)
-    
-    SelectedSkins[sysName] = dropdownOptions[1]
-    
-    CreateDropdown(TabSkinChanger, labelName, dropdownOptions, 0, SC_Y, dropdownOptions[1], function(val)
-        SelectedSkins[sysName] = val
-        for _, o in ipairs(Camera:GetChildren()) do 
-            o:SetAttribute("SkinApplied", nil) 
-            applyWeaponSkin(o, false) 
-        end
-    end)
-    SC_Y = SC_Y + 35
-end
-
-TabSkinChanger.CanvasSize = UDim2.new(0, 0, 0, SC_Y + 40)
 
 -- ==========================================
--- LÓGICA DE ANTI-LAG (NOVO)
--- ==========================================
-local function AtivarAntiLagExtremo()
-    pcall(function()
-        local Lighting = game:GetService("Lighting")
-        Lighting.GlobalShadows = false
-        Lighting.FogEnd = 9e9
-        
-        for _, effect in pairs(Lighting:GetChildren()) do
-            if effect:IsA("PostEffect") or effect:IsA("SunRaysEffect") or effect:IsA("Atmosphere") then
-                effect.Enabled = false
-            end
-        end
-
-        local Terrain = workspace:FindFirstChildOfClass("Terrain")
-        if Terrain then
-            Terrain.WaterWaveSize = 0
-            Terrain.WaterWaveSpeed = 0
-            Terrain.Decoration = false 
-        end
-
-        for _, v in pairs(workspace:GetDescendants()) do
-            -- Proteção: Impede o Anti-Lag de destruir os modelos das mãos e facas na câmera (Mantém as Skins Intactas)
-            if not v:IsDescendantOf(Camera) then
-                if v:IsA("BasePart") then
-                    v.Material = Enum.Material.SmoothPlastic
-                    v.Reflectance = 0
-                    v.CastShadow = false
-                elseif v:IsA("Decal") or v:IsA("Texture") or v:IsA("SurfaceAppearance") then
-                    v:Destroy() 
-                elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Fire") or v:IsA("Smoke") then
-                    v.Enabled = false
-                end
-            end
-        end
-    end)
-end
-
--- ==========================================
--- ABA PROFILE
+-- ABA PROFILE (REORGANIZADA COM ANTI-LAG)
 -- ==========================================
 local ProfileContainer = Instance.new("Frame", TabProfile) 
 ProfileContainer.Size = UDim2.new(1, 0, 1, 0) 
@@ -866,28 +458,128 @@ local function CreateProfileText(text, yPos, size, isBold, color)
     lbl.TextXAlignment = Enum.TextXAlignment.Left 
 end
 
+-- Informações Base
 CreateProfileText("Usuário: " .. LocalPlayer.Name, 10, 14, true) 
 CreateProfileText("ID: " .. LocalPlayer.UserId, 40, 14, true)
 
+-- Créditos do Criador
 local CinzaTexto = Color3.fromRGB(180, 180, 180)
 CreateProfileText("Criador", 75, 12, false, CinzaTexto)
 CreateProfileText("YouTube: eoNight_ofc", 95, 12, false, CinzaTexto)
 CreateProfileText("TikTok: night_pushhard", 115, 12, false, CinzaTexto)
 
+-- ==========================================
+-- LÓGICA DO MÓDULO ANTI-LAG
+-- ==========================================
+local OtimizacaoAtiva = false
+local SkinsRemoverAtivo = false
+local Terrain = workspace:FindFirstChildOfClass("Terrain")
+
+local function DestruirGraficos(obj)
+    pcall(function()
+        if obj:IsA("BasePart") then
+            obj.Material = Enum.Material.SmoothPlastic
+            obj.Reflectance = 0
+            obj.CastShadow = false
+        elseif obj:IsA("Decal") or obj:IsA("Texture") then
+            obj.Transparency = 1
+        elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") or obj:IsA("Explosion") then
+            obj.Enabled = false
+        elseif obj:IsA("MeshPart") then
+            obj.Material = Enum.Material.SmoothPlastic
+            obj.TextureID = ""
+            obj.CastShadow = false
+        end
+    end)
+end
+
+local function LimparPersonagem(character)
+    for _, obj in pairs(character:GetDescendants()) do
+        if obj:IsA("Accessory") or obj:IsA("Shirt") or obj:IsA("Pants") or obj:IsA("ShirtGraphic") then
+            pcall(function() obj:Destroy() end)
+        elseif obj:IsA("BasePart") then
+            pcall(function()
+                obj.Material = Enum.Material.SmoothPlastic
+                obj.Color = Color3.fromRGB(150, 150, 150)
+                obj.CastShadow = false
+            end)
+        end
+    end
+end
+
+workspace.DescendantAdded:Connect(function(obj)
+    if OtimizacaoAtiva then
+        task.wait()
+        DestruirGraficos(obj)
+    end
+end)
+
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(char)
+        if SkinsRemoverAtivo then
+            task.wait(1)
+            LimparPersonagem(char)
+        end
+    end)
+end)
+
+-- ==========================================
+-- CHECKBOXES DO PERFIL (CONFIGURADOS CERTINHO)
+-- ==========================================
+
 CreateCheckbox(ProfileContainer, "Ocultar Gravações (StreamProof)", 0, 150, false, function(state) 
     if state then if gethui then ScreenGui.Parent = gethui() else ScreenGui.Parent = CoreGui end else ScreenGui.Parent = CoreGui end
 end)
 
--- Botão de Anti-Lag adicionado
-CreateCheckbox(ProfileContainer, "Anti Lag (Máximo FPS)", 0, 185, false, function(state)
+CreateCheckbox(ProfileContainer, "FPS Boost Máximo (Limpar Mapa)", 0, 185, false, function(state)
     if state then
-        AtivarAntiLagExtremo()
+        for _, obj in pairs(workspace:GetDescendants()) do DestruirGraficos(obj) end
+        if Terrain then pcall(function() Terrain.WaterWaveSize = 0 Terrain.WaterWaveSpeed = 0 Terrain.WaterReflectance = 0 Terrain.Decoration = false end) end
     end
 end)
 
+CreateCheckbox(ProfileContainer, "Anti-Lag Dinâmico (Tiros/Poderes)", 0, 220, false, function(state)
+    OtimizacaoAtiva = state
+end)
+
+CreateCheckbox(ProfileContainer, "Remover Skins (Mais FPS)", 0, 255, false, function(state)
+    SkinsRemoverAtivo = state
+    if state then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player.Character then LimparPersonagem(player.Character) end
+        end
+    end
+end)
+
+local Escurecedor = nil
+CreateCheckbox(ProfileContainer, "Óculos Escuro (Bypass Seguro)", 0, 290, false, function(state)
+    if state then
+        if not Escurecedor then
+            local DimmerGui = Instance.new("ScreenGui")
+            DimmerGui.Name = "SafeDimmerGui"
+            DimmerGui.IgnoreGuiInset = true
+            if syn and syn.protect_gui then syn.protect_gui(DimmerGui) end
+            DimmerGui.Parent = ScreenGui.Parent 
+            
+            Escurecedor = Instance.new("Frame")
+            Escurecedor.Size = UDim2.new(1, 0, 1, 0)
+            Escurecedor.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+            Escurecedor.BackgroundTransparency = 0.65
+            Escurecedor.BorderSizePixel = 0
+            Escurecedor.ZIndex = -10
+            Escurecedor.Active = false
+            Escurecedor.Parent = DimmerGui
+        else Escurecedor.Parent.Enabled = true end
+    else if Escurecedor then Escurecedor.Parent.Enabled = false end end
+end)
+
+-- AJUSTE PARA NÃO BUGAR: Aumentamos o tamanho de rolagem da aba Profile para acomodar tudo!
+TabProfile.CanvasSize = UDim2.new(0, 0, 0, 420)
+
+-- Botões de Controle (Empurrados para o final da lista, para não sobrepor nada)
 local ButtonsFrame = Instance.new("Frame", ProfileContainer)
 ButtonsFrame.Size = UDim2.new(1, 0, 0, 40)
-ButtonsFrame.Position = UDim2.new(0, 0, 0, 220) -- Posição ajustada para caber o Anti Lag
+ButtonsFrame.Position = UDim2.new(0, 0, 0, 340) -- Movido mais para baixo
 ButtonsFrame.BackgroundTransparency = 1
 
 local UIListLayoutButtons = Instance.new("UIListLayout", ButtonsFrame)
@@ -905,6 +597,7 @@ MinimizePanelBtn.Size = UDim2.new(0, 140, 0, 35) MinimizePanelBtn.BackgroundColo
 Instance.new("UICorner", MinimizePanelBtn).CornerRadius = UDim.new(0, 6)
 table.insert(ThemeElements.Backgrounds, MinimizePanelBtn)
 MinimizePanelBtn.MouseButton1Click:Connect(PlayMinimizeAnimation)
+
 
 -- ==========================================
 -- ENGINE E LÓGICA DO AIMBOT/ESP/SKELETON E HITBOX
@@ -963,7 +656,6 @@ local function ApplyChams(character)
     local hl = character:FindFirstChild("NIGHT_Chams") or Instance.new("Highlight") hl.Name = "NIGHT_Chams"
     local targetColor = ESP_Settings.RainbowChams and Current_Rainbow_Color or ESP_Settings.ChamsColor
     hl.FillColor = targetColor hl.OutlineColor = targetColor hl.FillTransparency = 0.5 hl.OutlineTransparency = 0.1
-    hl.Enabled = true
     if hl.Parent ~= character then hl.Parent = character end
 end
 
@@ -1002,11 +694,11 @@ RunService.RenderStepped:Connect(function()
                         drawings.Box.Visible = true local sizeX, sizeY = 2000 / pos.Z, 2500 / pos.Z
                         drawings.Box.Size = Vector2.new(sizeX, sizeY) drawings.Box.Position = Vector2.new(pos.X - sizeX / 2, pos.Y - sizeY / 2) 
                         drawings.Box.Color = CurrentTheme drawings.Box.Thickness = 1 drawings.Box.Filled = false 
-                        if highlight then highlight.Enabled = false end 
+                        if highlight then highlight:Destroy() end 
                     elseif ESP_Settings.BoxType == "Chams Glow" then
                         drawings.Box.Visible = false ApplyChams(char)
                     end
-                else drawings.Box.Visible = false if highlight then highlight.Enabled = false end end
+                else drawings.Box.Visible = false if highlight then highlight:Destroy() end end
                 
                 local hum = char:FindFirstChildOfClass("Humanoid")
                 if hum and ESP_Settings.Health then
@@ -1042,12 +734,12 @@ RunService.RenderStepped:Connect(function()
             else
                 drawings.Line.Visible = false drawings.Box.Visible = false drawings.Health.Visible = false
                 for _, l in pairs(drawings.SkelLines) do l.Visible = false end drawings.SkelCircle.Visible = false
-                if highlight then highlight.Enabled = false end
+                if highlight then highlight:Destroy() end
             end
         else
             drawings.Line.Visible = false drawings.Box.Visible = false drawings.Health.Visible = false
             for _, l in pairs(drawings.SkelLines) do l.Visible = false end drawings.SkelCircle.Visible = false
-            if player.Character then local hl = player.Character:FindFirstChild("NIGHT_Chams") if hl then hl.Enabled = false end end
+            if player.Character then local hl = player.Character:FindFirstChild("NIGHT_Chams") if hl then hl:Destroy() end end
         end
     end
 end)
@@ -1085,7 +777,7 @@ RunService:BindToRenderStep("NIGHT_Aimbot_Priority", Enum.RenderPriority.Camera.
                     local velocity = LockedTarget.AssemblyLinearVelocity or Vector3.new(0, 0, 0)
                     if Aimbot_Settings.PullPart == "Head" and dist > 80 then targetPos = targetPos - Vector3.new(0, 0.4, 0) end
 
-                    local predictedPos = targetPos + (velocity * math.clamp(dist / 1000, 0, 0.2))
+                    local predictedPos = targetPos + (velocity * (dist / 1000))
                     local pos, onS = Camera:WorldToViewportPoint(predictedPos)
                     if (Vector2.new(pos.X, pos.Y) - Camera.ViewportSize/2).Magnitude > (Aimbot_Settings.FovSize / 2) then LockedTarget = nil return end
 
