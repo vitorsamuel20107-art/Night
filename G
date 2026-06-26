@@ -1,4 +1,4 @@
-local httpService = game:GetService("HttpService")
+local httpService = game:GetService("httpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
