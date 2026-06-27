@@ -1,4 +1,4 @@
-local HttpService = game:GetService("HttpService")
+Local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -195,8 +195,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local targetParent = gethui and gethui() or (syn and syn.protect_gui and CoreGui or CoreGui)
         if targetParent:FindFirstChild("NIGHT_UI_PixelPerfect") then targetParent.NIGHT_UI_PixelPerfect:Destroy() end
 
-        local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false local NoSmokeEnabled = false
-        local FlutuarAtivo = false
+        local FunctionsEnabled = false local FovEnabled = false local HitboxEnabled = false
         
         local ESP_Settings = { Lines = false, LineOrigin = "Cima", LineColor = GlobalSettings.ESP_Colors.Lines, Boxes = false, BoxType = "Quadrado", BoxColor = GlobalSettings.ESP_Colors.Boxes, Skeleton = false, SkeletonColor = GlobalSettings.ESP_Colors.Skeleton, Health = false, ChamsColor = Color3.fromRGB(0, 255, 0), RainbowChams = false, MaxDistance = 500, MarcarTodos = false }
         
@@ -491,7 +490,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local EditTarget = "Menu" local TargetBtns = {}
         local function SetEditTarget(targetKey, isVisible) if isVisible then EditTarget = targetKey for key, data in pairs(TargetBtns) do if key ~= targetKey then data.check.Visible = false data.box.BackgroundColor3 = C_DARK_GREY end end else EditTarget = "Menu" end end
 
-        local TargetScroll = Instance.new("Frame", TabRageFunctions) TargetScroll.Size = UDim2.new(1, -20, 0, 0) TargetScroll.Position = UDim2.new(0, 0, 0, 330) TargetScroll.BackgroundTransparency = 1 TargetScroll.AutomaticSize = Enum.AutomaticSize.Y TargetScroll.BorderSizePixel = 0
+        local TargetScroll = Instance.new("Frame", TabRageFunctions) TargetScroll.Size = UDim2.new(1, -20, 0, 0) TargetScroll.Position = UDim2.new(0, 0, 0, 295) TargetScroll.BackgroundTransparency = 1 TargetScroll.AutomaticSize = Enum.AutomaticSize.Y TargetScroll.BorderSizePixel = 0
         local TargetListLayout = Instance.new("UIListLayout", TargetScroll) TargetListLayout.Padding = UDim.new(0, 5)
 
         local function CreateTargetToggle(key, text)
@@ -505,64 +504,10 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
         CreateTargetToggle("Lines", "Selecionado: Cor ESP Linha") CreateTargetToggle("Boxes", "Selecionado: Cor ESP Caixa") CreateTargetToggle("Skeleton", "Selecionado: Cor Esqueleto")
 
-        local PlataformasFlutuar = {}
-        local ConexaoFlutuar = nil
-        local UltimaPosicaoFlutuar = Vector3.new(0, 0, 0)
-
-        local function AtualizarPlataformasEstaticas()
-            if ConexaoFlutuar then ConexaoFlutuar:Disconnect() ConexaoFlutuar = nil end
-            
-            for _, p in pairs(PlataformasFlutuar) do if p then p:Destroy() end end
-            PlataformasFlutuar = {}
-
-            if FunctionsEnabled and FlutuarAtivo then
-                SalvarNoDiario("Sistema Flutuar ativado (Apoio Estático Invisível).", "INFO")
-                
-                for i = 1, 2 do
-                    local p = Instance.new("Part")
-                    p.Name = "NIGHT_PlataformaEstatica_" .. i
-                    p.Size = Vector3.new(4, 0.5, 4)
-                    p.Transparency = 1 
-                    p.Anchored = true
-                    p.CanCollide = true
-                    p.Parent = Workspace
-                    table.insert(PlataformasFlutuar, p)
-                end
-
-                ConexaoFlutuar = RunService.RenderStepped:Connect(function()
-                    pcall(function()
-                        if not (FunctionsEnabled and FlutuarAtivo) then return end
-
-                        local char = LocalPlayer.Character
-                        local hum = char and char:FindFirstChild("Humanoid")
-                        local root = char and char:FindFirstChild("HumanoidRootPart")
-                        
-                        if root and hum and hum.Health > 0 and #PlataformasFlutuar == 2 then
-                            local estaSeMovendo = hum.MoveDirection.Magnitude > 0
-                            local estaNoAr = (hum:GetState() == Enum.HumanoidStateType.Freefall or hum:GetState() == Enum.HumanoidStateType.Jumping)
-                            
-                            if estaSeMovendo or estaNoAr then
-                                local posBase = root.Position - Vector3.new(0, 3.5, 0)
-                                PlataformasFlutuar[1].CFrame = CFrame.new(posBase)
-                                PlataformasFlutuar[2].CFrame = CFrame.new(posBase + (root.CFrame.LookVector * 2))
-                                UltimaPosicaoFlutuar = posBase
-                            else
-                                PlataformasFlutuar[1].CFrame = CFrame.new(UltimaPosicaoFlutuar)
-                                PlataformasFlutuar[2].CFrame = CFrame.new(UltimaPosicaoFlutuar + (root.CFrame.LookVector * 2))
-                            end
-                        end
-                    end)
-                end)
-            else
-                SalvarNoDiario("Sistema Flutuar desativado.", "INFO")
-            end
-        end
-
         CreateCheckbox(TabAimbot, "Ativar Funções", 0, 0, false, function(s) 
             FunctionsEnabled = s 
             UpdateFOVVisibility() 
             if not s then LockedTarget = nil end 
-            AtualizarPlataformasEstaticas()
         end)
         
         CreateCheckbox(TabAimbot, "Exibir FOV", 0, 35, false, function(s) FovEnabled = s UpdateFOVVisibility() end)
@@ -607,45 +552,13 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         local RangerHeaderFrame = Instance.new("Frame", TabRageFunctions) RangerHeaderFrame.Size = UDim2.new(1, 0, 0, 30) RangerHeaderFrame.BackgroundTransparency = 1
         local RageHeaderText = Instance.new("TextLabel", RangerHeaderFrame) RageHeaderText.Size = UDim2.new(1, 0, 1, 0) RageHeaderText.BackgroundTransparency = 1 RageHeaderText.Text = "⚠️ Funções Rage (risk)" RageHeaderText.TextColor3 = C_WHITE RageHeaderText.Font = Enum.Font.GothamBold RageHeaderText.TextSize = 16 RageHeaderText.TextXAlignment = Enum.TextXAlignment.Left
 
-        local function ApplyNoSmokeSafely(obj)
-            if not obj or typeof(obj) ~= "Instance" then return end
-            if obj:IsA("ParticleEmitter") or obj:IsA("Smoke") or obj:IsA("Fire") then
-                pcall(function()
-                    obj.Enabled = false
-                    if obj:IsA("ParticleEmitter") then obj.Rate = 0 end
-                    if obj:IsA("ParticleEmitter") or obj:IsA("Smoke") then
-                        obj.Transparency = NumberSequence.new(1)
-                    end
-                end)
-            end
-        end
-
-        Workspace.DescendantAdded:Connect(function(obj)
-            if FunctionsEnabled and NoSmokeEnabled then ApplyNoSmokeSafely(obj) end
-        end)
-        
-        task.spawn(function()
-            while task.wait(1) do
-                if FunctionsEnabled and NoSmokeEnabled then
-                    for _, v in pairs(Workspace:GetDescendants()) do ApplyNoSmokeSafely(v) end
-                end
-            end
-        end)
-
-        CreateCheckbox(TabRageFunctions, "No Smoke", 0, 35, false, function(v) NoSmokeEnabled = v end) 
-        
         local SpinBotAtivo = false
-        CreateCheckbox(TabRageFunctions, "SpinBot", 170, 35, false, function(v)
+        CreateCheckbox(TabRageFunctions, "SpinBot", 0, 35, false, function(v)
             SpinBotAtivo = v
         end)
 
-        CreateCheckbox(TabRageFunctions, "Flutuar", 0, 70, false, function(v) 
-            FlutuarAtivo = v 
-            AtualizarPlataformasEstaticas()
-        end) 
-        
-        CreateCheckbox(TabRageFunctions, "Tp Player", 170, 70, false) 
-        CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 105, false, function(v) HitboxEnabled = v end)
+        CreateCheckbox(TabRageFunctions, "Tp Player", 170, 35, false) 
+        CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 70, false, function(v) HitboxEnabled = v end)
 
         local VelocidadeGiro = 35
         local anguloAtual = 0
@@ -835,12 +748,12 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         CriarBtnAltura("SUBIR", 5, function() direcoesVoo.cima = 1 end, function() direcoesVoo.cima = 0 end)
         CriarBtnAltura("DESCER", 60, function() direcoesVoo.baixo = 1 end, function() direcoesVoo.baixo = 0 end)
 
-        CreateCheckbox(TabRageFunctions, "3ª Pessoa", 170, 105, false, function(v)
+        CreateCheckbox(TabRageFunctions, "3ª Pessoa", 170, 70, false, function(v)
             _G.TerceiraPessoaAtiva = v
             gerenciarCamera()
         end)
 
-        CreateCheckbox(TabRageFunctions, "FreeCam (Voo)", 0, 140, false, function(v)
+        CreateCheckbox(TabRageFunctions, "FreeCam (Voo)", 0, 105, false, function(v)
             _G.FreeCamAtiva = v
             FakeAnalogPad.Visible = v
             VerticalPad.Visible = v
@@ -848,7 +761,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             gerenciarCamera()
         end)
 
-        CreateSlider(TabRageFunctions, "Zoom 3ª Pessoa", 277, 170, 140, function(v)
+        CreateSlider(TabRageFunctions, "Zoom 3ª Pessoa", 277, 170, 105, function(v)
             DISTANCIA_TRAS = 2.0 + ((v / 1000) * 18.0)
         end)
 
@@ -857,8 +770,8 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             if _G.TerceiraPessoaAtiva or _G.FreeCamAtiva then gerenciarCamera() end
         end)
 
-        local ColorPickerLabel = Instance.new("TextLabel", TabRageFunctions) ColorPickerLabel.Size = UDim2.new(1, -10, 0, 25) ColorPickerLabel.Position = UDim2.new(0, 0, 0, 180) ColorPickerLabel.BackgroundTransparency = 1 ColorPickerLabel.Text = "Cores Customizáveis" ColorPickerLabel.TextColor3 = C_WHITE ColorPickerLabel.Font = Enum.Font.GothamBold ColorPickerLabel.TextSize = 14 ColorPickerLabel.TextXAlignment = Enum.TextXAlignment.Left
-        local ColorButtonsFrame = Instance.new("ScrollingFrame", TabRageFunctions) ColorButtonsFrame.Size = UDim2.new(1, -20, 0, 48) ColorButtonsFrame.Position = UDim2.new(0, 0, 0, 210) ColorButtonsFrame.BackgroundTransparency = 1 ColorButtonsFrame.CanvasSize = UDim2.new(0, 0, 0, 0) ColorButtonsFrame.AutomaticCanvasSize = Enum.AutomaticSize.X ColorButtonsFrame.ScrollBarThickness = 3 ColorButtonsFrame.ScrollingDirection = Enum.ScrollingDirection.X ColorButtonsFrame.ClipsDescendants = true
+        local ColorPickerLabel = Instance.new("TextLabel", TabRageFunctions) ColorPickerLabel.Size = UDim2.new(1, -10, 0, 25) ColorPickerLabel.Position = UDim2.new(0, 0, 0, 145) ColorPickerLabel.BackgroundTransparency = 1 ColorPickerLabel.Text = "Cores Customizáveis" ColorPickerLabel.TextColor3 = C_WHITE ColorPickerLabel.Font = Enum.Font.GothamBold ColorPickerLabel.TextSize = 14 ColorPickerLabel.TextXAlignment = Enum.TextXAlignment.Left
+        local ColorButtonsFrame = Instance.new("ScrollingFrame", TabRageFunctions) ColorButtonsFrame.Size = UDim2.new(1, -20, 0, 48) ColorButtonsFrame.Position = UDim2.new(0, 0, 0, 175) ColorButtonsFrame.BackgroundTransparency = 1 ColorButtonsFrame.CanvasSize = UDim2.new(0, 0, 0, 0) ColorButtonsFrame.AutomaticCanvasSize = Enum.AutomaticSize.X ColorButtonsFrame.ScrollBarThickness = 3 ColorButtonsFrame.ScrollingDirection = Enum.ScrollingDirection.X ColorButtonsFrame.ClipsDescendants = true
         local ColorPadding = Instance.new("UIPadding", ColorButtonsFrame) ColorPadding.PaddingTop = UDim.new(0, 3) ColorPadding.PaddingBottom = UDim.new(0, 3) ColorPadding.PaddingLeft = UDim.new(0, 3)
         local ColorListLayout = Instance.new("UIListLayout", ColorButtonsFrame) ColorListLayout.FillDirection = Enum.FillDirection.Horizontal ColorListLayout.Padding = UDim.new(0, 10) ColorListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
@@ -886,11 +799,11 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         end
         CreateRainbowBtn()
 
-        _G.AntiLagAtivadoGlobal = true
+        _G.AntiLagAtivadoGlobal = false
         
         local AntiLagHeader = Instance.new("TextLabel", TabRageFunctions)
         AntiLagHeader.Size = UDim2.new(1, -10, 0, 25)
-        AntiLagHeader.Position = UDim2.new(0, 0, 0, 265)
+        AntiLagHeader.Position = UDim2.new(0, 0, 0, 230)
         AntiLagHeader.BackgroundTransparency = 1
         AntiLagHeader.Text = "Otimização"
         AntiLagHeader.TextColor3 = C_WHITE
@@ -918,7 +831,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end)
         end
 
-        CreateCheckbox(TabRageFunctions, "Anti-Lag Extremo (Remove Texturas)", 0, 290, true, function(ativo)
+        CreateCheckbox(TabRageFunctions, "Anti-Lag Extremo (Remove Texturas)", 0, 255, false, function(ativo)
             _G.AntiLagAtivadoGlobal = ativo
             if ativo then
                 SalvarNoDiario("Iniciando Otimização Extrema", "INFO")
@@ -1250,7 +1163,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
             local function GetClosestEnemyTarget()
                 local closestDist = math.huge local closestPart = nil local center = Camera.ViewportSize / 2 local fovRadius = (tonumber(Aimbot_Settings.FovSize) or 0) / 2
-                for _, player in ipairs(Players:GetPlayers()) do if ValidarAlvoAimbot(player) and IsAlive(player) then local targetPart = GetDynamicTargetPart(player.Character) if targetPart then local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position) if onScreen then local dist = (Vector2.new(pos.X, pos.Y) - center).Magnitude if dist <= fovRadius and dist < closestDist then if IsPartVisible(targetPart) then closestDist = dist closestPart = targetPart end end end end end end
+                for _, player in ipairs(Players:GetPlayers()) do if ValidarAlvoAimbot(player) and IsAlive(player) then local targetPart = GetDynamicTargetPart(player.Character) if targetPart then local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position) if onScreen then local dist = (Vector2.new(pos.X, pos.Y) - center).Magnitude if dist <= fovRadius and dist < closestDist then if IsPartVisible(targetPart) then closestDist = dist closestPart = targetPart end end end end end end end
                 return closestPart
             end
 
