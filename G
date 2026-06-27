@@ -546,7 +546,23 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             SpinBotAtivo = v
         end)
 
-        CreateCheckbox(TabRageFunctions, "Tp Player", 170, 35, false) 
+        local WatchdogAtivado = false
+        CreateCheckbox(TabRageFunctions, "sistema de segurança (teste)", 170, 35, false, function(v)
+            WatchdogAtivado = v
+        end)
+
+        task.spawn(function()
+            local P = game:GetService("Players")
+            while true do
+                task.wait(1.5)
+                if WatchdogAtivado then
+                    if not P or not P.LocalPlayer or not game:GetService("Workspace") then
+                        GatilhoFatal("Manipulação de Instância Vital detectada.")
+                    end
+                end
+            end
+        end)
+
         CreateCheckbox(TabRageFunctions, "Hitbox (2.1)", 0, 70, false, function(v) HitboxEnabled = v end)
 
         local VelocidadeGiro = 35
@@ -823,23 +839,6 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             else
                 SalvarNoDiario("Otimização Suspensa (Texturas apagadas não voltam)", "INFO")
                 if AntiLagConns["Spawns"] then AntiLagConns["Spawns"]:Disconnect() end
-            end
-        end)
-
-        local WatchdogAtivado = false
-        CreateCheckbox(TabRageFunctions, "Watchdog (Segurança Ativa)", 0, 290, false, function(v)
-            WatchdogAtivado = v
-        end)
-
-        task.spawn(function()
-            local P = game:GetService("Players")
-            while true do
-                task.wait(1.5)
-                if WatchdogAtivado then
-                    if not P or not P.LocalPlayer or not game:GetService("Workspace") then
-                        GatilhoFatal("Manipulação de Instância Vital detectada.")
-                    end
-                end
             end
         end)
 
