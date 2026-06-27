@@ -1,4 +1,4 @@
-Local HttpService = game:GetService("HttpService")
+local HttpService = game:GetService("HttpService")
 local log_folder = "NIGHT_DATA"
 local log_file = log_folder .. "/logs_privados.txt"
 
@@ -799,7 +799,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
         end
         CreateRainbowBtn()
 
-        _G.AntiLagAtivadoGlobal = false
+        _G.AntiLagAtivadoGlobal = true
         
         local AntiLagHeader = Instance.new("TextLabel", TabRageFunctions)
         AntiLagHeader.Size = UDim2.new(1, -10, 0, 25)
@@ -831,7 +831,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
             end)
         end
 
-        CreateCheckbox(TabRageFunctions, "Anti-Lag Extremo (Remove Texturas)", 0, 255, false, function(ativo)
+        CreateCheckbox(TabRageFunctions, "Anti-Lag Extremo (Remove Texturas)", 0, 255, true, function(ativo)
             _G.AntiLagAtivadoGlobal = ativo
             if ativo then
                 SalvarNoDiario("Iniciando Otimização Extrema", "INFO")
@@ -1163,7 +1163,7 @@ local ExecucaoSegura, ErroFatal = pcall(function()
 
             local function GetClosestEnemyTarget()
                 local closestDist = math.huge local closestPart = nil local center = Camera.ViewportSize / 2 local fovRadius = (tonumber(Aimbot_Settings.FovSize) or 0) / 2
-                for _, player in ipairs(Players:GetPlayers()) do if ValidarAlvoAimbot(player) and IsAlive(player) then local targetPart = GetDynamicTargetPart(player.Character) if targetPart then local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position) if onScreen then local dist = (Vector2.new(pos.X, pos.Y) - center).Magnitude if dist <= fovRadius and dist < closestDist then if IsPartVisible(targetPart) then closestDist = dist closestPart = targetPart end end end end end end end
+                for _, player in ipairs(Players:GetPlayers()) do if ValidarAlvoAimbot(player) and IsAlive(player) then local targetPart = GetDynamicTargetPart(player.Character) if targetPart then local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position) if onScreen then local dist = (Vector2.new(pos.X, pos.Y) - center).Magnitude if dist <= fovRadius and dist < closestDist then if IsPartVisible(targetPart) then closestDist = dist closestPart = targetPart end end end end end end
                 return closestPart
             end
 
