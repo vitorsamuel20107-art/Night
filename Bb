@@ -1,5 +1,5 @@
 {
-  "latestVersion": "1.2.3",
+  "latestVersion": "1.0.0",
   "minimumVersion": "1.0.0",
   "message": "Nova ksksksk disponível.",
   "updateUrl": "https://seu-link-do-apk.com"
