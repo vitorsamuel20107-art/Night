@@ -68,6 +68,15 @@ end)
 
 SalvarNoDiario("DIÁRIO PRIVADO NIGHT ATIVADO", "INFO")
 
+-- Garantir que funções do executor existam (evita "attempt to call nil")
+if not newcclosure then newcclosure = function(f) return f end end
+if not hookfunction then hookfunction = function(_, f) return f end end
+if not getgc then getgc = function() return {} end end
+if not setreadonly then setreadonly = function() end end
+if not getrawmetatable then getrawmetatable = getmetatable end
+if not getnamecallmethod then getnamecallmethod = function() return "" end end
+if not checkcaller then checkcaller = function() return false end end
+
 local ExecucaoSegura, ErroFatal = pcall(function()
     local CoreGui = game:GetService("CoreGui")
     local UserInputService = game:GetService("UserInputService")
